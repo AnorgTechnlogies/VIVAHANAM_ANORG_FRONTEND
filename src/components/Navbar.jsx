@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Logo from "../assets/Logo.jpg";
+// import Logo from "../assets/Vivahanam logo.png"
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const Navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -21,26 +24,32 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="absolute top-0 left-0 right-0 z-20 bg-white/90 backdrop-blur-sm shadow-md">
-      <div className="px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+    <nav className="absolute top-0 left-0 right-0 z-20 bg-white backdrop-blur-sm shadow-md ">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 lg:py-6 bg-[#]">
         <div className="flex justify-between items-center">
           {/* Logo Section */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-600 to-amber-800 rounded flex items-center justify-center flex-shrink-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 border-2 border-white rounded" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded overflow-hidden flex-shrink-0">
+              <img
+                src={Logo}
+                alt="Vivahanam Logo"
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => Navigate("/")}
+                style={{ cursor: "pointer" }}
+              />
             </div>
             <div className="flex flex-col">
-              <h1 className="m-0 text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+              <h1 className="m-0 text-lg sm:text-xl lg:text-2xl font-bold text-gray-900" onClick={() => Navigate("/")} style={{ cursor: "pointer" }}>
                 Vivahanam
               </h1>
-              <p className="m-0 text-xs sm:text-sm lg:text-md text-gray-600">
+              <p className="m-0 ml-5 text-xs sm:text-sm lg:text-md text-gray-600" onClick={() => Navigate("/")} style={{ cursor: "pointer" }}>
                 ! विवाहनम् !
               </p>
             </div>
           </div>
 
           {/* Desktop Tagline - Hidden on smaller screens */}
-          <div className="hidden xl:block text-sm lg:text-base font-serif text-gray-800 max-w-2xl text-center leading-relaxed tracking-wide font-bold">
+          {/* <div className="hidden xl:block text-sm lg:text-base font-serif text-gray-800 max-w-2xl text-center leading-relaxed tracking-wide font-bold">
             <span className="font-extrabold text-red-800">V</span>edic{" "}
             <span className="font-extrabold text-red-800">I</span>ndian{" "}
             <span className="font-extrabold text-red-800">V</span>ivah{" "}
@@ -52,7 +61,7 @@ const Navbar = () => {
             <span className="font-extrabold text-red-800">N</span>orth{" "}
             <span className="font-extrabold text-red-800">A</span>merican{" "}
             <span className="font-extrabold text-red-800">M</span>atrimony
-          </div>
+          </div> */}
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-6">

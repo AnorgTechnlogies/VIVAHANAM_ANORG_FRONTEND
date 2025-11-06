@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import image4 from "../assets/image4.png"; // Reuse if needed for consistency
+import SearchPartners from "../assets/Search Partners.png"
 
 const PartnersPage = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -8,25 +8,24 @@ const PartnersPage = () => {
   const [filters, setFilters] = useState({ 
     ageMin: 18, 
     ageMax: 35, 
-    location: "",
-    minSalary: "",
-    maxSalary: "",
+    location: "", 
+    salaryMin: 0, 
+    salaryMax: 1000000,
     religion: "",
     diet: "",
-    hobbies: "",
-    language: ""
+    language: "",
+    hobbies: ""
   });
-  const [selectedTab, setSelectedTab] = useState("all"); // 'all', 'bride' or 'groom'
-  const [user, setUser] = useState({ email: "Vivahanam.com" }); // Simulated logged-in user
+  const [selectedTab, setSelectedTab] = useState("all");
+  const [user] = useState({ email: "Vivahanam.com" });
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Trigger animations after component mounts
     setIsVisible(true);
   }, []);
 
-  // Simulated partner data with gender and additional fields
-  const partners = [
+  // Optimized partner data with memoization
+  const partners = useMemo(() => [
     {
       id: 1,
       name: "Priya Sharma",
@@ -37,10 +36,10 @@ const PartnersPage = () => {
       image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=2070",
       interests: ["Yoga", "Cooking", "Travel"],
       gender: "female",
-      salary: 65000,
+      salary: 75000,
       religion: "Hindu",
-      diet: "Veg",
-      language: "Bengali"
+      diet: "veg",
+      language: "English, Hindi",
     },
     {
       id: 2,
@@ -52,10 +51,10 @@ const PartnersPage = () => {
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070",
       interests: ["Reading", "Hiking", "Music"],
       gender: "male",
-      salary: 80000,
+      salary: 90000,
       religion: "Hindu",
-      diet: "Non-Veg",
-      language: "Punjabi"
+      diet: "nonveg",
+      language: "English, Punjabi",
     },
     {
       id: 3,
@@ -67,10 +66,10 @@ const PartnersPage = () => {
       image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070",
       interests: ["Dance", "Art", "Volunteering"],
       gender: "female",
-      salary: 55000,
+      salary: 65000,
       religion: "Hindu",
-      diet: "Veg",
-      language: "Hindi"
+      diet: "both",
+      language: "English, Tamil",
     },
     {
       id: 4,
@@ -82,12 +81,11 @@ const PartnersPage = () => {
       image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2070",
       interests: ["Photography", "Architecture", "Sports"],
       gender: "male",
-      salary: 90000,
-      religion: "Hindu",
-      diet: "Non-Veg",
-      language: "English"
+      salary: 85000,
+      religion: "Jain",
+      diet: "veg",
+      language: "English, Gujarati",
     },
-    // Add more as needed, ensuring gender is set
     {
       id: 5,
       name: "DS25 Hindu Gupta",
@@ -100,8 +98,8 @@ const PartnersPage = () => {
       gender: "female",
       salary: 70000,
       religion: "Hindu",
-      diet: "Veg",
-      language: "Tamil"
+      diet: "veg",
+      language: "English, Tamil",
     },
     {
       id: 6,
@@ -113,43 +111,95 @@ const PartnersPage = () => {
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070",
       interests: ["Reading", "Hiking", "Music"],
       gender: "male",
-      salary: 60000,
+      salary: 80000,
       religion: "Hindu",
-      diet: "Non-Veg",
-      language: "Tamil"
+      diet: "nonveg",
+      language: "English, Hindi",
     },
-  ];
+  ], []);
 
-  // Filter partners based on tab, search, and filters
-  const filteredPartners = partners
-    .filter((partner) => {
-      const matchesTab = selectedTab === "all" || partner.gender === (selectedTab === "bride" ? "female" : "male");
-      const matchesSearch = partner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            partner.description.toLowerCase().includes(searchQuery.toLowerCase());
+  // Optimized filter function with useMemo
+  const filteredPartners = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return partners.filter((partner) => {
+      const matchesTab = selectedTab === "all" || 
+                        partner.gender === (selectedTab === "bride" ? "female" : "male");
+      
+      if (!matchesTab) return false;
+
+      const matchesSearch = partner.name.toLowerCase().includes(query) ||
+                          partner.description.toLowerCase().includes(query);
+      if (!matchesSearch) return false;
+
       const matchesAge = partner.age >= filters.ageMin && partner.age <= filters.ageMax;
-      const matchesLocation = !filters.location || partner.location.toLowerCase().includes(filters.location.toLowerCase());
-      const minSalaryFilter = filters.minSalary ? parseInt(filters.minSalary) : 0;
-      const maxSalaryFilter = filters.maxSalary ? parseInt(filters.maxSalary) : Infinity;
-      const matchesSalary = partner.salary >= minSalaryFilter && partner.salary <= maxSalaryFilter;
+      if (!matchesAge) return false;
+
+      const matchesLocation = !filters.location || 
+                            partner.location.toLowerCase().includes(filters.location.toLowerCase());
+      if (!matchesLocation) return false;
+
+      const matchesSalary = partner.salary >= filters.salaryMin && partner.salary <= filters.salaryMax;
+      if (!matchesSalary) return false;
+
       const matchesReligion = !filters.religion || partner.religion === filters.religion;
+      if (!matchesReligion) return false;
+
       const matchesDiet = !filters.diet || partner.diet === filters.diet;
-      const matchesHobbies = !filters.hobbies || partner.interests.some(interest => 
-        interest.toLowerCase().includes(filters.hobbies.toLowerCase())
-      );
-      const matchesLanguage = !filters.language || partner.language.toLowerCase().includes(filters.language.toLowerCase());
-      return matchesTab && matchesSearch && matchesAge && matchesLocation && matchesSalary && 
-             matchesReligion && matchesDiet && matchesHobbies && matchesLanguage;
+      if (!matchesDiet) return false;
+
+      const matchesLanguage = !filters.language || 
+                            partner.language.toLowerCase().includes(filters.language.toLowerCase());
+      if (!matchesLanguage) return false;
+
+      const matchesHobbies = !filters.hobbies || 
+                           partner.interests.some(interest => 
+                             interest.toLowerCase().includes(filters.hobbies.toLowerCase())
+                           );
+
+      return matchesHobbies;
     });
+  }, [partners, searchQuery, selectedTab, filters]);
 
   const handleProfileClick = (partnerId) => {
     console.log(`Viewing profile: ${partnerId}`);
-    // Navigate to detailed profile page
-    // navigate(`/profile/${partnerId}`);
   };
 
   const handleLogout = () => {
-    setUser(null);
     navigate("/plans");
+  };
+
+  // const handleFreeRegistration = () => {
+  //   navigate("/partners/registerProfile");
+  // };
+
+  const updateFilter = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Floating particles component
+  const FloatingParticles = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(6)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute w-1 sm:w-2 h-1 sm:h-2 bg-amber-400/30 rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDelay: `${i * 0.8}s`,
+            animationDuration: `${4 + Math.random() * 3}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+
+  // Filter options for better maintainability
+  const filterOptions = {
+    ageMin: [18, 20, 25],
+    ageMax: [35, 40, 45],
+    religion: ["", "Hindu", "Muslim", "Christian", "Jain", "Sikh"],
+    diet: ["", "veg", "nonveg", "both"]
   };
 
   return (
@@ -158,30 +208,13 @@ const PartnersPage = () => {
       <section
         className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 md:py-20 lg:py-24 font-sans overflow-hidden"
         style={{
-          backgroundImage: `linear-gradient(rgba(255, 182, 193, 0.06), rgba(255, 182, 193, 0.07)), url(${image4})`,
+          backgroundImage: `linear-gradient(rgba(255, 182, 193, 0.06), rgba(255, 182, 193, 0.07)), url(${SearchPartners})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
         }}
       >
-        {/* Animated Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-pink-300/30 via-transparent to-pink-300/30 animate-pulse-slow" />
-
-        {/* Floating particles background effect */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 sm:w-2 h-1 sm:h-2 bg-amber-400/30 rounded-full animate-float"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${i * 0.8}s`,
-                animationDuration: `${4 + Math.random() * 3}s`,
-              }}
-            />
-          ))}
-        </div>
+        <FloatingParticles />
 
         <div
           className={`relative z-10 flex flex-col items-center w-full max-w-4xl sm:max-w-5xl md:max-w-6xl text-center gap-3 sm:gap-4 md:gap-5 lg:gap-8 transition-all duration-1000 ${
@@ -189,76 +222,41 @@ const PartnersPage = () => {
           }`}
         >
           {/* Title section */}
-          <div className="flex flex-col items-center gap-1 sm:gap-2 md:gap-3 lg:gap-4">
+          <div className="flex mt-10 flex-col items-center gap-1 sm:gap-2 md:gap-3 lg:gap-4">
             <h1
               className={`m-0 text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-red-700 font-bold leading-tight sm:leading-snug transition-all duration-700 delay-300 ${
                 isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
               }`}
               style={{ fontFamily: "serif" }}
             >
-              Best Indian Matrimonial Site in the USA
+              Best Indian Matrimonial  <br /> Site in the USA
             </h1>
             <h3
               className={`m-0 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold leading-tight sm:leading-snug transition-all duration-700 delay-500 p-0 ${
-                isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-5"
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
               }`}
               style={{ color: "#000000ff" }}
             >
-              1000+ Verified Bride & Groom Profiles
+              10+ Verified Bride & Groom Profiles
             </h3>
           </div>
 
-          {/* Welcome Message */}
-          <p
-            className={`text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-black-800 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mt-2 font-semibold px-2 sm:px-0 transition-all duration-700 delay-700 ${
-              isVisible ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            Welcome back, {user.email}. Discover meaningful connections tailored to your Vedic values.
-          </p>
-
-          {/* Subscribe Button */}
-          <button
-            className="mt-4 px-6 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors"
-            onClick={handleLogout}
-          >
-            Subscribe Now
-          </button>
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <button
+              className="px-6 py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors"
+              onClick={handleLogout}
+            >
+              Subscribe Now
+            </button>
+            {/* <button
+              className="px-6 py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors"
+              onClick={handleFreeRegistration}
+            >
+              Register free 
+            </button> */}
+          </div>
         </div>
-
-        <style jsx>{`
-          @keyframes float {
-            0%,
-            100% {
-              transform: translateY(0px) translateX(0px);
-              opacity: 0.3;
-            }
-            50% {
-              transform: translateY(-30px) translateX(20px);
-              opacity: 0.6;
-            }
-          }
-
-          @keyframes pulse-slow {
-            0%,
-            100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.8;
-            }
-          }
-
-          .animate-float {
-            animation: float linear infinite;
-          }
-
-          .animate-pulse-slow {
-            animation: pulse-slow 4s ease-in-out infinite;
-          }
-        `}</style>
       </section>
 
       {/* Search and Filters Section */}
@@ -281,123 +279,121 @@ const PartnersPage = () => {
             />
           </div>
 
-          {/* Bride/Groom/All Tabs */}
+          {/* All/Brides/Grooms Tabs */}
           <div className="flex justify-center mb-8">
             <div className="flex bg-white rounded-xl p-1 shadow-lg">
-              <button
-                onClick={() => setSelectedTab("all")}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                  selectedTab === "all"
-                    ? "bg-amber-500 text-white shadow-md"
-                    : "text-gray-600 hover:text-amber-800"
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setSelectedTab("bride")}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ml-1 ${
-                  selectedTab === "bride"
-                    ? "bg-amber-500 text-white shadow-md"
-                    : "text-gray-600 hover:text-amber-800"
-                }`}
-              >
-                Brides
-              </button>
-              <button
-                onClick={() => setSelectedTab("groom")}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ml-1 ${
-                  selectedTab === "groom"
-                    ? "bg-amber-500 text-white shadow-md"
-                    : "text-gray-600 hover:text-amber-800"
-                }`}
-              >
-                Grooms
-              </button>
+              {["all", "bride", "groom"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setSelectedTab(tab)}
+                  className={`px-6 py-3 rounded-lg font-semibold transition-all capitalize ${
+                    selectedTab === tab
+                      ? "bg-amber-500 text-white shadow-md"
+                      : "text-gray-600 hover:text-amber-800"
+                  } ${tab !== "all" ? "ml-1" : ""}`}
+                >
+                  {tab === "all" ? "All" : tab + "s"}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-4 justify-center mb-12 flex-wrap">
+          {/* Enhanced Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 justify-center mb-12">
+            {/* Age Min */}
             <select
               value={filters.ageMin}
-              onChange={(e) => setFilters({ ...filters, ageMin: parseInt(e.target.value) })}
+              onChange={(e) => updateFilter('ageMin', parseInt(e.target.value))}
               className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
             >
-              <option value={18}>Age Min: 18</option>
-              <option value={20}>Age Min: 20</option>
-              <option value={25}>Age Min: 25</option>
+              {filterOptions.ageMin.map(age => (
+                <option key={age} value={age}>Age Min: {age}</option>
+              ))}
             </select>
+
+            {/* Age Max */}
             <select
               value={filters.ageMax}
-              onChange={(e) => setFilters({ ...filters, ageMax: parseInt(e.target.value) })}
+              onChange={(e) => updateFilter('ageMax', parseInt(e.target.value))}
               className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
             >
-              <option value={35}>Age Max: 35</option>
-              <option value={40}>Age Max: 40</option>
-              <option value={45}>Age Max: 45</option>
+              {filterOptions.ageMax.map(age => (
+                <option key={age} value={age}>Age Max: {age}</option>
+              ))}
             </select>
+
+            {/* Location */}
             <input
               type="text"
-              placeholder="Location (e.g., New York)"
+              placeholder="Place (e.g., New York)"
               value={filters.location}
-              onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+              onChange={(e) => updateFilter('location', e.target.value)}
               className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
             />
+
+            {/* Salary Min */}
             <input
               type="number"
-              placeholder="Min Salary ($)"
-              value={filters.minSalary}
-              onChange={(e) => setFilters({ ...filters, minSalary: e.target.value })}
-              className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500 w-28"
+              placeholder="Salary Min (USD)"
+              value={filters.salaryMin}
+              onChange={(e) => updateFilter('salaryMin', parseInt(e.target.value) || 0)}
+              className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
             />
+
+            {/* Salary Max */}
             <input
               type="number"
-              placeholder="Max Salary ($)"
-              value={filters.maxSalary}
-              onChange={(e) => setFilters({ ...filters, maxSalary: e.target.value })}
-              className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500 w-28"
+              placeholder="Salary Max (USD)"
+              value={filters.salaryMax}
+              onChange={(e) => updateFilter('salaryMax', parseInt(e.target.value) || 1000000)}
+              className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
             />
+
+            {/* Religion */}
             <select
               value={filters.religion}
-              onChange={(e) => setFilters({ ...filters, religion: e.target.value })}
+              onChange={(e) => updateFilter('religion', e.target.value)}
               className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
             >
-              <option value="">Any Religion</option>
-              <option value="Hindu">Hindu</option>
-              <option value="Muslim">Muslim</option>
-              <option value="Sikh">Sikh</option>
-              <option value="Christian">Christian</option>
+              {filterOptions.religion.map(religion => (
+                <option key={religion} value={religion}>
+                  {religion || "Any Religion"}
+                </option>
+              ))}
             </select>
+
+            {/* Diet */}
             <select
               value={filters.diet}
-              onChange={(e) => setFilters({ ...filters, diet: e.target.value })}
+              onChange={(e) => updateFilter('diet', e.target.value)}
               className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
             >
-              <option value="">Any Diet</option>
-              <option value="Veg">Vegetarian</option>
-              <option value="Non-Veg">Non-Vegetarian</option>
-              <option value="Both">Both</option>
+              {filterOptions.diet.map(diet => (
+                <option key={diet} value={diet}>
+                  {!diet ? "Any Diet" : 
+                   diet === "veg" ? "Vegetarian" : 
+                   diet === "nonveg" ? "Non-Vegetarian" : "Both"}
+                </option>
+              ))}
             </select>
+
+            {/* Language */}
+            <input
+              type="text"
+              placeholder="Language (e.g., Hindi)"
+              value={filters.language}
+              onChange={(e) => updateFilter('language', e.target.value)}
+              className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
+            />
+
+            {/* Hobbies */}
             <input
               type="text"
               placeholder="Hobbies (e.g., Yoga)"
               value={filters.hobbies}
-              onChange={(e) => setFilters({ ...filters, hobbies: e.target.value })}
+              onChange={(e) => updateFilter('hobbies', e.target.value)}
               className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
             />
-            <select
-              value={filters.language}
-              onChange={(e) => setFilters({ ...filters, language: e.target.value })}
-              className="px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500"
-            >
-              <option value="">Any Language</option>
-              <option value="English">English</option>
-              <option value="Hindi">Hindi</option>
-              <option value="Tamil">Tamil</option>
-              <option value="Bengali">Bengali</option>
-              <option value="Punjabi">Punjabi</option>
-            </select>
           </div>
         </div>
       </section>
@@ -405,46 +401,13 @@ const PartnersPage = () => {
       {/* Partners Grid */}
       <section className="relative w-full py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
             {filteredPartners.map((partner) => (
-              <div
-                key={partner.id}
-                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-amber-200 hover:border-amber-400 cursor-pointer"
-                onClick={() => handleProfileClick(partner.id)}
-              >
-                {/* Profile Image - Blurred */}
-                <div className="relative h-64 sm:h-72 overflow-hidden">
-                  <img
-                    src={partner.image}
-                    alt={partner.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    style={{ filter: "blur(8px)" }} // Blur effect to make not fully visible
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                  {/* Optional: Overlay text indicating blur reason */}
-                  <div className="absolute bottom-2 left-2 right-2 text-white text-sm font-semibold text-center">
-                    Subscribe to view full profile
-                  </div>
-                </div>
-
-                {/* Profile Content */}
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-amber-900 mb-2">{partner.name}</h3>
-                  <p className="text-red-700 font-semibold mb-1">{partner.age} | {partner.location}</p>
-                  <p className="text-gray-700 mb-4">{partner.profession}</p>
-                  <p className="text-gray-600 mb-4 line-clamp-3">{partner.description}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {partner.interests.map((interest, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm">
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                  <button className="w-full py-3 bg-gradient-to-r from-amber-700 to-amber-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-                    View Profile
-                  </button>
-                </div>
-              </div>
+              <PartnerCard 
+                key={partner.id} 
+                partner={partner} 
+                onClick={handleProfileClick} 
+              />
             ))}
           </div>
 
@@ -462,8 +425,83 @@ const PartnersPage = () => {
           </div>
         </div>
       </section>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) translateX(0px);
+            opacity: 0.3;
+          }
+          50% {
+            transform: translateY(-30px) translateX(20px);
+            opacity: 0.6;
+          }
+        }
+
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.8;
+          }
+        }
+
+        .animate-float {
+          animation: float linear infinite;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+      `}</style>
     </>
   );
 };
+
+// Extracted Partner Card Component for better reusability and performance
+const PartnerCard = ({ partner, onClick }) => (
+  <div
+    className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-amber-200 hover:border-amber-400 cursor-pointer"
+    onClick={() => onClick(partner.id)}
+  >
+    {/* Profile Image - Blurred */}
+    <div className="relative h-40 sm:h-44 overflow-hidden">
+      <img
+        src={partner.image}
+        alt={partner.name}
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        style={{ filter: "blur(8px)" }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+      <div className="absolute bottom-2 left-2 right-2 text-white text-xs sm:text-sm font-semibold text-center">
+        Subscribe to view full profile
+      </div>
+    </div>
+
+    {/* Profile Content */}
+    <div className="p-3 sm:p-4">
+      <h3 className="text-lg sm:text-xl font-bold text-amber-900 mb-1 truncate">
+        {/* {partner.name} */}
+      </h3>
+      <p className="text-red-700 font-semibold mb-1 text-xs sm:text-sm">
+        {partner.age} | {partner.location}
+      </p>
+      <p className="text-gray-700 mb-1 text-xs sm:text-sm font-medium">
+        {partner.profession}
+      </p>
+      <p className="text-gray-600 mb-2 text-xs sm:text-sm line-clamp-1">
+        {partner.description}
+      </p>
+      <div className="flex flex-wrap gap-1 mb-2">
+        {partner.interests.slice(0, 3).map((interest, idx) => (
+          <span key={idx} className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs">
+            {interest}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 export default PartnersPage;

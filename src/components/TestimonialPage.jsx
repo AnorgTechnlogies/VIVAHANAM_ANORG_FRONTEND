@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
+ const API_URL = import.meta.env.VITE_API_KEY;
+
 // Reusable Star Rating Component
 const StarRating = ({ rating, interactive = false, onChange }) => {
   const [hover, setHover] = useState(0);
@@ -57,7 +59,7 @@ export default function TestimonialPage() {
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const res = await axios.get("/api/testimonials/getTestimonials");
+        const res = await axios.get(`${API_URL}/admin/testimonials`);
         const data = Array.isArray(res.data.data) ? res.data.data : [];
         setTestimonials(data);
       } catch (err) {
@@ -91,7 +93,7 @@ export default function TestimonialPage() {
     setSubmitStatus(null);
 
     try {
-      await axios.post("/api/testimonials/submit", formData, {
+      await axios.post(`${API_URL}/admin/testimonials/submit`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

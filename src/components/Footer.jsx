@@ -12,16 +12,16 @@ import {
 
 const Footer = () => {
   const quickLinks = [
-    { name: "Blogs", href: "#blogs" },
-    { name: "FAQ", href: "#faq" },
-    { name: "About Us", href: "#about" },
-    { name: "Contact Us", href: "#contact" },
+    { name: "Blogs", href: "/blogs" },
+    { name: "FAQ", href: "/faq" },
+    { name: "About Us", href: "/about" },
+    { name: "Contact Us", href: "/contact" },
   ];
 
   const services = [
     { name: "Matchmaking", href: "#matchmaking" },
     { name: "Consultations", href: "#consultations" },
-    { name: "Wedding Planning", href: "#planning" },
+    { name: "Wedding Planning", href: "/plans" },
     { name: "Traditional Rituals", href: "#rituals" },
   ];
 

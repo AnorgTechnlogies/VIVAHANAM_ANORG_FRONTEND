@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import image4 from "../assets/image4.png";
+// import image4 from "../assets/image4.png";
 import Home2Img from "../assets/Home2Img.jpg";
 import Home3Img from "../assets/Home3Img.jpg";
 import image from "../assets/image.png";
 import unnamedImage from "../assets/unnamed.jpg";
 import Home5RitualImg from "../assets/Home5RitualImg.jpg";
 import { useNavigate } from "react-router-dom";
-// import BrideGroom from "../assets/BrideGroom.png"
+import Home1 from "../assets/HomeImage1.jpg";
 
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -17,7 +17,8 @@ const HomePage = () => {
   const [authName, setAuthName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [user, setUser] = useState(null); // Simulate logged-in user state
+  const [User, setUser] = useState(null); // Simulate logged-in user state
+  const [error, setError] = useState(""); // Added missing error state
 
   const navigate = useNavigate();
 
@@ -25,35 +26,46 @@ const HomePage = () => {
     console.log("Email submitted:", newsletterEmail);
     // Add your newsletter subscription logic here
   };
+  const handleFreeRegistration = () => {
+    navigate("/partners/registerProfile");
+  };
 
-  const handleAuthSubmit = (e) => {
+  // Consolidated and fixed handleAuthSubmit function
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     if (authMode === "forgot") {
       if (!authEmail) {
-        alert("Please enter email");
+        setError("Please enter email");
         return;
       }
+      // TODO: Implement forgot password API
       console.log("Reset email sent to:", authEmail);
       alert("Reset link sent to your email!");
       setAuthMode("login");
       setAuthEmail("");
       return;
     }
+
     // for login and signup
     if (!authEmail || !authPassword) {
-      alert("Please fill in email and password");
+      setError("Please fill in email and password");
       return;
     }
     if (authMode === "signup") {
       if (!authName) {
-        alert("Please enter name");
+        setError("Please enter name");
         return;
       }
       if (authPassword !== confirmPassword) {
-        alert("Passwords do not match");
+        setError("Passwords do not match");
         return;
       }
     }
+
+    // TODO: Replace with actual Redux dispatch if using Redux
+    // For now, simulate success without await/dispatch
     console.log(`${authMode} successful:`, {
       email: authEmail,
       name: authMode === "signup" ? authName : undefined,
@@ -65,7 +77,123 @@ const HomePage = () => {
     setShowAuthModal(false);
     // Navigate to partner page after successful auth
     navigate("/partners"); // Assuming "/partners" is the route for the partner search page with blurry profiles
+
+    // If using Redux, uncomment and import useDispatch from 'react-redux'
+    // const dispatch = useDispatch();
+    // try {
+    //   if (authMode === "signup") {
+    //     const result = await dispatch(registeradmin({ adminEmailId: authEmail, adminPassword: authPassword, name: authName })).unwrap();
+    //     console.log("Signup successful:", result);
+    //     setShowAuthModal(false);
+    //     navigate("/partners");
+    //   } else {
+    //     const result = await dispatch(login({ adminEmailId: authEmail, adminPassword: authPassword })).unwrap();
+    //     console.log("Login successful:", result);
+    //     setShowAuthModal(false);
+    //     navigate("/partners");
+    //   }
+    // } catch (err) {
+    //   setError(err.message || (authMode === "signup" ? "Signup failed" : "Login failed"));
+    // }
   };
+  // Add this import for loading state
+  // const [isLoading, setIsLoading] = useState(false);
+
+  // // In handleAuthSubmit, replace the entire function with this:
+  // const handleAuthSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError("");
+  //   setIsLoading(true); // Start loading
+
+  //   const API_URL = import.meta.env.VITE_API_URL; // e.g., http://localhost:5000
+
+  //   if (authMode === "forgot") {
+  //     if (!authEmail) {
+  //       setError("Please enter email");
+  //       setIsLoading(false);
+  //       return;
+  //     }
+
+  //     try {
+  //       const response = await fetch(`${API_URL}/api/user/forgot-password`, {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({ email: authEmail }),
+  //       });
+
+  //       const data = await response.json();
+
+  //       if (response.ok) {
+  //         alert("Reset link sent to your email!"); // Or use a toast notification
+  //         setAuthMode("login");
+  //         setAuthEmail("");
+  //       } else {
+  //         setError(data.message || "Failed to send reset link");
+  //       }
+  //     } catch (err) {
+  //       console.error("Forgot password error:", err);
+  //       setError("Something went wrong. Please try again.");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //     return;
+  //   }
+
+  //   // For login and signup
+  //   if (!authEmail || !authPassword) {
+  //     setError("Please fill in email and password");
+  //     setIsLoading(false);
+  //     return;
+  //   }
+
+  //   if (authMode === "signup") {
+  //     if (!authName) {
+  //       setError("Please enter name");
+  //       setIsLoading(false);
+  //       return;
+  //     }
+  //     if (authPassword !== confirmPassword) {
+  //       setError("Passwords do not match");
+  //       setIsLoading(false);
+  //       return;
+  //     }
+  //   }
+
+  //   try {
+  //     let endpoint = authMode === "signup" ? "/api/user/signup" : "/api/user/login";
+  //     let body = authMode === "signup"
+  //       ? { name: authName, email: authEmail, password: authPassword }
+  //       : { email: authEmail, password: authPassword };
+
+  //     const response = await fetch(`${API_URL}${endpoint}`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(body),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       // Set user state with token for future auth
+  //       setUser({
+  //         id: data.user.id,
+  //         name: data.user.name,
+  //         email: data.user.email,
+  //         token: data.token, // Store token here; optionally: localStorage.setItem('token', data.token);
+  //       });
+  //       setShowAuthModal(false);
+  //       navigate("/partners"); // Navigate after success
+  //       console.log(`${authMode} successful:`, data.user);
+  //     } else {
+  //       setError(data.message || (authMode === "signup" ? "Signup failed" : "Login failed"));
+  //     }
+  //   } catch (err) {
+  //     console.error(`${authMode} error:`, err);
+  //     setError("Something went wrong. Please try again.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const switchToSignup = () => {
     setAuthMode("signup");
@@ -73,6 +201,7 @@ const HomePage = () => {
     setAuthPassword("");
     setAuthName("");
     setConfirmPassword("");
+    setError("");
   };
 
   const switchToLogin = () => {
@@ -81,6 +210,7 @@ const HomePage = () => {
     setAuthPassword("");
     setAuthName("");
     setConfirmPassword("");
+    setError("");
   };
 
   useEffect(() => {
@@ -124,10 +254,10 @@ const HomePage = () => {
     // Add your booking logic here
   };
 
-  const handleSeeMore = () => {
-    console.log("See More clicked");
-    // Add your navigation logic here
-  };
+  // const handleSeeMore = () => {
+  //   console.log("See More clicked");
+  //   // Add your navigation logic here
+  // };
 
   const workItems = [
     {
@@ -157,194 +287,151 @@ const HomePage = () => {
 
   return (
     <>
-      <main
-        className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 md:py-20 lg:py-24 font-sans overflow-hidden"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255, 182, 193, 0.06), rgba(104, 85, 88, 0.07)), url(${image4})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          opacity: 0.9,
-        }}
-      >
-        {/* Animated Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-pink-300/30 via-transparent to-pink-300/30 animate-pulse-slow" />
-
-        {/* Floating particles background effect */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 sm:w-2 h-1 sm:h-2 bg-amber-400/30 rounded-full animate-float"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${i * 0.8}s`,
-                animationDuration: `${4 + Math.random() * 3}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        <div
-          className={`relative z-10 flex flex-col items-center w-full max-w-4xl sm:max-w-5xl md:max-w-6xl text-center gap-3 sm:gap-4 md:gap-5 lg:gap-8 transition-all duration-1000 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          {/* Title section with staggered animations */}
-          <div className="flex flex-col items-center gap-1 sm:gap-2 md:gap-3 lg:gap-4">
-            <h2
-              className={`m-0 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl lg:pt-7 text-gray-900 font-serif tracking-wide transition-all duration-700 delay-100 leading-tight sm:leading-snug md:leading-tight ${
-                isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 -translate-y-5"
-              }`}
-            >
-              Creating Memories
-            </h2>
-            <h1
-              className={`m-0 text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-red-700 font-bold leading-tight sm:leading-snug transition-all duration-700 delay-300 ${
-                isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-              }`}
-              style={{ fontFamily: "serif" }}
-            >
-              वसुधैव कुटुंबकम्
-            </h1>
-            <h3
-              className={`m-0 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold leading-tight sm:leading-snug transition-all duration-700 delay-500 p-0 ${
-                isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-5"
-              }`}
-              style={{ color: "#030303ff" }}
-            >
-              Connect With Soulmates
-            </h3>
-          </div>
-
-          {/* Description with fade in */}
-          {/* <p
-            className={`text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-800 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mt-2 font-medium px-2 sm:px-0 transition-all duration-700 delay-700 ${
-              isVisible ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            A trusted platform for Vedic Indian matrimony, fostering authentic
-            holy alliances and meaningful connections within North America's
-            diverse communities.
-          </p> */}
-          <p
-            className={`text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black-800 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mt-2 font-bold px-2 sm:px-0 transition-all duration-700 delay-700 ${
-              isVisible ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            A trusted platform for Vedic Indian matrimony. <br /> fostering
-            authentic holy alliances and meaningful connections within North
-            America's diverse communities.
-          </p>
-
-          {/* Search Partner Button with enhanced animations */}
-          <button
-            className={`mt-3  sm:mt-4 md:mt-5 lg:mt-6 lg:mt-8 px-6 sm:px-8 md:px-10 lg:px-12 py-2.5 sm:py-3 md:py-3.5 lg:py-4 text-white border-none rounded-md text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-semibold cursor-pointer shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 active:scale-95 animate-bounce-subtle min-w-[200px] sm:min-w-[220px] md:min-w-[240px] ${
-              isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-10"
-            }`}
-            style={{
-              backgroundColor: "#e01620ff",
-              transitionDelay: "900ms",
-            }}
-            onClick={() => {
-              // Check if user is logged in (simulate with local state; in real app, use auth context)
-              if (!user) {
-                setShowAuthModal(true);
-              } else {
-                navigate("/partners");
-              }
-            }}
-          >
-            Search soulmate <br /> Groom/Bride
-          </button>
-        </div>
-
-        <style jsx>{`
-          @keyframes float {
-            0%,
-            100% {
-              transform: translateY(0px) translateX(0px);
-              opacity: 0.3;
-            }
-            50% {
-              transform: translateY(-30px) translateX(20px);
-              opacity: 0.6;
-            }
-          }
-
-          @keyframes pulse-slow {
-            0%,
-            100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.8;
-            }
-          }
-
-          @keyframes bounce-subtle {
-            0%,
-            100% {
-              transform: translateY(0);
-            }
-            50% {
-              transform: translateY(-5px);
-            }
-          }
-
-          .animate-float {
-            animation: float linear infinite;
-          }
-
-          .animate-pulse-slow {
-            animation: pulse-slow 4s ease-in-out infinite;
-          }
-
-          .animate-bounce-subtle {
-            animation: bounce-subtle 2s ease-in-out infinite;
-          }
-        `}</style>
-      </main>
-
-      <div className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-visible bg-amber-100">
+      {/* First Section - English Content */}
+      <div className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100">
         <div className="w-full flex flex-col items-center justify-start py-8 sm:py-12 md:py-0">
           <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 w-full">
-              {/* Right Side - Image */}
-              <div className="flex items-center justify-center lg:justify-end order-1 lg:order-2 mb-6 lg:mb-0 w-full">
-                <div className="relative w-full lg:pt-8 max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 w-full items-center">
+              {/* Left Side - Image (top on mobile, left on desktop) */}
+              <div className="flex items-center justify-center lg:justify-start order-1 lg:order-1 w-full mb-6 lg:mb-0">
+                <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto lg:mx-0">
                   <img
-                    src={Home2Img}
+                    src={Home1}
                     alt="Vedic Wedding Ceremony"
-                    className="w-full h-auto rounded-2xl shadow-2xl"
+                    className="w-full h-auto rounded-2xl shadow-2xl object-cover transition-transform duration-500 hover:scale-105"
                   />
-                  {/* Optional decorative element */}
-                  {/* <div className="absolute -bottom-4 -right-4 w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-br from-red-500 to-orange-500 rounded-full opacity-20 blur-3xl -z-10"></div> */}
-                  {/* <div className="absolute -top-4 -left-4 w-20 sm:w-24 h-20 sm:h-24 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full opacity-20 blur-3xl -z-10"></div> */}
                 </div>
               </div>
 
-              {/* Left Side - Content */}
-              <div className="flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-1 w-full">
+              {/* Right Side - Content (bottom on mobile, right on desktop) */}
+              <div className="flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-2 w-full px-4 lg:px-0 text-center lg:text-left">
+                {/* English Heading */}
+                <div className="hidden xl:block text-sm lg:text-base font-serif text-gray-800 max-w-2xl text-center leading-relaxed tracking-wide font-bold">
+                  <span className="font-extrabold text-red-800">V</span>edic{" "}
+                  <span className="font-extrabold text-red-800">I</span>ndian{" "}
+                  <span className="font-extrabold text-red-800">V</span>ivah{" "}
+                  <span className="text-black">–</span>{" "}
+                  <span className="font-extrabold text-red-800">A</span>uthentic{" "}
+                  <span className="font-extrabold text-red-800">H</span>oly{" "}
+                  <span className="font-extrabold text-red-800">A</span>lliances{" "}
+                  <span className="font-extrabold text-red-800">O</span>f{" "}
+                  <span className="font-extrabold text-red-800">N</span>orth{" "}
+                  <span className="font-extrabold text-red-800">A</span>merican{" "}
+                  <span className="font-extrabold text-red-800">M</span>atrimony
+                </div>
+                <h1
+                  className={`text-sm sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-gray-800 leading-tight transition-all duration-700 delay-100 ${
+                    isVisible
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 -translate-y-5"
+                  }`}
+                >
+                  Creating Memories
+                </h1>
+
+                {/* Sanskrit Line */}
+                <h2
+                  className={`text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
+                    isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                  }`}
+                  style={{ fontFamily: "serif" }}
+                >
+                  वसुधैव कुटुंबकम्
+                </h2>
+
+                {/* Subheading */}
+                <h3
+                  className={`text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-800 leading-tight transition-all duration-700 delay-500 ${
+                    isVisible
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-5"
+                  }`}
+                  style={{ color: "#030303" }}
+                >
+                  Connect With Soulmates
+                </h3>
+
+                {/* Description - Pyramid alignment with responsive widths */}
+                {/* <p
+                  className={`text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black-800 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mt-2 font-bold px-2 sm:px-0 transition-all duration-700 delay-700 ${
+                    isVisible ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  A trusted platform for Vedic Indian matrimony. <br />
+                  fostering authentic holy alliances and meaningful connections
+                  within North America's diverse communities.
+                </p>  */}
+                <p
+                  className={`text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:mx-0 font-medium transition-all duration-700 delay-700 break-words ${
+                    isVisible ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <span className="block w-full max-w-[80%] mx-auto lg:mx-0">
+                    A trusted platform for Vedic Indian matrimony.
+                  </span>
+                  <span className="block w-full max-w-full mx-auto lg:mx-0">
+                    fostering authentic holy alliances and meaningful
+                    connections
+                  </span>
+                  <span className="block w-full max-w-[70%] mx-auto lg:mx-0">
+                    within North America's diverse communities.
+                  </span>
+                </p>
+
+                {/* Buttons - Centered on mobile, left-aligned on desktop */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 justify-center lg:justify-start">
+                  <button
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
+                    onClick={() => {
+                      setShowAuthModal(true);
+                      setAuthMode("login");
+                    }}
+                  >
+                    Login
+                  </button>
+                  <button
+                    className="px-6 py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors"
+                    onClick={handleFreeRegistration}
+                  >
+                    Register free
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Second Section - Hindi Content */}
+      <div className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100">
+        <div className="w-full flex flex-col items-center justify-start py-8 sm:py-12 md:py-0">
+          <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 w-full items-center">
+              {/* Right Side - Image (top on mobile, right on desktop) */}
+              <div className="flex items-center justify-center lg:justify-end order-1 lg:order-2 w-full mb-6 lg:mb-0">
+                <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto lg:mx-0">
+                  <img
+                    src={Home2Img}
+                    alt="Vedic Wedding Ceremony"
+                    className="w-full h-auto rounded-2xl shadow-2xl object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
+              </div>
+
+              {/* Left Side - Content (bottom on mobile, left on desktop) */}
+              <div className="flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-1 w-full px-4 lg:px-0 text-center lg:text-left">
                 {/* Hindi Heading */}
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl font-bold text-gray-800 leading-tight sm:leading-snug md:leading-tight text-center lg:text-left hyphens-auto">
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 leading-tight sm:leading-snug md:leading-tight break-words hyphens-auto">
                   वैदिक भारतीय विवाह एवं प्रामाणिक पवित्र संबंध -
                 </h1>
 
                 {/* Red Subheading */}
-                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-4xl font-bold text-red-700 leading-tight sm:leading-snug text-center lg:text-left hyphens-auto">
+                <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-red-700 leading-tight sm:leading-snug break-words hyphens-auto">
                   उत्तर अमेरिकी वैवाहिक संस्था
                 </h2>
 
                 {/* English Description */}
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mt-2 px-2 sm:px-0 text-center lg:text-left">
+                <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:mx-0 mt-2 px-2 sm:px-0 break-words">
                   Vivahanam preserves Vedic marriage traditions, uniting couples
                   through sacred rituals and family values, bridging ancient
                   spirituality with modern matrimony for Hindu families across
@@ -353,10 +440,10 @@ const HomePage = () => {
 
                 {/* Optional CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center lg:justify-start">
-                  <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 min-w-[160px] sm:min-w-[180px]">
-                    Get Started
-                  </button>
-                  <button className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-red-600 font-semibold rounded-lg border-2 border-red-600 hover:bg-red-50 transition-all duration-300 min-w-[160px] sm:min-w-[180px]">
+                  <button
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px] "
+                    onClick={() => navigate("/about")}
+                  >
                     Learn More
                   </button>
                 </div>
@@ -413,7 +500,7 @@ const HomePage = () => {
                     onClick={handleNewsletterSubmit}
                     className="px-10 py-4 bg-gradient-to-r from-amber-700 to-amber-800 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl hover:from-amber-800 hover:to-amber-900 transform hover:-translate-y-0.5 transition-all duration-300"
                   >
-                    Subscribe Now
+                    Submit Now
                   </button>
                 </div>
               </div>
@@ -444,15 +531,18 @@ const HomePage = () => {
                 {/* Vision Badge */}
                 <div className="inline-flex items-center space-x-3 mb-4">
                   <div className="h-1 w-16 bg-gradient-to-r from-amber-500 to-red-600"></div>
-                  <span className="text-amber-300 text-lg font-semibold tracking-wider uppercase">
+                  <span className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-amber-50 leading-tight text-amber-300">
                     Vision
                   </span>
                 </div>
 
                 {/* Main Heading */}
-                <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-50 leading-tight">
+                <h4
+                  className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-amber-50 leading-tight
+"
+                >
                   Our Commitment
-                </h2>
+                </h4>
 
                 {/* Description */}
                 <p className="text-lg md:text-xl lg:text-xl text-amber-100 leading-relaxed max-w-2xl">
@@ -476,7 +566,7 @@ const HomePage = () => {
                     <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
                       500+
                     </div>
-                    <div className="text-sm text-amber-200/80">
+                    <div className="text-xl text-amber-200/80">
                       Happy Couples
                     </div>
                   </div>
@@ -484,7 +574,7 @@ const HomePage = () => {
                     <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
                       10+
                     </div>
-                    <div className="text-sm text-amber-200/80">
+                    <div className="text-xl text-amber-200/80">
                       Years Experience
                     </div>
                   </div>
@@ -492,7 +582,7 @@ const HomePage = () => {
                     <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
                       98%
                     </div>
-                    <div className="text-sm text-amber-200/80">
+                    <div className="text-xl text-amber-200/80">
                       Satisfaction Rate
                     </div>
                   </div>
@@ -663,12 +753,12 @@ const HomePage = () => {
 
           {/* See More Button */}
           <div className="flex justify-center mt-8 lg:mt-12">
-            <button
+            {/* <button
               onClick={handleSeeMore}
               className="px-10 py-4 bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
             >
               See More Services
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
@@ -678,8 +768,8 @@ const HomePage = () => {
 
       {/* Auth Modal Popup */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent pointer-events-none">
-          <div className="bg-white rounded-2xl p-8 sm:p-10 md:p-12 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200 pointer-events-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 pointer-events-auto">
+          <div className="bg-white rounded-2xl p-8 sm:p-10 md:p-12 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="flex justify-end mb-6">
               <button
                 onClick={() => setShowAuthModal(false)}
@@ -695,6 +785,7 @@ const HomePage = () => {
                 ? "Sign Up Today"
                 : "Forgot Password?"}
             </h2>
+            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
             <form onSubmit={handleAuthSubmit} className="space-y-4">
               {authMode === "signup" && (
                 <div>
@@ -794,6 +885,126 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+      {/* this is 3 step section  */}
+
+      <div className="w-full bg-amber-100 px-4 sm:px-8 lg:px-16">
+        {/* Section Header */}
+        <div className="text-center mb-12">
+          <p className="text-red-900 text-3xl sm:text-4xl md:text-5xl sm:text-xl font-semibold">
+            Look For Your 'Soulmate'
+          </p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-800 mt-4">
+            3 <span className="text-5xl">Easy Steps</span>
+          </h2>
+        </div>
+
+        {/* Steps Layout */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-around gap-10 lg:gap-16 max-w-7xl mx-auto">
+          {/* Step 1 */}
+          <div
+            className="flex flex-col items-center text-center space-y-4 cursor-pointer flex-1"
+            onClick={() => navigate("/register")}
+          >
+            <h3 className="text-2xl font-bold text-red-600">STEP 1</h3>
+            <h3 className="text-2xl font-semibold text-gray-800">
+              Create your Profile
+            </h3>
+
+            <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden shadow-xl">
+              <img
+                src="https://images.unsplash.com/photo-1603415526960-f7e0328c63b1"
+                alt="Create Profile"
+                className="w-full h-full object-cover"
+              />
+
+              {/* 🔹 User icon at top-right */}
+              <div className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full shadow-md">
+                <i className="fa-solid fa-user text-lg"></i>
+              </div>
+            </div>
+
+            <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
+              Register for free & put up your Profile to connect with members in
+              your community in short time.
+            </p>
+          </div>
+
+          {/* Arrow 1 */}
+          <div className="hidden md:flex md:items-center md:justify-center md:w-12">
+            <span className="text-red-900 font-bold text-5xl md:text-7xl">
+              →
+            </span>
+          </div>
+
+          {/* Step 2 */}
+          <div className="flex flex-col items-center text-center space-y-4 flex-1">
+            <h3 className="text-2xl font-bold text-red-600">STEP 2</h3>
+            <h3 className="text-2xl font-semibold text-gray-800">
+              Search for Partner
+            </h3>
+            <div className="relative w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden shadow-xl">
+              <img
+                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2"
+                alt="Search Partner"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-2 right-2 bg-red-600 text-white p-2 rounded-full">
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </div>
+            </div>
+            <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
+              Select options and Search your perfect partner easily.
+            </p>
+          </div>
+
+          {/* Arrow 2 */}
+          <div className="hidden md:flex md:items-center md:justify-center md:w-12">
+            <span className="text-red-900 font-bold text-5xl md:text-7xl">
+              {" "}
+              →{" "}
+            </span>
+          </div>
+
+          {/* Step 3 */}
+          <div className="flex flex-col items-center text-center space-y-4 flex-1">
+            <h3 className="text-2xl font-bold text-red-600">STEP 3</h3>
+            <h3 className="text-2xl font-semibold text-gray-800">
+              Express your Interest
+            </h3>
+            <div className="relative flex gap-2 justify-center">
+              <div className="w-24 h-28 rounded-xl overflow-hidden shadow-md">
+                <img
+                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde"
+                  alt="Profile 1"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="w-24 h-28 rounded-xl overflow-hidden shadow-md">
+                <img
+                  src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e"
+                  alt="Profile 2"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="w-24 h-28 rounded-xl overflow-hidden shadow-md">
+                <img
+                  src="https://images.unsplash.com/photo-1607746882042-944635dfe10e"
+                  alt="Profile 3"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute bottom-2 right-1 bg-red-600 text-white p-2 rounded-full">
+                <i className="fa-solid fa-heart"></i>
+              </div>
+            </div>
+            <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
+              Express Interests & go forward one step to connect with your
+              partner.
+            </p>
+          </div>
+        </div>
+      </div>
     </>
   );
 };

@@ -180,6 +180,91 @@ const plansData = {
       icon: <FaCrown className="text-amber-600 text-4xl" />,
     },
   ],
+  payg: [
+    {
+      id: 1,
+      name: "Silver",
+      price: "$0",
+      description:
+        "Basic access - Pay only for individual services as needed.",
+      features: [
+        { text: "10 Match Making", included: true },
+        { text: "Pre-Wedding Consultation", included: false },
+        { text: "Auspicious Date Discovery", included: false },
+        { text: "Priest Support", included: false },
+        { text: "Location Services", included: false },
+        { text: "Event Management", included: false },
+        { text: "Decoration", included: false },
+        { text: "Food/Catering", included: false },
+        { text: "Transportation & Logistics", included: false },
+        { text: "Marriage Registration", included: false },
+      ],
+      highlight: false,
+      icon: <FaRocket className="text-amber-600 text-4xl" />,
+    },
+    {
+      id: 2,
+      name: "Gold",
+      price: "$15",
+      description:
+        "Pay per essential service - Flexible for targeted needs.",
+      features: [
+        { text: "50+ Match Making", included: true },
+        { text: "Pre-Wedding Consultation", included: true },
+        { text: "Auspicious Date Discovery", included: true },
+        { text: "Priest Support", included: true },
+        { text: "Location Services", included: false },
+        { text: "Event Management", included: false },
+        { text: "Decoration", included: false },
+        { text: "Food/Catering", included: false },
+        { text: "Transportation & Logistics", included: false },
+        { text: "Marriage Registration", included: false },
+      ],
+      highlight: false,
+      icon: <FaStar className="text-amber-600 text-4xl" />,
+    },
+    {
+      id: 3,
+      name: "Diamond",
+      price: "$30",
+      description: "Best Value - Pay per comprehensive package with location.",
+      features: [
+        { text: "Match Making", included: true },
+        { text: "Pre-Wedding Consultation", included: true },
+        { text: "Auspicious Date Discovery", included: true },
+        { text: "Priest Support", included: true },
+        { text: "Location Services", included: true },
+        { text: "Event Management", included: false },
+        { text: "Decoration", included: false },
+        { text: "Food/Catering", included: false },
+        { text: "Transportation & Logistics", included: false },
+        { text: "Marriage Registration", included: false },
+      ],
+      highlight: true,
+      icon: <FaGem className="text-amber-600 text-4xl" />,
+    },
+    {
+      id: 4,
+      name: "Platinum",
+      price: "$50",
+      description:
+        "Pay per full event - Complete one-time wedding management.",
+      features: [
+        { text: "Match Making", included: true },
+        { text: "Pre-Wedding Consultation", included: true },
+        { text: "Auspicious Date Discovery", included: true },
+        { text: "Priest Support", included: true },
+        { text: "Location Services", included: true },
+        { text: "Event Management", included: true },
+        { text: "Decoration", included: true },
+        { text: "Food/Catering", included: true },
+        { text: "Transportation & Logistics", included: true },
+        { text: "Marriage Registration", included: true },
+      ],
+      highlight: false,
+      icon: <FaCrown className="text-amber-600 text-4xl" />,
+    },
+  ],
 };
 
 const Plans = () => {
@@ -219,8 +304,8 @@ const Plans = () => {
           credit card needed.
         </p>
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center items-center gap-4 mb-8">
+        {/* Billing Toggle - Updated to include PAYG */}
+        <div className="flex justify-center items-center gap-4 mb-8 flex-wrap">
           <button
             className={`px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
               billingCycle === "monthly"
@@ -242,6 +327,19 @@ const Plans = () => {
             Yearly
             <span className="ml-2 px-2 py-1 bg-amber-400 text-amber-900 text-xs font-bold rounded">
               Save 20%
+            </span>
+          </button>
+          <button
+            className={`px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
+              billingCycle === "payg"
+                ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg"
+                : "bg-white text-green-800 border-2 border-green-200 hover:border-green-400"
+            }`}
+            onClick={() => setBillingCycle("payg")}
+          >
+            Pay As You Go
+            <span className="ml-2 px-2 py-1 bg-green-400 text-green-900 text-xs font-bold rounded">
+              Flexible
             </span>
           </button>
         </div>
@@ -288,7 +386,7 @@ const Plans = () => {
                 <p className="text-5xl font-bold text-amber-900">
                   {plan.price}
                   <span className="text-lg font-normal text-gray-600">
-                    {billingCycle === "monthly" ? "/mo" : "/yr"}
+                    {billingCycle === "payg" ? "/service" : billingCycle === "monthly" ? "/mo" : "/yr"}
                   </span>
                 </p>
               </div>
@@ -315,7 +413,7 @@ const Plans = () => {
               </ul>
 
               <button className="w-full py-3 mb-3 rounded-lg bg-gradient-to-r from-amber-700 to-amber-800 text-white font-semibold hover:from-amber-800 hover:to-amber-900 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105" onClick={() => {Navigate('/register')}}>
-                Start 14-Day Free Trial
+                {billingCycle === "payg" ? "Buy Now" : "Start 14-Day Free Trial"}
               </button>
 
               <button
@@ -326,7 +424,7 @@ const Plans = () => {
               </button>
 
               <p className="text-xs mt-3 text-center text-gray-500">
-                No credit card required
+                {billingCycle === "payg" ? "One-time payment per service" : "No credit card required"}
               </p>
             </div>
           </div>

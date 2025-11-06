@@ -35,8 +35,9 @@ function App() {
         <Route path="/blog/:id/" element={<BlogDetails />} />
         <Route path="/testimonials" element={<TestimonialPage />} />
            <Route path="/register" element={<RegistrationPage />} />
-           <Route path="/partners" element={<PartnersPage />} />
+           <Route path="/partners" element={<PartnersPage />} /> 
       
+       <Route path="/partners/registerProfile" element={<RegistrationPage />} />
       </Routes>
       <Footer />
     </Router>

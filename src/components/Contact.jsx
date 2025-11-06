@@ -4,6 +4,8 @@ import "react-phone-number-input/style.css";
 
 import { getCountryCallingCode } from "react-phone-number-input"; // Add this import
 
+
+
 const Contact = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentCountry, setCurrentCountry] = useState("US");
@@ -25,10 +27,34 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = () => {
-    console.log("Form submitted:", formData);
-    // Add your form submission logic here
-  };
+ const API_URL = import.meta.env.VITE_API_KEY;
+
+const handleSubmit = async () => {
+  console.log("Submitting form data:", formData);
+  try {
+    if (!formData.name || !formData.email || !formData.message) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/admin/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      alert("Thanks! We'll get back to you soon.");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } else {
+      throw new Error("Submission failed.");
+    }
+  } catch (err) {
+    console.error("Error submitting form:", err);
+    alert("Something went wrong. Please try again.");
+  }
+};
+
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
