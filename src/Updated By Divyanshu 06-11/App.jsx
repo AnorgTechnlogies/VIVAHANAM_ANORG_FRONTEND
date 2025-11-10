@@ -1,6 +1,5 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
 import Navbar from "./components/Navbar";
 import HomePage from "./components/HomePage";
 import About from "./components/About"; // Assuming you have this component
@@ -11,13 +10,6 @@ import Products from "./components/Products"; // Assuming you have this componen
 import FAQ from "./components/FAQ"; // Assuming you have this component
 import Portfolio from "./components/Portfolio"; // Assuming you have this component (corrected spelling)
 import Plans from "./components/planPages/plans";
-import SignupPage from './components/SignupPage';
-import LoginPage from './components/LoginPage';
-import ProfileView from './components/ProfileView';
-import SearchResults from './components/SearchResults';
-import UpdateProfile from './components/UpdateProfile';
-import SubscriptionPlans from './components/planPages/SubscriptionPlans';
-import PlanDashboard from './components/planPages/planDashboard';
 import "./App.css";
 import Footer from "./components/Footer";
 import BlogDetails from './components/otherpages/BlogDetails';
@@ -29,7 +21,7 @@ import Gold from './components/planPages/subscription/Gold';
 import Platinum from './components/planPages/subscription/Platinum';
 import Silver from './components/planPages/subscription/Silver';
 import Payas from './components/planPages/subscription/PayAs';
-import PlanPage from './components/PlanPage';
+
 
 function App() {
   return (
@@ -37,7 +29,6 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/planpage" element={<PlanPage />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/blogs" element={<Blogs />} />
@@ -48,14 +39,6 @@ function App() {
         <Route path="/plans" element={<Plans />} />
         <Route path="/blog/:id/" element={<BlogDetails />} />
         <Route path="/testimonials" element={<TestimonialPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/profile" element={<ProfileView />} />
-        <Route path="/search" element={<SearchResults />} />
-        <Route path="/update-profile" element={<UpdateProfile />} />
-        <Route path="/subscription-plans" element={<SubscriptionPlans />} />
-        <Route path="/plan-dashboard" element={<PlanDashboard />} />
-
            <Route path="/register" element={<RegistrationPage />} />
            <Route path="/partners" element={<PartnersPage />} />
            <Route path="/diamond" element={<Diamond />} />
@@ -63,8 +46,7 @@ function App() {
            <Route path="/platinum" element={<Platinum />} />
            <Route path="/silver" element={<Silver />} />
            <Route path="/payas" element={<Payas />} />
-           
-           {/* <Route path="/Partners/registerProfile" element={<RegistrationPage />} /> */}
+           <Route path="/Partners/registerProfile" element={<RegistrationPage />} />
       </Routes>
       <Footer />
     </Router>

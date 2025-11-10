@@ -5,7 +5,6 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
 console.log("BASE_URL : ", BASE_URL);
 
-
 const initialState = {
   loading: true, // Start with loading true to prevent flash
   error: null,
@@ -26,8 +25,16 @@ const userSlice = createSlice({
     },
     registerSuccess(state, action) {
       state.loading = false;
+      state.isAuthenticated = false;  // Don't auth yet (wait for verify)
+      state.user = null;  // Or partial user if needed
+      state.token = null;
+      state.message = action.payload.message;  // e.g., "Verification code sent"
+      state.error = null;
+    },
+    verifySuccess(state, action) {
+      state.loading = false;
       state.isAuthenticated = true;
-      state.user = action.payload.result;
+      state.user = action.payload.user;  // From verify response
       state.token = action.payload.token;
       state.message = action.payload.message;
       state.error = null;
@@ -35,19 +42,19 @@ const userSlice = createSlice({
     loginSuccess(state, action) {
       state.loading = false;
       state.isAuthenticated = true;
-      state.user = action.payload.result;
+      state.user = action.payload.user;  // Fixed: was result, but backend uses user
       state.token = action.payload.token;
       state.message = action.payload.message;
       state.error = null;
     },
     userProfileSuccess(state, action) {
       state.loading = false;
-      state.user = action.payload.result;
+      state.user = action.payload.user;  // Fixed: was result, align with backend
       state.error = null;
     },
     updateProfileSuccess(state, action) {
       state.loading = false;
-      state.user = action.payload.result;
+      state.user = action.payload.user;  // Fixed: was result
       state.message = action.payload.message;
       state.error = null;
     },
@@ -74,7 +81,7 @@ const userSlice = createSlice({
       state.loading = false;
       if (action.payload) {
         state.isAuthenticated = true;
-        state.user = action.payload.result;
+        state.user = action.payload.user;  // Fixed: was result
         state.token = action.payload.token;
         state.error = null;
       } else {
@@ -88,36 +95,54 @@ const userSlice = createSlice({
 
 // Register User
 export const registerUser = (userData) => async (dispatch) => {
-
   console.log("User Data : ", userData);
-  
+ 
   try {
     dispatch(userSlice.actions.userRequest());
-    const config = { 
+    const config = {
       headers: { "Content-Type": "multipart/form-data" },
       withCredentials: true,
     };
-    
+   
     const response = await axios.post(
-
       `${BASE_URL}/api/user/register`,
-
-      `${BASE_URL}/api/user/signup`,
-
-      userData,
+      userData,  // Fixed: Removed duplicate URL from body
       config
     );
-    
+   
     dispatch(userSlice.actions.registerSuccess(response.data));
-    
-    // Store token in localStorage
+   
+    // No token storage here (handled after verify)
+  } catch (error) {
+    dispatch(
+      userSlice.actions.userFailed(
+        error.response?.data?.message || "Registration failed"
+      )
+    );
+  }
+};
+
+// Verify Email
+export const verifyEmail = (email, otp) => async (dispatch) => {
+  try {
+    dispatch(userSlice.actions.userRequest());
+    const config = {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    };
+    const response = await axios.post(
+      `${BASE_URL}/api/user/verify-email`,  // Match route
+      { email, verificationCode: otp },
+      config
+    );
+    dispatch(userSlice.actions.verifySuccess(response.data));
     if (response.data.token) {
       localStorage.setItem("vivahanamToken", response.data.token);
     }
   } catch (error) {
     dispatch(
       userSlice.actions.userFailed(
-        error.response?.data?.message || "Registration failed"
+        error.response?.data?.message || "Verification failed"
       )
     );
   }
@@ -184,7 +209,7 @@ export const updateUserProfile = (userData) => async (dispatch) => {
     dispatch(userSlice.actions.userRequest());
     const token = localStorage.getItem("vivahanamToken");
     const config = {
-      headers: { 
+      headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,
       },
@@ -236,7 +261,6 @@ export const logoutUser = () => async (dispatch) => {
 export const clearErrors = () => (dispatch) => {
   dispatch(userSlice.actions.clearErrors());
 };
-
 export const clearMessage = () => (dispatch) => {
   dispatch(userSlice.actions.clearMessage());
 };
@@ -244,9 +268,9 @@ export const clearMessage = () => (dispatch) => {
 // Initialize authentication on app load
 export const initializeAuth = () => async (dispatch) => {
   const token = localStorage.getItem("vivahanamToken");
-  
+ 
   console.log("Initializing auth, token found:", !!token);
-  
+ 
   if (token) {
     try {
       dispatch(userSlice.actions.userRequest());
@@ -254,16 +278,16 @@ export const initializeAuth = () => async (dispatch) => {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       };
-      
+     
       console.log("Making profile request with token");
       const response = await axios.get(
         `${BASE_URL}/api/user/profile`,
         config
       );
-      
+     
       console.log("Profile response:", response.data);
       dispatch(userSlice.actions.initializeAuth({
-        result: response.data.result,
+        user: response.data.user,  // Fixed: was result
         token: token
       }));
     } catch (error) {

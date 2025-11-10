@@ -6,15 +6,6 @@ import {
   FaRocket,
   FaCrown,
   FaGem,
-  FaCcVisa,
-  FaCcMastercard,
-  FaCcAmex,
-  FaCcPaypal,
-  FaBitcoin,
-  FaGift,
-  FaMobileAlt,
-  FaTimes,
-  FaLock,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -23,7 +14,7 @@ const plansData = {
     {
       id: 1,
       name: "Silver",
-      price: "$5",
+      price: "$0",
       description:
         "Do it yourself - Perfect for couples who want to plan independently.",
       features: [
@@ -112,7 +103,7 @@ const plansData = {
     {
       id: 1,
       name: "Silver",
-      price: "$10",
+      price: "$0",
       description:
         "Do it yourself - Perfect for couples who want to plan independently.",
       features: [
@@ -199,49 +190,17 @@ const plansData = {
   ],
 };
 
-const paymentMethods = [
-  { name: "Visa", icon: <FaCcVisa className="text-4xl text-blue-600" /> },
-  { name: "Mastercard", icon: <FaCcMastercard className="text-4xl text-red-600" /> },
-  { name: "American Express", icon: <FaCcAmex className="text-4xl text-blue-500" /> },
-  { name: "PayPal", icon: <FaCcPaypal className="text-4xl text-blue-700" /> },
-  { name: "Crypto", icon: <FaBitcoin className="text-4xl text-orange-500" /> },
-  { name: "Giftcard", icon: <FaGift className="text-4xl text-pink-600" /> },
-  { name: "Upi", icon: <FaMobileAlt className="text-4xl text-purple-600" /> },
-];
-
 const Plans = () => {
   const [billingCycle, setBillingCycle] = useState("monthly");
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoForSubscription = (plan) => {
-    setSelectedPlan(plan);
-    setSelectedPaymentMethod("");
-    setShowPaymentModal(true);
+  const handlePaymentClick = () => {
+    console.log("Navigate to payment methods");
+    // Add your payment-method navigation logic here if needed
   };
 
-  const handleSelectPayment = (method) => {
-    setSelectedPaymentMethod(method);
-  };
-
-  const handleProceedToPay = () => {
-    if (selectedPaymentMethod) {
-      setIsProcessing(true);
-      // Simulate payment processing
-      setTimeout(() => {
-        setIsProcessing(false);
-        setShowPaymentModal(false);
-        navigate(selectedPlan.route);
-      }, 2000); // Brief delay to simulate payment
-    }
-  };
-
-  const closeModal = () => {
-    setShowPaymentModal(false);
-    setSelectedPaymentMethod("");
+  const handleGoForSubscription = (route) => {
+    navigate(route);
   };
 
   return (
@@ -267,7 +226,7 @@ const Plans = () => {
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-amber-900">
           Choose Your Perfect Plan
         </h2>
-        <p className="text-2xl md:text-3xl mb-8 text-gray-700 font-bold">
+        <p className="ext-2xl md:text-3xl mb-8 text-gray-700 font-bold">
           Discover love with plans made for you
         </p>
 
@@ -386,127 +345,25 @@ const Plans = () => {
               {/* Go for Subscription – unique route per plan */}
               <button
                 className="w-full py-3 mb-3 rounded-lg bg-gradient-to-r from-amber-700 to-amber-800 text-white font-semibold hover:from-amber-800 hover:to-amber-900 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-                onClick={() => handleGoForSubscription(plan)}
+                onClick={() => handleGoForSubscription(plan.route)}
               >
                 Go for Subscription
               </button>
 
-              {/* <button
+              <button
                 onClick={handlePaymentClick}
                 className="w-full py-3 rounded-lg bg-white border-2 border-amber-700 text-amber-800 font-semibold hover:bg-amber-50 transition-all duration-300 transform hover:scale-105"
               >
                 View Payment Methods
-              </button> */}
+              </button>
 
-              
+              <p className="text-xs mt-3 text-center text-gray-500">
+                No credit card required
+              </p>
             </div>
           </div>
         ))}
       </div>
-
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slideUp">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-amber-600 to-amber-700 text-white p-6 rounded-t-3xl relative">
-              <button
-                onClick={closeModal}
-                className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full p-2 transition-all duration-300"
-              >
-                <FaTimes className="text-xl" />
-              </button>
-              <div className="flex items-center gap-4">
-                {selectedPlan.icon}
-                <div>
-                  <h3 className="text-3xl font-bold">{selectedPlan.name} Plan</h3>
-                  <p className="text-amber-100 text-lg mt-1">{selectedPlan.description}</p>
-                </div>
-              </div>
-              <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-amber-100 font-semibold">Total Amount:</span>
-                  <span className="text-4xl font-bold">{selectedPlan.price}</span>
-                </div>
-              </div>
-            </div>
-            {/* Payment Methods */}
-            <div className="p-8">
-              <div className="flex items-center gap-2 mb-6">
-                <FaLock className="text-green-600 text-xl" />
-                <h4 className="text-2xl font-bold text-amber-900">Select Payment Method</h4>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-                {paymentMethods.map((method) => (
-                  <button
-                    key={method.name}
-                    onClick={() => handleSelectPayment(method.name)}
-                    className={`bg-white rounded-xl p-6 border-3 transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                      selectedPaymentMethod === method.name
-                        ? "border-amber-600 bg-amber-50 shadow-lg ring-4 ring-amber-200"
-                        : "border-amber-200 hover:border-amber-400"
-                    }`}
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      {method.icon}
-                      <span className="text-sm font-semibold text-gray-800">
-                        {method.name}
-                      </span>
-                      {selectedPaymentMethod === method.name && (
-                        <FaCheckCircle className="text-green-600 text-xl" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {/* Security Notice */}
-              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <FaLock className="text-green-600 text-xl mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-green-900 mb-1">
-                      Secure Payment Gateway
-                    </p>
-                    <p className="text-xs text-green-800">
-                      Your payment information is encrypted and secure. We never store your card details.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              {/* Action Buttons */}
-              <div className="flex gap-4">
-                <button
-                  onClick={closeModal}
-                  className="flex-1 py-4 rounded-xl border-2 border-amber-300 text-amber-800 font-semibold hover:bg-amber-50 transition-all duration-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleProceedToPay}
-                  disabled={!selectedPaymentMethod || isProcessing}
-                  className={`flex-1 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-                    !selectedPaymentMethod || isProcessing
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  }`}
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <FaLock />
-                      Proceed to Pay {selectedPaymentMethod && `(${selectedPaymentMethod})`}
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Footer */}
       <div className="mt-16 text-center relative z-10">
@@ -557,32 +414,8 @@ const Plans = () => {
             transform: translateY(0);
           }
         }
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
         .animate-float {
           animation: float linear infinite;
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .animate-slideUp {
-          animation: slideUp 0.4s ease-out;
         }
       `}</style>
     </div>

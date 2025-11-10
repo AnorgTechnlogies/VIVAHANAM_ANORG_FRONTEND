@@ -115,7 +115,7 @@ const Footer = () => {
                   size={20}
                   className="text-amber-300 flex-shrink-0 mt-1"
                 />
-                <span className="text-amber-100 text-sm">North America</span>
+                <span className="text-amber-100 text-sm">11583 Independence Parkway, Suite 430, Frisco, TX 75035, USA,</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={20} className="text-amber-300 flex-shrink-0" />
