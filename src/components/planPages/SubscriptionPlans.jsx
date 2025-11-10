@@ -332,7 +332,7 @@ const SubscriptionPlans = () => {
             id: 1,
             name: "Rajesh Kumar",
             email: "divyanshu2022d@gmail.com",
-            vivId: "VIV79762",
+            vivId: "VIV93467",
             profileCompleted: 85
           });
         }
@@ -343,7 +343,7 @@ const SubscriptionPlans = () => {
           id: 1,
           name: "Rajesh Kumar",
           email: "divyanshu2022d@gmail.com",
-          vivId: "VIV79762",
+          vivId: "VIV93467",
           profileCompleted: 85
         });
       }
@@ -516,7 +516,7 @@ const SubscriptionPlans = () => {
 
           <button
             className="px-8 py-3 rounded-lg font-semibold bg-white text-amber-800 border-2 border-amber-200 hover:border-amber-400 transition-all duration-300 transform hover:scale-105"
-            onClick={() => navigate("/pay-as-you-go")}
+            onClick={() => navigate("/payas")}
           >
             Pay As You Go
           </button>

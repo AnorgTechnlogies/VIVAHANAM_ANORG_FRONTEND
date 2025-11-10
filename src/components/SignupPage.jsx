@@ -198,27 +198,9 @@ const SignupPage = () => {
       submitData.append("lastName", formData.lastName);
       submitData.append("email", formData.email);
       submitData.append("password", formData.password);
-      
-      // Default values for required fields
-      submitData.append("mobileNo", "0000000000");
-      submitData.append("userType", "Self");
-      submitData.append("gender", "Male");
-      submitData.append("dateOfBirth", "1990-01-01");
-      submitData.append("religion", "Hindu");
-      submitData.append("maritalStatus", "Never Married");
-      submitData.append("city", "Mumbai");
-      submitData.append("state", "Maharashtra");
-      submitData.append("educationLevel", "Graduate");
-      submitData.append("occupation", "Professional");
-      submitData.append("country", "India");
-      submitData.append("citizenshipStatus", "Citizen");
-
       // Default partner preferences
       const defaultPartnerPreferences = {
-        ageRange: { min: "25", max: "35" },
-        preferredReligion: ["Hindu"],
-        preferredEducation: ["Graduate"],
-        preferredOccupation: ["Professional"]
+        
       };
       submitData.append("partnerPreferences", JSON.stringify(defaultPartnerPreferences));
 

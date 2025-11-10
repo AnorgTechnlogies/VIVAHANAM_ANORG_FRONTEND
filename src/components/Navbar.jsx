@@ -39,7 +39,7 @@ const Navbar = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleProfileDropdown = () => setIsProfileDropdownOpen(!isProfileDropdownOpen);
 
-  const handleLogin = () => navigate("/login");
+  const handleLogin = () => navigate("login");
   const handleSignup = () => navigate("/register");
   
   const handleLogout = () => {

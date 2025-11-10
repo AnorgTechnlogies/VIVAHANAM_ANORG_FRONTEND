@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Home2Img from "../assets/Home2Img.jpg";
 import Home3Img from "../assets/Home3Img.jpg";
@@ -12,42 +12,217 @@ import stepimage3 from "../assets/step3image2.jpg";
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState("login"); // 'login', 'register', 'forgot', 'verify', 'success'
-  const [authEmail, setAuthEmail] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [authMode, setAuthMode] = useState("login"); // 'login', 'signup', 'forgot', 'verify', 'success'
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+
+  // Forgot password state
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
+  // Login state
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: ""
+  });
+
+  // Signup form data
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
 
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_KEY;
 
-  // Handle newsletter subscription
-  const handleNewsletterSubmit = () => {
-    console.log("Email submitted:", newsletterEmail);
-    // Add your newsletter subscription logic here
+  // Validation rules for signup
+  const validationRules = {
+    firstName: {
+      required: true,
+      minLength: 2,
+      maxLength: 50,
+      pattern: /^[A-Za-z\s]+$/,
+      message: "First name must be 2-50 letters only"
+    },
+    lastName: {
+      required: true,
+      minLength: 1,
+      maxLength: 50,
+      pattern: /^[A-Za-z\s]+$/,
+      message: "Last name must be 1-50 letters only"
+    },
+    email: {
+      required: true,
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: "Enter a valid email address"
+    },
+    password: {
+      required: true,
+      minLength: 6,
+      message: "Password must be at least 6 characters"
+    },
+    confirmPassword: {
+      required: true,
+      validate: (value, formData) => value === formData.password,
+      message: "Passwords do not match"
+    }
   };
 
-  // Handle free registration button
-  const handleFreeRegistration = () => {
-    setError("");
-    setShowAuthModal(true);
-    setAuthMode("register");
+  // Validation function
+  const validateField = (name, value, allFormData = formData) => {
+    const rule = validationRules[name];
+    if (!rule) return null;
+
+    if (rule.required && (!value || value.toString().trim() === "")) {
+      return "This field is required";
+    }
+
+    if (value && rule.minLength && value.length < rule.minLength) {
+      return rule.message || `Minimum ${rule.minLength} characters required`;
+    }
+
+    if (value && rule.maxLength && value.length > rule.maxLength) {
+      return rule.message || `Maximum ${rule.maxLength} characters allowed`;
+    }
+
+    if (value && rule.pattern && !rule.pattern.test(value)) {
+      return rule.message || "Invalid format";
+    }
+
+    if (value && rule.validate) {
+      const isValid = rule.validate(value, allFormData);
+      if (!isValid) return rule.message || "Invalid value";
+    }
+
+    return null;
   };
 
-  // Step 1: Request verification code for password reset
+  const validateAllFields = () => {
+    const errors = {};
+    
+    Object.keys(validationRules).forEach(fieldName => {
+      const value = formData[fieldName];
+      const error = validateField(fieldName, value, formData);
+      if (error) {
+        errors[fieldName] = error;
+      }
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Form handlers for signup
+  const handleFieldBlur = (fieldName) => {
+    setTouchedFields(prev => ({ ...prev, [fieldName]: true }));
+    
+    const value = formData[fieldName];
+    const error = validateField(fieldName, value, formData);
+    
+    setFieldErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    if (touchedFields[name]) {
+      const error = validateField(name, value, formData);
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: error
+      }));
+    }
+  };
+
+  // Login input handler
+  const handleLoginInputChange = (e) => {
+    const { name, value } = e.target;
+    setLoginData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // OTP handler for email verification
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      setVerifyError("Please enter a valid 6-digit OTP.");
+      return;
+    }
+
+    setVerifyError("");
+    setVerifyLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/user/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          verificationCode: otp,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `Verification failed: ${response.statusText}`);
+      }
+
+      if (data.token) {
+        localStorage.setItem('vivahanamToken', data.token);
+      }
+     
+      setShowOtpModal(false);
+      setShowAuthModal(false);
+      setSuccess("Account verified successfully! You can now login.");
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+      });
+      setOtp("");
+      // Switch to login mode after successful verification
+      setAuthMode("login");
+    } catch (err) {
+      setVerifyError(err.message || "Verification failed. Please check your email and try again.");
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  // Forgot Password - Step 1: Request verification code
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
 
-    if (!authEmail) {
+    if (!forgotEmail) {
       setError("Please enter your email address");
       setLoading(false);
       return;
@@ -60,7 +235,7 @@ const HomePage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          loginId: authEmail,
+          loginId: forgotEmail,
         }),
       });
 
@@ -71,7 +246,7 @@ const HomePage = () => {
       }
 
       setSuccess("✅ Verification code sent to your email! Please check your inbox.");
-      setAuthMode("verify"); // Move to verification step
+      setAuthMode("verify");
       
     } catch (err) {
       console.error('Forgot password error:', err);
@@ -81,20 +256,20 @@ const HomePage = () => {
     }
   };
 
-  // Step 2: Verify code and reset password
+  // Forgot Password - Step 2: Verify code and reset password
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
 
-    if (!verificationCode || !newPassword || !confirmPassword) {
+    if (!otp || !newPassword || !confirmNewPassword) {
       setError("Please fill in all fields");
       setLoading(false);
       return;
     }
 
-    if (newPassword !== confirmPassword) {
+    if (newPassword !== confirmNewPassword) {
       setError("Passwords do not match");
       setLoading(false);
       return;
@@ -106,7 +281,7 @@ const HomePage = () => {
       return;
     }
 
-    if (verificationCode.length !== 6) {
+    if (otp.length !== 6) {
       setError("Please enter a valid 6-digit verification code");
       setLoading(false);
       return;
@@ -119,8 +294,8 @@ const HomePage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: authEmail,
-          verificationCode: verificationCode,
+          email: forgotEmail,
+          verificationCode: otp,
           newPassword: newPassword,
         }),
       });
@@ -132,7 +307,11 @@ const HomePage = () => {
       }
 
       setSuccess("✅ Password reset successfully! You can now login with your new password.");
-      setAuthMode("success"); // Move to success step
+      setAuthMode("login"); // Switch to login after successful password reset
+      setForgotEmail("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setOtp("");
       
     } catch (err) {
       console.error('Reset password error:', err);
@@ -142,14 +321,71 @@ const HomePage = () => {
     }
   };
 
-  // Login function
+  // Signup function
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    
+    // Validate all fields
+    const allFields = Object.keys(validationRules);
+    const touched = {};
+    allFields.forEach(field => { touched[field] = true; });
+    setTouchedFields(touched);
+
+    if (!validateAllFields()) {
+      setError("Please fix all validation errors before submitting.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    try {
+      const submitData = new FormData();
+      
+      submitData.append("firstName", formData.firstName);
+      submitData.append("lastName", formData.lastName);
+      submitData.append("email", formData.email);
+      submitData.append("password", formData.password);
+      
+      // Default partner preferences
+      const defaultPartnerPreferences = {
+        ageRange: { min: "25", max: "35" },
+        preferredReligion: ["Hindu"],
+        preferredEducation: ["Graduate"],
+        preferredOccupation: ["Professional"]
+      };
+      submitData.append("partnerPreferences", JSON.stringify(defaultPartnerPreferences));
+
+      const response = await fetch(`${API_URL}/user/register`, {
+        method: 'POST',
+        body: submitData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `Signup failed: ${response.statusText}`);
+      }
+
+      setShowOtpModal(true);
+      setSuccess("Registration successful! Please check your email for verification code.");
+
+    } catch (err) {
+      setError(err.message || "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Login function - FIXED VERSION
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
 
-    if (!authEmail || !authPassword) {
+    if (!loginData.email || !loginData.password) {
       setError("Please fill in email and password");
       setLoading(false);
       return;
@@ -160,8 +396,8 @@ const HomePage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          loginId: authEmail,
-          password: authPassword,
+          loginId: loginData.email,
+          password: loginData.password,
         }),
       });
 
@@ -171,25 +407,26 @@ const HomePage = () => {
       }
 
       const data = await response.json();
-      console.log('Login successful:', data);
 
-      // Store token in localStorage
       if (data.token) {
         localStorage.setItem('vivahanamToken', data.token);
       }
 
-      // Store user data if needed
       if (data.user) {
         localStorage.setItem('vivahanamUser', JSON.stringify(data.user));
         setUser(data.user);
       }
 
       setShowAuthModal(false);
+      setLoginData({
+        email: "",
+        password: ""
+      });
       navigate("/partners");
       
     } catch (err) {
       console.error('Login error:', err);
-      const errorMsg = err.message || "Invalid credentials. Please register if you don't have an account.";
+      const errorMsg = err.message || "Invalid credentials. Please Signup if you don't have an account.";
       if (err.message.includes('verify your email') || err.message.includes('verification')) {
         setError("Please check your email for verification code and verify before logging in.");
       } else {
@@ -200,106 +437,85 @@ const HomePage = () => {
     }
   };
 
-  // Register function
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
-
-    if (!authEmail || !authPassword || !confirmPassword) {
-      setError("Please fill in all fields");
-      setLoading(false);
-      return;
-    }
-
-    if (authPassword !== confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    if (authPassword.length < 6) {
-      setError("Password must be at least 6 characters long");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/user/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: authEmail,
-          password: authPassword,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Registration failed`);
-      }
-
-      setSuccess("✅ Registration successful! Please check your email for verification code.");
-      setAuthMode("verify"); // Move to verification step
-      
-    } catch (err) {
-      console.error('Registration error:', err);
-      setError(err.message || "Failed to register. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Navigation functions
   const switchToLogin = () => {
     setAuthMode("login");
     setError("");
     setSuccess("");
-    setAuthEmail("");
-    setAuthPassword("");
-    setVerificationCode("");
-    setNewPassword("");
-    setConfirmPassword("");
+    setLoginData({
+      email: "",
+      password: ""
+    });
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: ""
+    });
+    setFieldErrors({});
+    setTouchedFields({});
   };
 
-  const switchToRegister = () => {
-    setAuthMode("register");
+  const switchToSignup = () => {
+    setAuthMode("signup");
     setError("");
     setSuccess("");
-    setAuthPassword("");
-    setConfirmPassword("");
-    setVerificationCode("");
-    setNewPassword("");
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: ""
+    });
+    setFieldErrors({});
+    setTouchedFields({});
   };
 
   const switchToForgot = () => {
     setAuthMode("forgot");
     setError("");
     setSuccess("");
-    setVerificationCode("");
+    setForgotEmail("");
     setNewPassword("");
-    setConfirmPassword("");
+    setConfirmNewPassword("");
+    setOtp("");
   };
 
   const requestNewCode = () => {
     setAuthMode("forgot");
     setError("");
     setSuccess("");
-    setVerificationCode("");
-    // Keep the email filled in
+    setOtp("");
   };
 
   const closeAuthModal = () => {
     setShowAuthModal(false);
     setError("");
     setSuccess("");
-    setAuthEmail("");
-    setAuthPassword("");
-    setVerificationCode("");
+    setLoginData({
+      email: "",
+      password: ""
+    });
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: ""
+    });
+    setFieldErrors({});
+    setTouchedFields({});
+    setForgotEmail("");
     setNewPassword("");
-    setConfirmPassword("");
+    setConfirmNewPassword("");
+    setOtp("");
+  };
+
+  const closeOtpModal = () => {
+    setShowOtpModal(false);
+    setOtp("");
+    setVerifyError("");
   };
 
   // Helper functions for modal content
@@ -307,8 +523,8 @@ const HomePage = () => {
     switch (authMode) {
       case "login":
         return "Welcome Back";
-      case "register":
-        return "Create Your Account";
+      case "signup":
+        return "Join Vivahanam";
       case "forgot":
         return "Reset Your Password";
       case "verify":
@@ -324,16 +540,14 @@ const HomePage = () => {
     switch (authMode) {
       case "login":
         return "Sign in to your account to continue";
-      case "register":
-        return "Create your account to get started";
+      case "signup":
+        return "Create your account to find your perfect life partner";
       case "forgot":
         return "Enter your email to receive a verification code";
       case "verify":
         return "Enter the code and your new password";
       case "success":
-        return authMode === "success" && authMode === "verify" 
-          ? "Your password has been reset successfully" 
-          : "Your account has been created successfully";
+        return "Your password has been reset successfully";
       default:
         return "Sign in to your account to continue";
     }
@@ -344,12 +558,12 @@ const HomePage = () => {
       switch (authMode) {
         case "login":
           return "Signing in...";
-        case "register":
+        case "signup":
           return "Creating Account...";
         case "forgot":
           return "Sending code...";
         case "verify":
-          return "Verifying...";
+          return "Resetting Password...";
         default:
           return "Processing...";
       }
@@ -358,21 +572,48 @@ const HomePage = () => {
     switch (authMode) {
       case "login":
         return "Sign in";
-      case "register":
+      case "signup":
         return "Create Account";
       case "forgot":
         return "Send Verification Code";
       case "verify":
-        return authMode === "verify" && authMode === "forgot" ? "Reset Password" : "Verify Account";
+        return "Reset Password";
       case "success":
-        return "Continue";
+        return "Continue to Login";
       default:
         return "Sign in";
     }
   };
 
+  // Render helpers for signup
+  const renderFieldError = (fieldName) => {
+    if (touchedFields[fieldName] && fieldErrors[fieldName]) {
+      return (
+        <p className="mt-1 text-sm text-red-600">
+          {fieldErrors[fieldName]}
+        </p>
+      );
+    }
+    return null;
+  };
+
+  const getInputClassName = (fieldName) => {
+    const baseClass = "mt-1 block w-full px-3 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm";
+    
+    if (touchedFields[fieldName] && fieldErrors[fieldName]) {
+      return `${baseClass} border-red-300 focus:border-red-500`;
+    }
+    
+    return `${baseClass} border-gray-300 focus:border-orange-500`;
+  };
+
+  // Handle free registration button
+// Handle free registration button - Navigate to register page
+const handleFreeRegistration = () => {
+  setError("");
+  navigate("/register"); // This will navigate to your register page
+};
   useEffect(() => {
-    // Trigger animations after component mounts
     setIsVisible(true);
   }, []);
 
@@ -402,7 +643,6 @@ const HomePage = () => {
 
   const handleBookNow = (serviceName) => {
     console.log(`Booking: ${serviceName}`);
-    // Add your booking logic here
   };
 
   const workItems = [
@@ -496,7 +736,7 @@ const HomePage = () => {
                   </span>
                 </p>
 
-               {/* Buttons - Centered on mobile, left-aligned on desktop */}
+                {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 justify-center lg:justify-start">
                   <button
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
@@ -512,7 +752,7 @@ const HomePage = () => {
                     className="px-6 py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors"
                     onClick={handleFreeRegistration}
                   >
-                    Register wdws
+                    Register Now
                   </button>
                 </div>
               </div>
@@ -521,10 +761,9 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Rest of your existing homepage sections... */}
+      {/* Rest of your existing homepage sections remain exactly the same */}
       {/* Second Section - Hindi Content */}
       <div className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100">
-        {/* ... existing second section content ... */}
         <div className="w-full flex flex-col items-center justify-start py-8 sm:py-12 md:py-0">
           <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 w-full items-center">
@@ -541,25 +780,15 @@ const HomePage = () => {
 
               {/* Left Side - Content */}
               <div className="flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-1 w-full px-4 lg:px-0 text-center lg:text-left">
-                {/* Hindi Heading */}
                 <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 leading-tight sm:leading-snug md:leading-tight break-words hyphens-auto">
                   वैदिक भारतीय विवाह एवं प्रामाणिक पवित्र संबंध -
                 </h1>
-
-                {/* Red Subheading */}
                 <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-red-700 leading-tight sm:leading-snug break-words hyphens-auto">
                   उत्तर अमेरिकी वैवाहिक संस्था
                 </h2>
-
-                {/* English Description */}
                 <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:mx-0 mt-2 px-2 sm:px-0 break-words">
-                  Vivahanam preserves Vedic marriage traditions, uniting couples
-                  through sacred rituals and family values, bridging ancient
-                  spirituality with modern matrimony for Hindu families across
-                  North America.
+                  Vivahanam preserves Vedic marriage traditions, uniting couples through sacred rituals and family values, bridging ancient spirituality with modern matrimony for Hindu families across North America.
                 </p>
-
-                {/* Optional CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center lg:justify-start">
                   <button
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
@@ -576,10 +805,8 @@ const HomePage = () => {
 
       {/* Newsletter Section */}
       <div className="relative w-full min-h-screen bg-amber-100 bg-gradient-to-bt from-amber-100 via-orange-100 to-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
-        {/* ... existing newsletter section content ... */}
         <div className="container mx-auto max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-            {/* Left Side - Image */}
             <div className="flex justify-center lg:justify-start order-2 lg:order-1">
               <div className="relative w-full max-w-md lg:max-w-lg">
                 <img
@@ -591,8 +818,6 @@ const HomePage = () => {
                 <div className="absolute -top-6 -right-6 w-40 h-40 bg-gradient-to-br from-stone-400 to-amber-300 rounded-full opacity-20 blur-3xl -z-10"></div>
               </div>
             </div>
-
-            {/* Right Side - Newsletter Form */}
             <div className="flex flex-col justify-center space-y-6 lg:space-y-8 order-1 lg:order-2">
               <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-800 leading-tight text-center lg:text-left">
                 Join our Newsletter
@@ -605,14 +830,11 @@ const HomePage = () => {
                   <input
                     type="email"
                     placeholder="Enter Your Email"
-                    value={newsletterEmail}
-                    onChange={(e) => setNewsletterEmail(e.target.value)}
                     className="w-full px-0 py-3 text-base sm:text-lg bg-transparent border-b-2 border-gray-400 focus:border-amber-700 outline-none transition-colors duration-300 placeholder-gray-500"
                   />
                 </div>
                 <div className="flex justify-center lg:justify-start pt-4">
                   <button
-                    onClick={handleNewsletterSubmit}
                     className="px-10 py-4 bg-gradient-to-r from-amber-700 to-amber-800 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl hover:from-amber-800 hover:to-amber-900 transform hover:-translate-y-0.5 transition-all duration-300"
                   >
                     Submit Now
@@ -626,7 +848,6 @@ const HomePage = () => {
 
       {/* Vision Section */}
       <div className="relative w-full min-h-screen overflow-hidden">
-        {/* ... existing vision section content ... */}
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
           backgroundImage: "url('https://images.unsplash.com/photo-1525258834046-fd4c94d5b050?q=80&w=2070')",
         }}>
@@ -646,16 +867,10 @@ const HomePage = () => {
                   Our Commitment
                 </h4>
                 <p className="text-lg md:text-xl lg:text-xl text-amber-100 leading-relaxed max-w-2xl">
-                  Vivahanam.com offers a unique matrimonial platform designed
-                  for Hindus in North America, connecting individuals seeking
-                  Vedic Indian alliances. With personalized matchmaking and
-                  pre-wedding consultations, we ensure a culturally rich
-                  experience, honoring traditions while cultivating spiritual
-                  bonds.
+                  Vivahanam.com offers a unique matrimonial platform designed for Hindus in North America, connecting individuals seeking Vedic Indian alliances. With personalized matchmaking and pre-wedding consultations, we ensure a culturally rich experience, honoring traditions while cultivating spiritual bonds.
                 </p>
                 <p className="text-base md:text-lg text-amber-200/90 leading-relaxed max-w-2xl">
-                  Discover our subscription options to explore wedding packages
-                  and traditional rituals that enrich your journey to matrimony.
+                  Discover our subscription options to explore wedding packages and traditional rituals that enrich your journey to matrimony.
                 </p>
                 <div className="grid grid-cols-3 gap-6 pt-8 border-t border-amber-700/30">
                   <div className="text-center lg:text-left">
@@ -697,8 +912,6 @@ const HomePage = () => {
                       <div className="text-sm opacity-90">By Thousands</div>
                     </div>
                   </div>
-                  <div className="absolute -z-10 -bottom-12 -right-12 w-64 h-64 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-full blur-3xl"></div>
-                  <div className="absolute -z-10 -top-12 -left-12 w-64 h-64 bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-full blur-3xl"></div>
                 </div>
               </div>
             </div>
@@ -813,10 +1026,10 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Comprehensive Auth Modal */}
+      {/* Auth Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 pointer-events-auto">
-          <div className="bg-white rounded-2xl p-8 sm:p-10 md:p-12 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center space-x-2">
                 <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-2 rounded-xl">
@@ -841,17 +1054,42 @@ const HomePage = () => {
                 {getSubtitle()}
               </p>
               
-              {/* Show email in verify mode for context */}
-              {authMode === "verify" && authEmail && (
-                <p className="mt-1 text-sm text-amber-600 font-medium">
-                  📧 Code sent to: {authEmail}
+              {authMode === "verify" && forgotEmail && (
+                <p className="mt-1 text-sm text-orange-600 font-medium">
+                  📧 Code sent to: {forgotEmail}
                 </p>
               )}
             </div>
 
+            {/* Toggle Buttons - Only show for login/signup */}
+            {(authMode === "login" || authMode === "signup") && (
+              <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+                <button
+                  onClick={switchToLogin}
+                  className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                    authMode === "login" 
+                      ? "bg-white text-gray-900 shadow-sm" 
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={switchToSignup}
+                  className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                    authMode === "signup" 
+                      ? "bg-white text-gray-900 shadow-sm" 
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
+
             <form onSubmit={
               authMode === "login" ? handleLogin :
-              authMode === "register" ? handleRegister :
+              authMode === "signup" ? handleSignup :
               authMode === "forgot" ? handleForgotPassword :
               authMode === "verify" ? handleResetPassword :
               switchToLogin
@@ -869,21 +1107,51 @@ const HomePage = () => {
                 </div>
               )}
 
-              {/* Success Screen */}
-              {authMode === "success" && (
-                <div className="text-center py-4">
-                  <div className="text-green-500 text-6xl mb-4">✅</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Success!</h3>
-                  <p className="text-gray-600">
-                    {authMode === "success" && authMode === "verify" 
-                      ? "You can now login with your new password." 
-                      : "Your account has been created successfully!"}
-                  </p>
+              {/* Name Fields - Show for Signup only */}
+              {authMode === "signup" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                      First Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      onBlur={() => handleFieldBlur("firstName")}
+                      required
+                      className={getInputClassName("firstName")}
+                      placeholder="John"
+                      disabled={loading}
+                    />
+                    {renderFieldError("firstName")}
+                  </div>
+
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      onBlur={() => handleFieldBlur("lastName")}
+                      required
+                      className={getInputClassName("lastName")}
+                      placeholder="Doe"
+                      disabled={loading}
+                    />
+                    {renderFieldError("lastName")}
+                  </div>
                 </div>
               )}
 
-              {/* Email Field - Show for login, register and forgot */}
-              {(authMode === "login" || authMode === "register" || authMode === "forgot") && (
+              {/* Email Field - Show for login, signup and forgot */}
+              {(authMode === "login" || authMode === "signup" || authMode === "forgot") && (
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                     Email Address
@@ -894,12 +1162,26 @@ const HomePage = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:z-10 transition-colors"
+                    value={
+                      authMode === "signup" ? formData.email : 
+                      authMode === "login" ? loginData.email :
+                      forgotEmail
+                    }
+                    onChange={(e) => {
+                      if (authMode === "signup") {
+                        setFormData(prev => ({ ...prev, email: e.target.value }));
+                      } else if (authMode === "login") {
+                        setLoginData(prev => ({ ...prev, email: e.target.value }));
+                      } else {
+                        setForgotEmail(e.target.value);
+                      }
+                    }}
+                    onBlur={authMode === "signup" ? () => handleFieldBlur("email") : undefined}
+                    className={authMode === "signup" ? getInputClassName("email") : "relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:z-10 transition-colors"}
                     placeholder="Enter your email"
                     disabled={loading}
                   />
+                  {authMode === "signup" && renderFieldError("email")}
                 </div>
               )}
 
@@ -918,9 +1200,9 @@ const HomePage = () => {
                       pattern="[0-9]*"
                       maxLength="6"
                       required
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:z-10 transition-colors text-center text-lg font-mono tracking-widest"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:z-10 transition-colors text-center text-lg font-mono tracking-widest"
                       placeholder="000000"
                       disabled={loading}
                     />
@@ -941,24 +1223,24 @@ const HomePage = () => {
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:z-10 transition-colors"
+                      className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:z-10 transition-colors"
                       placeholder="Enter new password (min 6 characters)"
                       disabled={loading}
                     />
                   </div>
                   <div>
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700 mb-1">
                       Confirm New Password
                     </label>
                     <input
-                      id="confirmPassword"
-                      name="confirmPassword"
+                      id="confirmNewPassword"
+                      name="confirmNewPassword"
                       type="password"
                       autoComplete="new-password"
                       required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:z-10 transition-colors"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:z-10 transition-colors"
                       placeholder="Confirm new password"
                       disabled={loading}
                     />
@@ -969,7 +1251,7 @@ const HomePage = () => {
                     <button
                       type="button"
                       onClick={requestNewCode}
-                      className="text-sm text-amber-600 hover:text-amber-500 transition-colors font-medium"
+                      className="text-sm text-orange-600 hover:text-orange-500 transition-colors font-medium"
                       disabled={loading}
                     >
                       🔄 Didn't receive code? Request new one
@@ -978,8 +1260,8 @@ const HomePage = () => {
                 </>
               )}
 
-              {/* Password Field - Show for login and register */}
-              {(authMode === "login" || authMode === "register") && (
+              {/* Password Field - Show for login and signup */}
+              {(authMode === "login" || authMode === "signup") && (
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                     {authMode === "login" ? "Password" : "Create Password"}
@@ -990,17 +1272,25 @@ const HomePage = () => {
                     type="password"
                     autoComplete={authMode === "login" ? "current-password" : "new-password"}
                     required
-                    value={authPassword}
-                    onChange={(e) => setAuthPassword(e.target.value)}
-                    className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:z-10 transition-colors"
+                    value={authMode === "signup" ? formData.password : loginData.password}
+                    onChange={(e) => {
+                      if (authMode === "signup") {
+                        setFormData(prev => ({ ...prev, password: e.target.value }));
+                      } else {
+                        setLoginData(prev => ({ ...prev, password: e.target.value }));
+                      }
+                    }}
+                    onBlur={authMode === "signup" ? () => handleFieldBlur("password") : undefined}
+                    className={authMode === "signup" ? getInputClassName("password") : "relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:z-10 transition-colors"}
                     placeholder={authMode === "login" ? "Enter your password" : "Create a password (min 6 characters)"}
                     disabled={loading}
                   />
+                  {authMode === "signup" && renderFieldError("password")}
                 </div>
               )}
 
-              {/* Confirm Password Field - Show for register */}
-              {authMode === "register" && (
+              {/* Confirm Password Field - Show for signup */}
+              {authMode === "signup" && (
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     Confirm Password
@@ -1011,12 +1301,14 @@ const HomePage = () => {
                     type="password"
                     autoComplete="new-password"
                     required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:z-10 transition-colors"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    onBlur={() => handleFieldBlur("confirmPassword")}
+                    className={getInputClassName("confirmPassword")}
                     placeholder="Confirm your password"
                     disabled={loading}
                   />
+                  {renderFieldError("confirmPassword")}
                 </div>
               )}
 
@@ -1028,7 +1320,7 @@ const HomePage = () => {
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                     />
                     <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                       Remember me
@@ -1038,7 +1330,7 @@ const HomePage = () => {
                   <button
                     type="button"
                     onClick={switchToForgot}
-                    className="text-sm font-medium text-amber-600 hover:text-amber-500 transition-colors"
+                    className="text-sm font-medium text-orange-600 hover:text-orange-500 transition-colors"
                     disabled={loading}
                   >
                     Forgot password?
@@ -1050,9 +1342,9 @@ const HomePage = () => {
               <div>
                 <button
                   type={authMode === "success" ? "button" : "submit"}
-                  onClick={authMode === "success" ? closeAuthModal : undefined}
+                  onClick={authMode === "success" ? switchToLogin : undefined}
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <div className="flex items-center">
@@ -1076,22 +1368,22 @@ const HomePage = () => {
                       Don't have an account?{" "}
                       <button
                         type="button"
-                        onClick={switchToRegister}
-                        className="font-medium text-amber-600 hover:text-amber-500 transition-colors"
+                        onClick={switchToSignup}
+                        className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
                         disabled={loading}
                       >
-                        Register now
+                        Signup now
                       </button>
                     </p>
                   </>
-                ) : authMode === "register" ? (
+                ) : authMode === "signup" ? (
                   <>
                     <p className="text-sm text-gray-600">
                       Already have an account?{" "}
                       <button
                         type="button"
                         onClick={switchToLogin}
-                        className="font-medium text-amber-600 hover:text-amber-500 transition-colors"
+                        className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
                         disabled={loading}
                       >
                         Login here
@@ -1103,10 +1395,10 @@ const HomePage = () => {
                     Ready to continue?{" "}
                     <button
                       type="button"
-                      onClick={closeAuthModal}
-                      className="font-medium text-amber-600 hover:text-amber-500 transition-colors"
+                      onClick={switchToLogin}
+                      className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
                     >
-                      Click here to continue
+                      Click here to login
                     </button>
                   </p>
                 ) : (
@@ -1116,7 +1408,7 @@ const HomePage = () => {
                       <button
                         type="button"
                         onClick={switchToLogin}
-                        className="font-medium text-amber-600 hover:text-amber-500 transition-colors"
+                        className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
                         disabled={loading}
                       >
                         Back to login
@@ -1131,15 +1423,58 @@ const HomePage = () => {
             <div className="text-center mt-6 pt-6 border-t border-gray-200">
               <p className="text-xs text-gray-500">
                 By continuing, you agree to our{" "}
-                <a href="#" className="text-amber-600 hover:text-amber-500">
+                <a href="#" className="text-orange-600 hover:text-orange-500">
                   Terms of Service
                 </a>{" "}
                 and{" "}
-                <a href="#" className="text-amber-600 hover:text-amber-500">
+                <a href="#" className="text-orange-600 hover:text-orange-500">
                   Privacy Policy
                 </a>
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Modal for Email Verification */}
+      {showOtpModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Verify Your Email</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              We've sent a 6-digit verification code to <strong>{formData.email}</strong>
+            </p>
+            {verifyError && (
+              <p className="text-red-500 text-sm text-center mb-2">{verifyError}</p>
+            )}
+            <form onSubmit={handleOtpSubmit} className="space-y-4">
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="Enter 6-digit code"
+                maxLength={6}
+                disabled={verifyLoading}
+                className="block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-lg font-mono disabled:opacity-50"
+              />
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={closeOtpModal}
+                  disabled={verifyLoading}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={verifyLoading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {verifyLoading ? "Verifying..." : "Verify Email"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
