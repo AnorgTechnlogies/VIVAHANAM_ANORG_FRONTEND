@@ -46,6 +46,7 @@ const HomePage = () => {
   const [touchedFields, setTouchedFields] = useState({});
 
   const navigate = useNavigate();
+
   const API_URL = import.meta.env.VITE_API_KEY;
 
   // Validation rules for signup
@@ -194,9 +195,11 @@ const HomePage = () => {
       if (data.token) {
         localStorage.setItem('vivahanamToken', data.token);
       }
-     
+
+      // Prefill login email for seamless transition
+      setLoginData(prev => ({ ...prev, email: formData.email }));
+
       setShowOtpModal(false);
-      setShowAuthModal(false);
       setSuccess("Account verified successfully! You can now login.");
       setFormData({
         firstName: "",
@@ -206,7 +209,7 @@ const HomePage = () => {
         confirmPassword: ""
       });
       setOtp("");
-      // Switch to login mode after successful verification
+      // Switch to login mode (modal stays open)
       setAuthMode("login");
     } catch (err) {
       setVerifyError(err.message || "Verification failed. Please check your email and try again.");
@@ -306,6 +309,9 @@ const HomePage = () => {
         throw new Error(data.message || `Password reset failed`);
       }
 
+      // Prefill login email for seamless transition
+      setLoginData({ email: forgotEmail, password: "" });
+
       setSuccess("✅ Password reset successfully! You can now login with your new password.");
       setAuthMode("login"); // Switch to login after successful password reset
       setForgotEmail("");
@@ -378,15 +384,31 @@ const HomePage = () => {
     }
   };
 
-  // Login function - FIXED VERSION
+  // Login function - UPDATED WITH FRONTEND VALIDATIONS
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
 
+    // Frontend validation: Check if all fields are filled
     if (!loginData.email || !loginData.password) {
-      setError("Please fill in email and password");
+      setError("All fields are required. Please fill in email and password.");
+      setLoading(false);
+      return;
+    }
+
+    // Additional frontend validation for email format (basic)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(loginData.email)) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    // Additional frontend validation for password length
+    if (loginData.password.length < 6) {
+      setError("Password must be at least 6 characters long.");
       setLoading(false);
       return;
     }
@@ -403,7 +425,18 @@ const HomePage = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || `Login failed: ${response.statusText}`);
+        let errorMsg = errorData?.message || `Login failed: ${response.statusText}`;
+        
+        // Handle specific backend errors if available
+        if (errorMsg.toLowerCase().includes('user not found') || errorMsg.toLowerCase().includes('invalid credentials')) {
+          errorMsg = "Please signup first, then login.";
+        } else if (errorMsg.toLowerCase().includes('invalid password') || errorMsg.toLowerCase().includes('wrong password')) {
+          errorMsg = "Password is wrong. Please try again.";
+        } else if (errorMsg.toLowerCase().includes('verify your email') || errorMsg.toLowerCase().includes('verification')) {
+          errorMsg = "Please check your email for verification code and verify before logging in.";
+        }
+        
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
@@ -426,12 +459,7 @@ const HomePage = () => {
       
     } catch (err) {
       console.error('Login error:', err);
-      const errorMsg = err.message || "Invalid credentials. Please Signup if you don't have an account.";
-      if (err.message.includes('verify your email') || err.message.includes('verification')) {
-        setError("Please check your email for verification code and verify before logging in.");
-      } else {
-        setError(errorMsg);
-      }
+      setError(err.message || "Please signup first, then login.");
     } finally {
       setLoading(false);
     }
@@ -607,12 +635,11 @@ const HomePage = () => {
     return `${baseClass} border-gray-300 focus:border-orange-500`;
   };
 
-  // Handle free registration button
-// Handle free registration button - Navigate to register page
-const handleFreeRegistration = () => {
-  setError("");
-  navigate("/register"); // This will navigate to your register page
-};
+  // Handle free registration button - Navigate to register page
+  const handleFreeRegistration = () => {
+    setError("");
+    navigate("/register"); // This will navigate to your register page
+  };
   useEffect(() => {
     setIsVisible(true);
   }, []);
@@ -1154,7 +1181,7 @@ const handleFreeRegistration = () => {
               {(authMode === "login" || authMode === "signup" || authMode === "forgot") && (
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
+                    Email Address *
                   </label>
                   <input
                     id="email"
@@ -1190,7 +1217,7 @@ const handleFreeRegistration = () => {
                 <>
                   <div>
                     <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-1">
-                      Verification Code
+                      Verification Code *
                     </label>
                     <input
                       id="verificationCode"
@@ -1213,7 +1240,7 @@ const handleFreeRegistration = () => {
 
                   <div>
                     <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                      New Password
+                      New Password *
                     </label>
                     <input
                       id="newPassword"
@@ -1230,7 +1257,7 @@ const handleFreeRegistration = () => {
                   </div>
                   <div>
                     <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                      Confirm New Password
+                      Confirm New Password *
                     </label>
                     <input
                       id="confirmNewPassword"
@@ -1264,7 +1291,7 @@ const handleFreeRegistration = () => {
               {(authMode === "login" || authMode === "signup") && (
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    {authMode === "login" ? "Password" : "Create Password"}
+                    {authMode === "login" ? "Password *" : "Create Password *"}
                   </label>
                   <input
                     id="password"
@@ -1293,7 +1320,7 @@ const handleFreeRegistration = () => {
               {authMode === "signup" && (
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password
+                    Confirm Password *
                   </label>
                   <input
                     id="confirmPassword"

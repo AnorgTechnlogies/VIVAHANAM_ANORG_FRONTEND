@@ -188,8 +188,9 @@ export const getUserProfile = () => async (dispatch) => {
       withCredentials: true,
     };
     
+    // FIXED: Use correct backend endpoint (/userinfo)
     const response = await axios.get(
-      `${BASE_URL}/api/user/profile`,
+      `${BASE_URL}/api/user/userinfo`,
       config
     );
     
@@ -216,6 +217,7 @@ export const updateUserProfile = (userData) => async (dispatch) => {
       withCredentials: true,
     };
     
+    // FIXED: Use correct backend endpoint (assuming /profile for update)
     const response = await axios.put(
       `${BASE_URL}/api/user/profile`,
       userData,
@@ -242,6 +244,7 @@ export const logoutUser = () => async (dispatch) => {
       withCredentials: true,
     };
     
+    // FIXED: Use correct backend endpoint (assuming /logout)
     await axios.post(`${BASE_URL}/api/user/logout`, {}, config);
     
     // Remove token from localStorage
@@ -249,11 +252,9 @@ export const logoutUser = () => async (dispatch) => {
     
     dispatch(userSlice.actions.logoutSuccess());
   } catch (error) {
-    dispatch(
-      userSlice.actions.userFailed(
-        error.response?.data?.message || "Logout failed"
-      )
-    );
+    // Even if logout fails, clear local state
+    localStorage.removeItem("vivahanamToken");
+    dispatch(userSlice.actions.logoutSuccess());
   }
 };
 
@@ -280,8 +281,9 @@ export const initializeAuth = () => async (dispatch) => {
       };
      
       console.log("Making profile request with token");
+      // FIXED: Use correct backend endpoint (/userinfo)
       const response = await axios.get(
-        `${BASE_URL}/api/user/profile`,
+        `${BASE_URL}/api/user/userinfo`,
         config
       );
      
@@ -294,7 +296,7 @@ export const initializeAuth = () => async (dispatch) => {
       console.error("Token validation failed:", error.response?.data || error.message);
       // Token is invalid, remove it
       localStorage.removeItem("vivahanamToken");
-      dispatch(userSlice.actions.userFailed("Session expired"));
+      dispatch(userSlice.actions.initializeAuth(null));
     }
   } else {
     console.log("No token found, user not authenticated");

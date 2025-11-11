@@ -11,8 +11,6 @@ import Products from "./components/Products"; // Assuming you have this componen
 import FAQ from "./components/FAQ"; // Assuming you have this component
 import Portfolio from "./components/Portfolio"; // Assuming you have this component (corrected spelling)
 import Plans from "./components/planPages/plans";
-import SignupPage from './components/SignupPage';
-import LoginPage from './components/LoginPage';
 import ProfileView from './components/ProfileView';
 import SearchResults from './components/SearchResults';
 import UpdateProfile from './components/UpdateProfile';
@@ -48,8 +46,6 @@ function App() {
         <Route path="/plans" element={<Plans />} />
         <Route path="/blog/:id/" element={<BlogDetails />} />
         <Route path="/testimonials" element={<TestimonialPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/login" element={<LoginPage />} />
         <Route path="/profile" element={<ProfileView />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/update-profile" element={<UpdateProfile />} />

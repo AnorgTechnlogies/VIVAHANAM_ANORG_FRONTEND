@@ -11,7 +11,7 @@ const SearchResults = () => {
   const vivId = searchParams.get('vivId');
   
   // FIXED: Proper API URL with fallback
-  const API_URL = import.meta.env.VITE_API_KEY || "http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_KEY ;
 
   useEffect(() => {
     if (vivId) {
