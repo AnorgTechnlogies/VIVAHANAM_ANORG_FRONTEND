@@ -111,7 +111,7 @@ const PlanDashboard = () => {
     const fetchUserPlan = async () => {
       try {
         setLoading(true);
-        const userVivId = "VIV93467"; // Replace with actual user VIV ID
+        const userVivId = "VIV98707"; // Replace with actual user VIV ID
         
         const response = await fetch(`/api/userplan/my-plan/${userVivId}`);
         const result = await response.json();

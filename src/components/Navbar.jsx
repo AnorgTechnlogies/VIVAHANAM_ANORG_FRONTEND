@@ -139,13 +139,13 @@ const Navbar = () => {
   };
 
   // Login input handler
-  const handleLoginInputChange = (e) => {
-    const { name, value } = e.target;
-    setLoginData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  // const handleLoginInputChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setLoginData(prev => ({
+  //     ...prev,
+  //     [name]: value
+  //   }));
+  // };
 
   // OTP handler for email verification
   const handleOtpSubmit = async (e) => {
@@ -611,11 +611,12 @@ const Navbar = () => {
 
   const navItems = [
     { name: "Home", href: "/" },
-    { name: "Blogs", href: "/blogs" },
-    { name: "FAQ", href: "/faq" },
+     { name: "Our Plan", href: "/subscription-plans" },
+    // { name: "Blogs", href: "/blogs" },
+    // { name: "FAQ", href: "/faq" },
     { name: "About Us", href: "/about" },
     { name: "Contact Us", href: "/contact" },
-    { name: "Testimonials", href: "/testimonials" },
+    // { name: "Testimonials", href: "/testimonials" },
   ];
 
   return (

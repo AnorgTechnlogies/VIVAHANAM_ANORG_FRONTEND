@@ -14,15 +14,25 @@ const UpdateProfile = () => {
   const [formData, setFormData] = useState({
     // Personal Information
     firstName: "",
+    middleName: "",
     lastName: "",
     mobileNo: "",
     gender: "",
     dateOfBirth: "",
-    religion: "",
-    motherTongue: "",
     maritalStatus: "",
     height: "",
+    weight: "",
+    complextion: "",
     physicalStatus: "",
+    userType: "",
+
+    // Religious & Cultural
+    religion: "",
+    indianReligious: "",
+    caste: "",
+    motherTongue: "",
+    diet: "",
+    residentCountry: "",
 
     // Education & Career
     educationLevel: "",
@@ -35,19 +45,17 @@ const UpdateProfile = () => {
     country: "",
     state: "",
     city: "",
-    currentCity: "",
     nativePlace: "",
     streetAddress: "",
+    addressLine2: "",
+    zipCode: "",
+    citizenshipStatus: "",
 
-    // Family
-    familyType: "",
-    familyStatus: "",
-    fatherName: "",
-    fatherOccupation: "",
-    motherName: "",
-    motherOccupation: "",
-    numBrothers: "",
-    numSisters: "",
+    // Astrology
+    birthTime: "",
+    placeOfBirth: "",
+    zodiacSign: "",
+    gotra: "",
 
     // About
     profileBio: "",
@@ -57,6 +65,22 @@ const UpdateProfile = () => {
     // Privacy
     showEmail: false,
     showMobile: false,
+    profileVisibility: "Member",
+    photoVisibility: "All",
+
+    // Partner Preferences (flat fields for form handling)
+    partnerAgeMin: "",
+    partnerAgeMax: "",
+    partnerIncomeMin: "",
+    partnerIncomeMax: "",
+    partnerHeightMin: "",
+    partnerHeightMax: "",
+    preferredReligion: "",
+    preferredMotherTongue: "",
+    preferredEducation: "",
+    preferredLocation: "",
+    preferredLanguages: "",
+    preferredCaste: "",
   });
 
   useEffect(() => {
@@ -67,7 +91,7 @@ const UpdateProfile = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('vivahanamToken');
-      const response = await fetch(`${API_URL}/api/user/me`, {
+      const response = await fetch(`${API_URL}/user/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -87,15 +111,23 @@ const UpdateProfile = () => {
         setFormData(prev => ({
           ...prev,
           firstName: data.user.firstName || "",
+          middleName: data.user.middleName || "",
           lastName: data.user.lastName || "",
           mobileNo: data.user.mobileNo || "",
           gender: data.user.gender || "",
           dateOfBirth: data.user.dateOfBirth ? new Date(data.user.dateOfBirth).toISOString().split('T')[0] : "",
-          religion: data.user.religion || "",
-          motherTongue: data.user.motherTongue || "",
           maritalStatus: data.user.maritalStatus || "",
           height: data.user.height || "",
+          weight: data.user.weight || "",
+          complextion: data.user.complextion || "",
           physicalStatus: data.user.physicalStatus || "",
+          userType: data.user.userType || "",
+          religion: data.user.religion || "",
+          indianReligious: data.user.indianReligious || "",
+          caste: data.user.caste || "",
+          motherTongue: data.user.motherTongue || "",
+          diet: data.user.diet || "",
+          residentCountry: data.user.residentCountry || "",
           educationLevel: data.user.educationLevel || "",
           fieldOfStudy: data.user.fieldOfStudy || "",
           occupation: data.user.occupation || "",
@@ -104,22 +136,35 @@ const UpdateProfile = () => {
           country: data.user.country || "",
           state: data.user.state || "",
           city: data.user.city || "",
-          currentCity: data.user.currentCity || "",
           nativePlace: data.user.nativePlace || "",
           streetAddress: data.user.streetAddress || "",
-          familyType: data.user.familyType || "",
-          familyStatus: data.user.familyStatus || "",
-          fatherName: data.user.fatherName || "",
-          fatherOccupation: data.user.fatherOccupation || "",
-          motherName: data.user.motherName || "",
-          motherOccupation: data.user.motherOccupation || "",
-          numBrothers: data.user.numBrothers || "",
-          numSisters: data.user.numSisters || "",
+          addressLine2: data.user.addressLine2 || "",
+          zipCode: data.user.zipCode || "",
+          citizenshipStatus: data.user.citizenshipStatus || "",
+          birthTime: data.user.birthTime || "",
+          placeOfBirth: data.user.placeOfBirth || "",
+          zodiacSign: data.user.zodiacSign || "",
+          gotra: data.user.gotra || "",
           profileBio: data.user.profileBio || "",
           hobbies: data.user.hobbies ? data.user.hobbies.join(', ') : "",
           languages: data.user.languages ? data.user.languages.join(', ') : "",
           showEmail: data.user.showEmail || false,
           showMobile: data.user.showMobile || false,
+          profileVisibility: data.user.profileVisibility || "Member",
+          photoVisibility: data.user.photoVisibility || "All",
+          // Partner Preferences
+          partnerAgeMin: data.user.partnerPreferences?.ageRange?.min || "",
+          partnerAgeMax: data.user.partnerPreferences?.ageRange?.max || "",
+          partnerIncomeMin: data.user.partnerPreferences?.incomeRange?.min || "",
+          partnerIncomeMax: data.user.partnerPreferences?.incomeRange?.max || "",
+          partnerHeightMin: data.user.partnerPreferences?.preferredHeight?.min || "",
+          partnerHeightMax: data.user.partnerPreferences?.preferredHeight?.max || "",
+          preferredReligion: data.user.partnerPreferences?.preferredReligion ? data.user.partnerPreferences.preferredReligion.join(', ') : "",
+          preferredMotherTongue: data.user.partnerPreferences?.preferredMotherTongue ? data.user.partnerPreferences.preferredMotherTongue.join(', ') : "",
+          preferredEducation: data.user.partnerPreferences?.preferredEducation ? data.user.partnerPreferences.preferredEducation.join(', ') : "",
+          preferredLocation: data.user.partnerPreferences?.preferredLocation ? data.user.partnerPreferences.preferredLocation.join(', ') : "",
+          preferredLanguages: data.user.partnerPreferences?.preferredLanguages ? data.user.partnerPreferences.preferredLanguages.join(', ') : "",
+          preferredCaste: data.user.partnerPreferences?.preferredCaste ? data.user.partnerPreferences.preferredCaste.join(', ') : "",
         }));
       }
     } catch (err) {
@@ -146,16 +191,44 @@ const UpdateProfile = () => {
     try {
       const token = localStorage.getItem('vivahanamToken');
       
+      // Destructure to exclude flat partner preference fields from spread
+      const {
+        partnerAgeMin, partnerAgeMax,
+        partnerIncomeMin, partnerIncomeMax,
+        partnerHeightMin, partnerHeightMax,
+        preferredReligion, preferredMotherTongue, preferredEducation,
+        preferredLocation, preferredLanguages, preferredCaste,
+        ...profileData
+      } = formData;
+      
       // Prepare data for API
       const submitData = {
-        ...formData,
+        ...profileData,
         hobbies: formData.hobbies.split(',').map(hobby => hobby.trim()).filter(hobby => hobby),
         languages: formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang),
-        numBrothers: parseInt(formData.numBrothers) || 0,
-        numSisters: parseInt(formData.numSisters) || 0,
+        partnerPreferences: {
+          ageRange: {
+            min: partnerAgeMin || "",
+            max: partnerAgeMax || ""
+          },
+          incomeRange: {
+            min: partnerIncomeMin || "",
+            max: partnerIncomeMax || ""
+          },
+          preferredHeight: {
+            min: partnerHeightMin || "",
+            max: partnerHeightMax || ""
+          },
+          preferredReligion: preferredReligion.split(',').map(t => t.trim()).filter(Boolean),
+          preferredMotherTongue: preferredMotherTongue.split(',').map(t => t.trim()).filter(Boolean),
+          preferredEducation: preferredEducation.split(',').map(t => t.trim()).filter(Boolean),
+          preferredLocation: preferredLocation.split(',').map(t => t.trim()).filter(Boolean),
+          preferredLanguages: preferredLanguages.split(',').map(t => t.trim()).filter(Boolean),
+          preferredCaste: preferredCaste.split(',').map(t => t.trim()).filter(Boolean),
+        }
       };
 
-      const response = await fetch(`${API_URL}/api/user/update-profile`, {
+      const response = await fetch(`${API_URL}/user/update-profile`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -248,6 +321,18 @@ const UpdateProfile = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
+                <input
+                  type="text"
+                  name="middleName"
+                  value={formData.middleName}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter your middle name"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                 <input
                   type="text"
@@ -280,9 +365,9 @@ const UpdateProfile = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 >
                   <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
 
@@ -298,6 +383,102 @@ const UpdateProfile = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                <input
+                  type="text"
+                  name="height"
+                  value={formData.height}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., 175"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                <input
+                  type="text"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., 70"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">complextion</label>
+                <input
+                  type="text"
+                  name="complextion"
+                  value={formData.complextion}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., Fair, Wheatish"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Physical Status</label>
+                <input
+                  type="text"
+                  name="physicalStatus"
+                  value={formData.physicalStatus}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., Normal, Disabled"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Marital Status</label>
+                <select
+                  name="maritalStatus"
+                  value={formData.maritalStatus}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                >
+                  <option value="">Select Marital Status</option>
+                  <option value="Never Married">Never Married</option>
+                  <option value="Divorced">Divorced</option>
+                  <option value="Widowed">Widowed</option>
+                  <option value="Awaiting Divorce">Awaiting Divorce</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  User Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="userType"
+                  value={formData.userType}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                >
+                  <option value="">Select User Type</option>
+                  <option value="Self">Self</option>
+                  <option value="Son">Son</option>
+                  <option value="Daughter">Daughter</option>
+                  <option value="Brother">Brother</option>
+                  <option value="Sister">Sister</option>
+                  <option value="Friend">Friend</option>
+                  <option value="Relative">Relative</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Religious & Cultural Information */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <Users className="h-5 w-5 text-amber-600" />
+              Religious & Cultural Information
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Religion</label>
                 <input
                   type="text"
@@ -306,6 +487,30 @@ const UpdateProfile = () => {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   placeholder="Enter your religion"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Indian Religious</label>
+                <input
+                  type="text"
+                  name="indianReligious"
+                  value={formData.indianReligious}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., Hindu, Muslim"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Caste</label>
+                <input
+                  type="text"
+                  name="caste"
+                  value={formData.caste}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter your caste"
                 />
               </div>
 
@@ -322,19 +527,31 @@ const UpdateProfile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Marital Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Diet</label>
                 <select
-                  name="maritalStatus"
-                  value={formData.maritalStatus}
+                  name="diet"
+                  value={formData.diet}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 >
-                  <option value="">Select Marital Status</option>
-                  <option value="single">Single</option>
-                  <option value="married">Married</option>
-                  <option value="divorced">Divorced</option>
-                  <option value="widowed">Widowed</option>
+                  <option value="">Select Diet</option>
+                  <option value="Vegetarian">Vegetarian</option>
+                  <option value="Eggetarian">Eggetarian</option>
+                  <option value="Non-Vegetarian">Non-Vegetarian</option>
+                  <option value="Vegan">Vegan</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Resident Country</label>
+                <input
+                  type="text"
+                  name="residentCountry"
+                  value={formData.residentCountry}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter your resident country"
+                />
               </div>
             </div>
           </div>
@@ -464,6 +681,111 @@ const UpdateProfile = () => {
                   placeholder="Enter your native place"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                <input
+                  type="text"
+                  name="streetAddress"
+                  value={formData.streetAddress}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter your street address"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
+                <input
+                  type="text"
+                  name="addressLine2"
+                  value={formData.addressLine2}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter additional address info"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Zip Code</label>
+                <input
+                  type="text"
+                  name="zipCode"
+                  value={formData.zipCode}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter your zip code"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Citizenship Status</label>
+                <input
+                  type="text"
+                  name="citizenshipStatus"
+                  value={formData.citizenshipStatus}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., Citizen, Permanent Resident"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Astrology Information */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-amber-600" />
+              Astrology Information
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Birth Time</label>
+                <input
+                  type="time"
+                  name="birthTime"
+                  value={formData.birthTime}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Place of Birth</label>
+                <input
+                  type="text"
+                  name="placeOfBirth"
+                  value={formData.placeOfBirth}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter your place of birth"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Zodiac Sign</label>
+                <input
+                  type="text"
+                  name="zodiacSign"
+                  value={formData.zodiacSign}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., Aries, Taurus"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Gotra</label>
+                <input
+                  type="text"
+                  name="gotra"
+                  value={formData.gotra}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter your gotra"
+                />
+              </div>
             </div>
           </div>
 
@@ -471,40 +793,197 @@ const UpdateProfile = () => {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">About Me</h2>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Profile Bio</label>
-              <textarea
-                name="profileBio"
-                value={formData.profileBio}
-                onChange={handleInputChange}
-                rows="4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="Tell us about yourself..."
-              />
-            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Bio</label>
+                <textarea
+                  name="profileBio"
+                  value={formData.profileBio}
+                  onChange={handleInputChange}
+                  rows="4"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Tell us about yourself..."
+                />
+              </div>
 
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies & Interests</label>
-              <input
-                type="text"
-                name="hobbies"
-                value={formData.hobbies}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="e.g., Reading, Traveling, Music (separate with commas)"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies & Interests</label>
+                <input
+                  type="text"
+                  name="hobbies"
+                  value={formData.hobbies}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., Reading, Traveling, Music (separate with commas)"
+                />
+              </div>
 
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Languages Known</label>
-              <input
-                type="text"
-                name="languages"
-                value={formData.languages}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="e.g., English, Hindi, Spanish (separate with commas)"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Languages Known</label>
+                <input
+                  type="text"
+                  name="languages"
+                  value={formData.languages}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., English, Hindi, Spanish (separate with commas)"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Partner Preferences */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Partner Preferences</h2>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Age Range (Min)</label>
+                  <input
+                    type="text"
+                    name="partnerAgeMin"
+                    value={formData.partnerAgeMin}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., 25"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Age Range (Max)</label>
+                  <input
+                    type="text"
+                    name="partnerAgeMax"
+                    value={formData.partnerAgeMax}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., 30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Income Range (Min)</label>
+                  <input
+                    type="text"
+                    name="partnerIncomeMin"
+                    value={formData.partnerIncomeMin}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., 500000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Income Range (Max)</label>
+                  <input
+                    type="text"
+                    name="partnerIncomeMax"
+                    value={formData.partnerIncomeMax}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., 1000000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Height Range (Min cm)</label>
+                  <input
+                    type="text"
+                    name="partnerHeightMin"
+                    value={formData.partnerHeightMin}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., 160"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Height Range (Max cm)</label>
+                  <input
+                    type="text"
+                    name="partnerHeightMax"
+                    value={formData.partnerHeightMax}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., 180"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Religion</label>
+                  <input
+                    type="text"
+                    name="preferredReligion"
+                    value={formData.preferredReligion}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., Hindu, Christian (separate with commas)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Mother Tongue</label>
+                  <input
+                    type="text"
+                    name="preferredMotherTongue"
+                    value={formData.preferredMotherTongue}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., Hindi, Tamil (separate with commas)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Education</label>
+                  <input
+                    type="text"
+                    name="preferredEducation"
+                    value={formData.preferredEducation}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., Bachelor's, Master's (separate with commas)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Location</label>
+                  <input
+                    type="text"
+                    name="preferredLocation"
+                    value={formData.preferredLocation}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., Mumbai, Delhi (separate with commas)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Languages</label>
+                  <input
+                    type="text"
+                    name="preferredLanguages"
+                    value={formData.preferredLanguages}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., English, Hindi (separate with commas)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Caste</label>
+                  <input
+                    type="text"
+                    name="preferredCaste"
+                    value={formData.preferredCaste}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="e.g., Brahmin, Kshatriya (separate with commas)"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -534,6 +1013,36 @@ const UpdateProfile = () => {
                 />
                 <span className="text-sm text-gray-700">Show my mobile number to other users</span>
               </label>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Visibility</label>
+                <select
+                  name="profileVisibility"
+                  value={formData.profileVisibility}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                >
+                  <option value="All">All</option>
+                  <option value="Member">Member</option>
+                  <option value="Premium">Premium</option>
+                  <option value="Hidden">Hidden</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Photo Visibility</label>
+                <select
+                  name="photoVisibility"
+                  value={formData.photoVisibility}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                >
+                  <option value="All">All</option>
+                  <option value="Member">Member</option>
+                  <option value="Premium">Premium</option>
+                  <option value="Hidden">Hidden</option>
+                </select>
+              </div>
             </div>
           </div>
 

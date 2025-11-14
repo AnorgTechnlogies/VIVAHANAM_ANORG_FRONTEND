@@ -156,14 +156,14 @@ const HomePage = () => {
     }
   };
 
-  // Login input handler
-  const handleLoginInputChange = (e) => {
-    const { name, value } = e.target;
-    setLoginData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  // // Login input handler
+  // const handleLoginInputChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setLoginData(prev => ({
+  //     ...prev,
+  //     [name]: value
+  //   }));
+  // };
 
   // OTP handler for email verification
   const handleOtpSubmit = async (e) => {
@@ -328,61 +328,54 @@ const HomePage = () => {
   };
 
   // Signup function
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    
-    // Validate all fields
-    const allFields = Object.keys(validationRules);
-    const touched = {};
-    allFields.forEach(field => { touched[field] = true; });
-    setTouchedFields(touched);
 
-    if (!validateAllFields()) {
-      setError("Please fix all validation errors before submitting.");
-      return;
+const handleSignup = async (e) => {
+  e.preventDefault();
+  
+  // Validate all fields
+  const allFields = Object.keys(validationRules);
+  const touched = {};
+  allFields.forEach(field => { touched[field] = true; });
+  setTouchedFields(touched);
+
+  if (!validateAllFields()) {
+    setError("Please fix all validation errors before submitting.");
+    return;
+  }
+
+  setError("");
+  setSuccess("");
+  setLoading(true);
+
+  try {
+    const response = await fetch(`${API_URL}/user/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        // Optional: Include partnerPreferences if needed (backend can handle as object)
+        // partnerPreferences: defaultPartnerPreferences
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Signup failed: ${response.statusText}`);
     }
 
-    setError("");
-    setSuccess("");
-    setLoading(true);
+    setShowOtpModal(true);
+    setSuccess("Registration successful! Please check your email for verification code.");
 
-    try {
-      const submitData = new FormData();
-      
-      submitData.append("firstName", formData.firstName);
-      submitData.append("lastName", formData.lastName);
-      submitData.append("email", formData.email);
-      submitData.append("password", formData.password);
-      
-      // Default partner preferences
-      const defaultPartnerPreferences = {
-        ageRange: { min: "25", max: "35" },
-        preferredReligion: ["Hindu"],
-        preferredEducation: ["Graduate"],
-        preferredOccupation: ["Professional"]
-      };
-      submitData.append("partnerPreferences", JSON.stringify(defaultPartnerPreferences));
-
-      const response = await fetch(`${API_URL}/user/register`, {
-        method: 'POST',
-        body: submitData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Signup failed: ${response.statusText}`);
-      }
-
-      setShowOtpModal(true);
-      setSuccess("Registration successful! Please check your email for verification code.");
-
-    } catch (err) {
-      setError(err.message || "Signup failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    setError(err.message || "Signup failed. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Login function - UPDATED WITH FRONTEND VALIDATIONS
   const handleLogin = async (e) => {
@@ -821,7 +814,7 @@ const HomePage = () => {
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
                     onClick={() => navigate("/about")}
                   >
-                    Learn More
+                    About More
                   </button>
                 </div>
               </div>
@@ -830,45 +823,47 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Newsletter Section */}
-      <div className="relative w-full min-h-screen bg-amber-100 bg-gradient-to-bt from-amber-100 via-orange-100 to-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
+       {/* Services Section */}
+      <div className="w-full min-h-screen bg-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-            <div className="flex justify-center lg:justify-start order-2 lg:order-1">
-              <div className="relative w-full max-w-md lg:max-w-lg">
-                <img
-                  src={Home3Img}
-                  alt="Wedding Couple"
-                  className="w-full h-auto rounded-2xl shadow-2xl object-cover"
-                />
-                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full opacity-20 blur-3xl -z-10"></div>
-                <div className="absolute -top-6 -right-6 w-40 h-40 bg-gradient-to-br from-stone-400 to-amber-300 rounded-full opacity-20 blur-3xl -z-10"></div>
-              </div>
-            </div>
-            <div className="flex flex-col justify-center space-y-6 lg:space-y-8 order-1 lg:order-2">
-              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-800 leading-tight text-center lg:text-left">
-                Join our Newsletter
-              </h2>
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 text-center lg:text-left">
-                Stay Updated on Wedding Trends
-              </p>
-              <div className="space-y-6">
-                <div className="relative">
-                  <input
-                    type="email"
-                    placeholder="Enter Your Email"
-                    className="w-full px-0 py-3 text-base sm:text-lg bg-transparent border-b-2 border-gray-400 focus:border-amber-700 outline-none transition-colors duration-300 placeholder-gray-500"
-                  />
+          <div className="text-center mb-12 lg:mb-16">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-900 mb-2">
+              OUR SERVICES
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {workItems.map((item) => (
+              <div key={item.id} className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-amber-200 hover:border-amber-400">
+                <div className="relative h-48 sm:h-56 overflow-hidden">
+                  <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 </div>
-                <div className="flex justify-center lg:justify-start pt-4">
-                  <button
-                    className="px-10 py-4 bg-gradient-to-r from-amber-700 to-amber-800 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl hover:from-amber-800 hover:to-amber-900 transform hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    Submit Now
+                <div className="p-8">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-amber-900 mb-4">{item.title}</h3>
+                  <p className="text-base md:text-lg text-gray-700 leading-relaxed">{item.description}</p>
+                  <div className="mt-6 h-1 w-16 bg-gradient-to-r from-amber-600 to-red-600 group-hover:w-full transition-all duration-500"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mb-12 lg:mb-16"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
+            {services.map((service) => (
+              <div key={service.id} className="group relative bg-white/40 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div className="relative h-64 sm:h-72 md:h-80 overflow-hidden">
+                  <img src={service.image} alt={service.alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-shadow">{service.title}</h3>
+                  <p className="text-3xl sm:text-4xl font-bold mb-4">{service.price}</p>
+                  <button onClick={() => handleBookNow(service.title)} className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
+                    BOOK NOW
                   </button>
                 </div>
+                <div className="absolute inset-0 border-4 border-transparent group-hover:border-red-700 rounded-2xl transition-all duration-300 pointer-events-none"></div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -946,47 +941,48 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Services Section */}
-      <div className="w-full min-h-screen bg-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
+    
+
+
+       {/* Newsletter Section */}
+      <div className="relative w-full min-h-screen bg-amber-100 bg-gradient-to-bt from-amber-100 via-orange-100 to-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-12 lg:mb-16">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-900 mb-2">
-              OUR SERVICES
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {workItems.map((item) => (
-              <div key={item.id} className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-amber-200 hover:border-amber-400">
-                <div className="relative h-48 sm:h-56 overflow-hidden">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                </div>
-                <div className="p-8">
-                  <h3 className="text-2xl sm:text-3xl font-bold text-amber-900 mb-4">{item.title}</h3>
-                  <p className="text-base md:text-lg text-gray-700 leading-relaxed">{item.description}</p>
-                  <div className="mt-6 h-1 w-16 bg-gradient-to-r from-amber-600 to-red-600 group-hover:w-full transition-all duration-500"></div>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            <div className="flex justify-center lg:justify-start order-2 lg:order-1">
+              <div className="relative w-full max-w-md lg:max-w-lg">
+                <img
+                  src={Home3Img}
+                  alt="Wedding Couple"
+                  className="w-full h-auto rounded-2xl shadow-2xl object-cover"
+                />
+                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full opacity-20 blur-3xl -z-10"></div>
+                <div className="absolute -top-6 -right-6 w-40 h-40 bg-gradient-to-br from-stone-400 to-amber-300 rounded-full opacity-20 blur-3xl -z-10"></div>
               </div>
-            ))}
-          </div>
-          <div className="text-center mb-12 lg:mb-16"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
-            {services.map((service) => (
-              <div key={service.id} className="group relative bg-white/40 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                <div className="relative h-64 sm:h-72 md:h-80 overflow-hidden">
-                  <img src={service.image} alt={service.alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+            </div>
+            <div className="flex flex-col justify-center space-y-6 lg:space-y-8 order-1 lg:order-2">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-800 leading-tight text-center lg:text-left">
+                Join our Newsletter
+              </h2>
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 text-center lg:text-left">
+                Stay Updated on Wedding Trends
+              </p>
+              <div className="space-y-6">
+                <div className="relative">
+                  <input
+                    type="email"
+                    placeholder="Enter Your Email"
+                    className="w-full px-0 py-3 text-base sm:text-lg bg-transparent border-b-2 border-gray-400 focus:border-amber-700 outline-none transition-colors duration-300 placeholder-gray-500"
+                  />
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-shadow">{service.title}</h3>
-                  <p className="text-3xl sm:text-4xl font-bold mb-4">{service.price}</p>
-                  <button onClick={() => handleBookNow(service.title)} className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
-                    BOOK NOW
+                <div className="flex justify-center lg:justify-start pt-4">
+                  <button
+                    className="px-10 py-4 bg-gradient-to-r from-amber-700 to-amber-800 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl hover:from-amber-800 hover:to-amber-900 transform hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    Submit Now
                   </button>
                 </div>
-                <div className="absolute inset-0 border-4 border-transparent group-hover:border-red-700 rounded-2xl transition-all duration-300 pointer-events-none"></div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </div>

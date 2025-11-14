@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Briefcase, Heart, Users, Star, Eye, Calendar, Phone, Mail } from 'lucide-react';
+import { User, MapPin, Briefcase, Heart, Star, Eye, Calendar, Phone, Mail } from 'lucide-react';
 
 const ProfileView = () => {
   const [user, setUser] = useState(null);
@@ -124,7 +124,6 @@ const ProfileView = () => {
     { id: 'personal', label: 'Personal Info', icon: User },
     { id: 'education', label: 'Education & Career', icon: Briefcase },
     { id: 'location', label: 'Location', icon: MapPin },
-    { id: 'family', label: 'Family', icon: Users },
     { id: 'preferences', label: 'Partner Preferences', icon: Heart },
     { id: 'astro', label: 'Astro & Cultural', icon: Star }
   ];
@@ -200,11 +199,15 @@ const ProfileView = () => {
               <InfoItem label="Date of Birth" value={formatDate(user.dateOfBirth)} icon={Calendar} />
               <InfoItem label="Marital Status" value={user.maritalStatus} />
               <InfoItem label="Height" value={user.height ? `${user.height} cm` : null} />
+              <InfoItem label="Weight" value={user.weight} />
               <InfoItem label="Physical Status" value={user.physicalStatus} />
+              <InfoItem label="Complextion" value={user.complextion} />
             </Section>
 
             <Section title="Cultural & Religious">
               <InfoItem label="Religion" value={user.religion} />
+              <InfoItem label="Indian Religious" value={user.indianReligious} />
+              <InfoItem label="Caste" value={user.caste} />
               <InfoItem label="Mother Tongue" value={user.motherTongue} />
               <InfoItem label="Resident Country" value={user.residentCountry} />
               <InfoItem label="User Type" value={user.userType} />
@@ -214,6 +217,7 @@ const ProfileView = () => {
               <div className="col-span-full md:col-span-2">
                 <InfoItem label="Profile Bio" value={user.profileBio} />
               </div>
+              <InfoItem label="Diet" value={user.diet} />
               <InfoItem 
                 label="Hobbies" 
                 value={user.hobbies?.length ? user.hobbies.join(', ') : 'Not provided'} 
@@ -242,46 +246,13 @@ const ProfileView = () => {
           <Section title="Location Details">
             <InfoItem label="Country" value={user.country} icon={MapPin} />
             <InfoItem label="State" value={user.state} />
-            <InfoItem label="District" value={user.district} />
             <InfoItem label="City" value={user.city} />
-            <InfoItem label="Current City" value={user.currentCity} />
             <InfoItem label="Native Place" value={user.nativePlace} />
             <InfoItem label="Street Address" value={user.streetAddress} />
             <InfoItem label="Address Line 2" value={user.addressLine2} />
             <InfoItem label="Zip Code" value={user.zipCode} />
             <InfoItem label="Citizenship Status" value={user.citizenshipStatus} />
           </Section>
-        )}
-
-        {/* Family Tab */}
-        {activeTab === 'family' && (
-          <>
-            <Section title="Family Information">
-              <InfoItem label="Family Type" value={user.familyType} />
-              <InfoItem label="Family Status" value={user.familyStatus} />
-              <InfoItem label="Number of Brothers" value={user.numBrothers} />
-              <InfoItem label="Number of Sisters" value={user.numSisters} />
-              <InfoItem label="Siblings Marital Status" value={user.siblingsMaritalStatus} />
-              <InfoItem label="Family Background" value={user.familyBackground} />
-            </Section>
-
-            <Section title="Parents Information">
-              <InfoItem label="Father's Name" value={user.fatherName} />
-              <InfoItem label="Father's Occupation" value={user.fatherOccupation} />
-              <InfoItem label="Father's Status" value={user.fatherStatus} />
-              <InfoItem label="Mother's Name" value={user.motherName} />
-              <InfoItem label="Mother's Occupation" value={user.motherOccupation} />
-              <InfoItem label="Mother's Status" value={user.motherStatus} />
-            </Section>
-
-            {user.aboutFamily && (
-              <Section title="About Family">
-                <div className="col-span-full md:col-span-2">
-                  <p className="text-gray-900">{user.aboutFamily}</p>
-                </div>
-              </Section>
-            )}
-          </>
         )}
 
         {/* Partner Preferences Tab */}
@@ -330,13 +301,6 @@ const ProfileView = () => {
               } 
             />
             <InfoItem 
-              label="Preferred Occupation" 
-              value={user.partnerPreferences?.preferredOccupation?.length 
-                ? user.partnerPreferences.preferredOccupation.join(', ') 
-                : 'Not specified'
-              } 
-            />
-            <InfoItem 
               label="Preferred Location" 
               value={user.partnerPreferences?.preferredLocation?.length 
                 ? user.partnerPreferences.preferredLocation.join(', ') 
@@ -347,13 +311,6 @@ const ProfileView = () => {
               label="Preferred Languages" 
               value={user.partnerPreferences?.preferredLanguages?.length 
                 ? user.partnerPreferences.preferredLanguages.join(', ') 
-                : 'Not specified'
-              } 
-            />
-            <InfoItem 
-              label="Cultural Background" 
-              value={user.partnerPreferences?.culturalBackground?.length 
-                ? user.partnerPreferences.culturalBackground.join(', ') 
                 : 'Not specified'
               } 
             />

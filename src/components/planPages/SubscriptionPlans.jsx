@@ -21,7 +21,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 const SubscriptionPlans = () => {
-  const [billingCycle, setBillingCycle] = useState("monthly");
+  const [billingCycle, setBillingCycle] = useState("payAsYouGo");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
@@ -319,7 +319,7 @@ const SubscriptionPlans = () => {
     const fetchUserData = async () => {
       try {
         // In real app, get from authentication context or API
-        const userVivId = "VIV93467"; // This should come from auth context
+        const userVivId = "VIV98707"; // This should come from auth context
         
         const response = await fetch(`/api/user/viv/${userVivId}`);
         const result = await response.json();
@@ -332,7 +332,7 @@ const SubscriptionPlans = () => {
             id: 1,
             name: "Rajesh Kumar",
             email: "divyanshu2022d@gmail.com",
-            vivId: "VIV93467",
+            vivId: "VIV98707",
             profileCompleted: 85
           });
         }
@@ -343,7 +343,7 @@ const SubscriptionPlans = () => {
           id: 1,
           name: "Rajesh Kumar",
           email: "divyanshu2022d@gmail.com",
-          vivId: "VIV93467",
+          vivId: "VIV98707",
           profileCompleted: 85
         });
       }
@@ -460,6 +460,43 @@ const SubscriptionPlans = () => {
   // Get current plans based on billing cycle
   const currentPlans = plansData[billingCycle] || plansData.monthly;
 
+  const getBillingDisplay = () => {
+    switch (billingCycle) {
+      case "payAsYouGo":
+        return "Pay As You Go";
+      case "monthly":
+        return "Monthly";
+      case "yearly":
+        return "Yearly";
+      default:
+        return billingCycle;
+    }
+  };
+
+  const getBillingSuffix = () => {
+    switch (billingCycle) {
+      case "monthly":
+        return "/mo";
+      case "yearly":
+        return "/yr";
+      default:
+        return "";
+    }
+  };
+
+  const getBillingType = () => {
+    switch (billingCycle) {
+      case "payAsYouGo":
+        return "Pay As You Go";
+      case "monthly":
+        return "Monthly Billing";
+      case "yearly":
+        return "Yearly Billing";
+      default:
+        return "Billing";
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-amber-50 via-orange-50 to-amber-50 pt-40">
       {/* Floating particles background effect */}
@@ -490,6 +527,23 @@ const SubscriptionPlans = () => {
         {/* Billing Toggle */}
         <div className="flex justify-center items-center gap-4 mb-8 flex-wrap">
           <button
+            className={`px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 relative ${
+              billingCycle === "payAsYouGo"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg"
+                : "bg-white text-amber-800 border-2 border-amber-200 hover:border-amber-400"
+            }`}
+            onClick={() => {
+              setBillingCycle("payAsYouGo");
+              navigate("/payas");
+            }}
+          >
+            Pay As You Go
+            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+              Best Value
+            </span>
+          </button>
+
+          <button
             className={`px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
               billingCycle === "monthly"
                 ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg"
@@ -509,23 +563,14 @@ const SubscriptionPlans = () => {
             onClick={() => setBillingCycle("yearly")}
           >
             Yearly
-            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-              Save 20%
-            </span>
-          </button>
-
-          <button
-            className="px-8 py-3 rounded-lg font-semibold bg-white text-amber-800 border-2 border-amber-200 hover:border-amber-400 transition-all duration-300 transform hover:scale-105"
-            onClick={() => navigate("/payas")}
-          >
-            Pay As You Go
+           
           </button>
         </div>
 
         {/* Billing Cycle Indicator */}
         <div className="mb-4">
           <p className="text-lg font-semibold text-amber-700">
-            Currently showing: <span className="capitalize">{billingCycle}</span> plans
+            Currently showing: <span>{getBillingDisplay()}</span> plans
           </p>
         </div>
       </div>
@@ -576,7 +621,7 @@ const SubscriptionPlans = () => {
                   <p className="text-5xl font-bold text-amber-900">
                     {plan.price}
                     <span className="text-lg font-normal text-gray-600">
-                      {billingCycle === "monthly" ? "/mo" : "/yr"}
+                      {getBillingSuffix()}
                     </span>
                   </p>
                   <p className="text-sm text-gray-500 line-through mt-1">
@@ -622,7 +667,7 @@ const SubscriptionPlans = () => {
                 {/* Plan Type Indicator */}
                 <div className="mt-3 text-center">
                   <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
-                    {billingCycle === "monthly" ? "Monthly Billing" : "Yearly Billing"}
+                    {getBillingType()}
                   </span>
                 </div>
               </div>
@@ -657,7 +702,7 @@ const SubscriptionPlans = () => {
                 </div>
                 <div className="flex justify-between items-center mt-2 text-amber-200">
                   <span>Billing Cycle:</span>
-                  <span className="font-semibold capitalize">{billingCycle}</span>
+                  <span className="font-semibold">{getBillingDisplay()}</span>
                 </div>
                 <div className="flex justify-between items-center mt-2 text-amber-200">
                   <span>Profile Views:</span>
@@ -676,7 +721,7 @@ const SubscriptionPlans = () => {
                   <p className="font-semibold text-gray-900">{user?.name}</p>
                   <p className="text-sm text-gray-600">VIV ID: {user?.vivId}</p>
                   <p className="text-xs text-amber-600 font-medium">
-                    {selectedPlan.name} Plan • {billingCycle === "monthly" ? "Monthly" : "Yearly"} Subscription
+                    {selectedPlan.name} Plan • {getBillingDisplay()} Subscription
                   </p>
                 </div>
               </div>

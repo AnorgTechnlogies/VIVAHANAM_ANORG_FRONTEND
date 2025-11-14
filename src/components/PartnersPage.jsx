@@ -1,33 +1,20 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import SearchPartners from "../assets/BackgroundImagePertnerPage.jpg";
 
 const PartnersPage = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState({
-    ageMin: 0,
-    ageMax: 100,
-    location: "",
-    salaryMin: 0,
-    salaryMax: 1000000,
-    religion: "",
-    diet: "",
-    language: "",
-    hobbies: "",
-  });
-  const [selectedTab, setSelectedTab] = useState("all");
-  const [showCategories, setShowCategories] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [subSelections, setSubSelections] = useState({});
   const [user] = useState({ email: "Vivahanam.com" });
   const navigate = useNavigate();
+
+  // Reference for smooth scroll
+  const partnersSectionRef = useRef(null);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  // Optimized partner data with memoization
   const partners = useMemo(
     () => [
       {
@@ -168,109 +155,15 @@ const PartnersPage = () => {
     []
   );
 
-  const categories = ["Mother Tongue", "Caste", "Religion", "City", "Occupation", "State", "NRI", "College"];
-
-  const categoryFilters = useMemo(
-    () => ({
-      "Mother Tongue": ["Bengali", "Punjabi", "Tamil", "Gujarati", "Hindi"],
-      "Caste": ["Sharma", "Gupta", "Rajput", "Mehta"],
-      "Religion": ["Hindu", "Jain"],
-      "City": ["Atlanta", "Los Angeles", "San Francisco", "Chicago", "Dallas", "Houston"],
-      "Occupation": ["Documents", "Consultant", "Marketing Specialist", "Architect", "Financial"],
-      "State": ["GA", "CA", "IL", "TX"],
-      "NRI": ["Yes", "No"],
-      "College": ["Emory University", "Consulting Academy", "Art College", "Architecture School", "Finance Uni", "Consulting School"],
-    }),
-    []
-  );
-
-  // Optimized filter function with useMemo
   const filteredPartners = useMemo(() => {
     const query = searchQuery.toLowerCase();
     return partners.filter((partner) => {
-      const matchesTab =
-        selectedTab === "all" ||
-        partner.gender === (selectedTab === "bride" ? "female" : "male");
-
-      if (!matchesTab) return false;
-
       const matchesSearch =
         partner.name.toLowerCase().includes(query) ||
         partner.description.toLowerCase().includes(query);
-      if (!matchesSearch) return false;
-
-      const matchesAge =
-        partner.age >= filters.ageMin && partner.age <= filters.ageMax;
-      if (!matchesAge) return false;
-
-      const matchesLocation =
-        !filters.location ||
-        partner.location.toLowerCase().includes(filters.location.toLowerCase());
-      if (!matchesLocation) return false;
-
-      const matchesSalary =
-        partner.salary >= filters.salaryMin &&
-        partner.salary <= filters.salaryMax;
-      if (!matchesSalary) return false;
-
-      const matchesReligion =
-        !filters.religion || partner.religion === filters.religion;
-      if (!matchesReligion) return false;
-
-      const matchesDiet = !filters.diet || partner.diet === filters.diet;
-      if (!matchesDiet) return false;
-
-      const matchesLanguage =
-        !filters.language ||
-        partner.language.toLowerCase().includes(filters.language.toLowerCase());
-      if (!matchesLanguage) return false;
-
-      const matchesHobbies =
-        !filters.hobbies ||
-        partner.interests.some((interest) =>
-          interest.toLowerCase().includes(filters.hobbies.toLowerCase())
-        );
-      if (!matchesHobbies) return false;
-
-      // Category-based filters (apply all active selections)
-      for (const [cat, selectedSubs] of Object.entries(subSelections)) {
-        if (selectedSubs && selectedSubs.size > 0) {
-          let partnerValue = "";
-          switch (cat) {
-            case "Mother Tongue":
-              partnerValue = partner.motherTongue;
-              break;
-            case "Caste":
-              partnerValue = partner.caste;
-              break;
-            case "Religion":
-              partnerValue = partner.religion;
-              break;
-            case "City":
-              partnerValue = partner.city;
-              break;
-            case "Occupation":
-              partnerValue = partner.profession;
-              break;
-            case "State":
-              partnerValue = partner.state;
-              break;
-            case "NRI":
-              partnerValue = partner.nri ? "Yes" : "No";
-              break;
-            case "College":
-              partnerValue = partner.college;
-              break;
-            default:
-              partnerValue = "";
-          }
-          if (!selectedSubs.has(partnerValue)) return false;
-        }
-      }
-
-      return true;
+      return matchesSearch;
     });
-  }, [partners, searchQuery, selectedTab, filters, subSelections]);
+  }, [partners, searchQuery]);
 
   const handleProfileClick = (partnerId) => {
     console.log(`Viewing profile: ${partnerId}`);
@@ -280,15 +173,11 @@ const PartnersPage = () => {
     navigate("/subscription-plans");
   };
 
-  // const handleFreeRegistration = () => {
-  //   navigate("/partners/registerProfile");
-  // };
+  // Smooth scroll to partners section
+  const handleSearchPartners = () => {
+    partnersSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  // const updateFilter = (key, value) => {
-  //   setFilters((prev) => ({ ...prev, [key]: value }));
-  // };
-
-  // Floating particles component
   const FloatingParticles = () => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {[...Array(6)].map((_, i) => (
@@ -306,20 +195,11 @@ const PartnersPage = () => {
     </div>
   );
 
-  // Filter options for better maintainability
-  // const filterOptions = {
-  //   ageMin: [18, 20, 25],
-  //   ageMax: [35, 40, 45],
-  //   religion: ["", "Hindu", "Muslim", "Christian", "Jain", "Sikh"],
-  //   diet: ["", "veg", "nonveg", "both"],
-  // };
-
   return (
     <>
       {/* Hero Section */}
       <section className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100">
-        {/* Background gradient & floating effects */}
-        <div className="absolute inset-0  animate-pulse-slow" />
+        <div className="absolute inset-0 animate-pulse-slow" />
         <FloatingParticles />
 
         <div className="w-full flex flex-col items-center justify-start py-8 sm:py-12 md:py-0 relative z-10">
@@ -344,174 +224,51 @@ const PartnersPage = () => {
 
               {/* Right Side – Content */}
               <div className="flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-2 w-full px-4 lg:px-0 text-center lg:text-left">
-                {/* English Heading */}
                 <h1
                   className={`text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-semibold text-red-700 leading-tight sm:leading-snug transition-all duration-700 delay-300 ${
                     isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   }`}
-                  style={{ fontFamily: "serif" }}>
+                  style={{ fontFamily: "serif" }}
+                >
                   Best Indian Matrimonial <br /> Site in the USA
                 </h1>
+
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 justify-center lg:justify-start">
                   <button
-                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px]"
                     onClick={handleSubscription}
                   >
                     Subscribe Now
                   </button>
+
+                  <button
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px]"
+                    onClick={handleSearchPartners}
+                  >
+                    Search Partner
+                  </button>
                 </div>
 
-               
-
-                {/* Description */}
                 <p
                   className={`text-sm sm:text-base md:text-lg lg:text-xl font-semibold xl:text-2xl text-gray-700 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:mx-0 transition-all duration-700 delay-700 ${
                     isVisible ? "opacity-100" : "opacity-0"
                   }`}
                 >
-                  A trusted matrimonial platform connecting Indian singles
-                  across the USA. Discover verified bride and groom profiles and
-                  start your journey towards a meaningful connection today.
+                  A trusted matrimonial platform connecting Indian singles across the USA.
+                  Discover verified bride and groom profiles and start your journey towards
+                  a meaningful connection today.
                 </p>
-
-                {/* Button */}
-                
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      
-
-      {/* Search and Filters Section */}
-     <section className="relative w-full py-6 md:py-8 lg:py-12 px-4 sm:px-6 lg:px-8 bg-amber-100">
-  <div className="container mx-auto max-w-7xl">
-    <div className="text-center mb-6 lg:mb-8">
-      <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-5xl font-bold text-amber-800 mb-4">
-        Search Partners
-      </h2>
-    </div>
-
- {/* Brides/Grooms Tabs */}
-<div className="flex justify-center mb-6">
-  <div className="flex bg-white rounded-xl p-1 shadow-lg">
-    {["bride", "groom"].map((tab) => (
-      <button
-        key={tab}
-        onClick={() => setSelectedTab(tab)}
-        className={`px-6 py-3 rounded-lg font-semibold transition-all capitalize ${
-          selectedTab === tab
-            ? "bg-amber-500 text-white shadow-md"
-            : "text-gray-600 hover:text-amber-800"
-        } ${tab !== "bride" ? "ml-1" : ""}`}
-      >
-        {tab + "s"}
-      </button>
-    ))}
-  </div>
-</div>
-
-{/* Browse Profiles By Categories */}
-<div className="max-w-4xl mx-auto mb-6">
-  <button 
-    className="mx-auto w-60 px-6 py-4 text-lg bg-red-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all mb-4 block"
-    onClick={() => {
-      if (showCategories) {
-        setShowCategories(false);
-      } else {
-        setSelectedCategory(null);
-        setShowCategories(true);
-      }
-    }}
-  >
-    {showCategories ? "Hide Categories" : "Start Your Search By ▼"}
-  </button>
-  {showCategories && (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-      {categories.map((cat) => (
-        <button
-          key={cat}
-          onClick={() => {
-            setShowCategories(false);
-            setSelectedCategory((prev) => (prev === cat ? null : cat));
-          }}
-          className={`px-4 py-2 rounded-lg font-medium transition-all ${
-            selectedCategory === cat
-              ? "bg-amber-600 text-white"
-              : "bg-white text-amber-800 border border-amber-300 hover:bg-amber-50"
-          }`}
-        >
-          {cat}
-        </button>
-      ))}
-    </div>
-  )}
-</div>
-
-    {/* Sub-filters for selected category */}
-    {selectedCategory && (
-      <div className="max-w-2xl mx-auto mb-8">
-        <h4 className="text-lg font-semibold mb-4 text-center capitalize">
-          Filter by {selectedCategory}
-        </h4>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 bg-white rounded-xl border border-amber-300">
-          {categoryFilters[selectedCategory].map((option) => (
-            <label
-              key={option}
-              className="flex items-center p-2 rounded-lg hover:bg-amber-50 cursor-pointer transition-colors"
-            >
-              <input
-                type="checkbox"
-                checked={(subSelections[selectedCategory] || new Set()).has(option)}
-                onChange={(e) => {
-                  const currentSet = subSelections[selectedCategory] || new Set();
-                  const newSet = new Set(currentSet);
-                  if (e.target.checked) {
-                    newSet.add(option);
-                  } else {
-                    newSet.delete(option);
-                  }
-                  setSubSelections((prev) => ({ ...prev, [selectedCategory]: newSet }));
-                }}
-                className="mr-2 h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
-              />
-              <span className="text-sm">{option}</span>
-            </label>
-          ))}
-        </div>
-        <div className="flex justify-center gap-4 mt-4">
-          <button
-            onClick={() => {
-              setSubSelections((prev) => {
-                const newSubs = { ...prev };
-                if (newSubs[selectedCategory]) {
-                  newSubs[selectedCategory] = new Set();
-                  if (newSubs[selectedCategory].size === 0) {
-                    delete newSubs[selectedCategory];
-                  }
-                }
-                return newSubs;
-              });
-            }}
-            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow transition-all"
-          >
-            Clear {selectedCategory} Filters
-          </button>
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg shadow transition-all"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    )}
-  </div>
-</section>
-
       {/* Partners Grid */}
-      <section className="relative w-full py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section
+        ref={partnersSectionRef}
+        className="relative w-full py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-amber-100"
+      >
         <div className="container mx-auto max-w-7xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
             {filteredPartners.map((partner) => (
@@ -531,7 +288,6 @@ const PartnersPage = () => {
             </div>
           )}
 
-          {/* Load More Button */}
           <div className="flex justify-center mt-12">
             <button className="px-10 py-4 bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
               Load More Partners
@@ -575,13 +331,12 @@ const PartnersPage = () => {
   );
 };
 
-// Extracted Partner Card Component for better reusability and performance
+// Partner Card Component
 const PartnerCard = ({ partner, onClick }) => (
   <div
     className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-amber-200 hover:border-amber-400 cursor-pointer"
     onClick={() => onClick(partner.id)}
   >
-    {/* Profile Image - Blurred */}
     <div className="relative h-40 sm:h-44 overflow-hidden">
       <img
         src={partner.image}
@@ -595,11 +350,7 @@ const PartnerCard = ({ partner, onClick }) => (
       </div>
     </div>
 
-    {/* Profile Content */}
     <div className="p-3 sm:p-4">
-      <h3 className="text-lg sm:text-xl font-bold text-amber-900 mb-1 truncate">
-        {/* {partner.name} */}
-      </h3>
       <p className="text-red-700 font-semibold mb-1 text-xs sm:text-sm">
         {partner.age} | {partner.location}
       </p>
