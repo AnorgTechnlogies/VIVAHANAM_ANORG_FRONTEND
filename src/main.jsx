@@ -5,6 +5,10 @@ import './index.css'
 import App from './App.jsx'
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+import { setupSessionInterceptor } from './utils/sessionManager.js';
+
+// Setup session interceptor to handle auto-logout
+setupSessionInterceptor();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

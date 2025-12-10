@@ -152,14 +152,25 @@ export const verifyEmail = (email, otp) => async (dispatch) => {
 export const loginUser = (credentials) => async (dispatch) => {
   try {
     dispatch(userSlice.actions.userRequest());
+    
+    // Import device fingerprinting
+    const { generateDeviceId } = await import("../../utils/deviceFingerprint.js");
+    const deviceId = generateDeviceId();
+    
     const config = {
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-device-id": deviceId,
+      },
       withCredentials: true,
     };
     
     const response = await axios.post(
       `${BASE_URL}/api/user/login`,
-      credentials,
+      {
+        ...credentials,
+        deviceId: deviceId,
+      },
       config
     );
     
@@ -169,7 +180,19 @@ export const loginUser = (credentials) => async (dispatch) => {
     if (response.data.token) {
       localStorage.setItem("vivahanamToken", response.data.token);
     }
+    
+    // Handle session termination
+    if (response.data.code === "SESSION_TERMINATED") {
+      const { handleSessionTermination } = await import("../../utils/sessionManager.js");
+      handleSessionTermination();
+    }
   } catch (error) {
+    // Handle session termination error
+    if (error.response?.data?.code === "SESSION_TERMINATED") {
+      const { handleSessionTermination } = await import("../../utils/sessionManager.js");
+      handleSessionTermination();
+    }
+    
     dispatch(
       userSlice.actions.userFailed(
         error.response?.data?.message || "Login failed"

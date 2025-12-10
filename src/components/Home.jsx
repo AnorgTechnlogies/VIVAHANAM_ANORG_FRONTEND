@@ -1,17 +1,26 @@
-// FINAL VERSION OF NAVBAR.JSX WITH COMPLETE AUTHENTICATION FLOW AND VALIDATIONS
+// FINAL VERSION OF HOMEPAGE.JSX WITH DYNAMIC LOGIN/REGISTER BUTTONS, SCROLL ARROW, AND ANIMATION
 
-import { useState, useEffect } from "react";
-import { Menu, X, User, LogOut, Edit, LogIn, Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import Logo from "../assets/Logo.jpg";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { ChevronUp, Eye, EyeOff } from "lucide-react"; // Import the arrow icon and eye icons
+import Home2Img from "../assets/Home2Img.jpg";
+import Home3Img from "../assets/Home3Img.jpg";
+import unnamedImage from "../assets/unnamed.jpg";
+import Home5RitualImg from "../assets/Home5RitualImg.jpg";
+import Home1 from "../assets/Homeimage.jpeg";
+import stepimage2 from "../assets/image2stepPage.jpeg";
+import stepimage3 from "../assets/step3image2.jpg";
+import EventManagement from "../assets/EventManagement.jpg";
+import Decoration from "../assets/Decoration.jpg";
+import PriestSupport from "../assets/PriestSupport .jpg";
+import Auspicious from "../assets/Auspicious.jpg";
 import { generateDeviceId, getDeviceInfo } from "../utils/deviceFingerprint.js";
 
-const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+const HomePage = () => {
+  const [isVisible, setIsVisible] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState("login");
-  const [userData, setUserData] = useState(null);
+  const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,19 +28,23 @@ const Navbar = () => {
   const [otp, setOtp] = useState("");
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState("");
+  const [showScrollArrow, setShowScrollArrow] = useState(false);
 
+  // Forgot password state
   const [forgotEmail, setForgotEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
+  // Login state
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
     showPassword: false,
   });
 
+  // Signup form data
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -44,11 +57,68 @@ const Navbar = () => {
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const navigate = useNavigate();
+  const firstSectionRef = useRef(null);
 
   const API_URL = import.meta.env.VITE_API_KEY;
 
+  // Check if user is already logged in on component mount
+  useEffect(() => {
+    const checkUserLoggedIn = () => {
+      const token = localStorage.getItem("vivahanamToken");
+      const userData = localStorage.getItem("vivahanamUser");
+
+      if (token && userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (error) {
+          console.error("Error parsing user data:", error);
+          // Clear invalid data
+          localStorage.removeItem("vivahanamToken");
+          localStorage.removeItem("vivahanamUser");
+        }
+      }
+    };
+
+    checkUserLoggedIn();
+  }, []);
+
+  // Show scroll arrow when user scrolls down
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollArrow(true);
+      } else {
+        setShowScrollArrow(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  // Scroll to first section function
+  const scrollToFirstSection = () => {
+    if (firstSectionRef.current) {
+      firstSectionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    } else {
+      scrollToTop();
+    }
+  };
+
+  // Validation rules for signup
   const validationRules = {
     firstName: {
       required: true,
@@ -81,6 +151,7 @@ const Navbar = () => {
     },
   };
 
+  // Validation function
   const validateField = (name, value, allFormData = formData) => {
     const rule = validationRules[name];
     if (!rule) return null;
@@ -124,6 +195,7 @@ const Navbar = () => {
     return Object.keys(errors).length === 0;
   };
 
+  // Form handlers for signup
   const handleFieldBlur = (fieldName) => {
     setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
 
@@ -186,6 +258,7 @@ const Navbar = () => {
         localStorage.setItem("vivahanamToken", data.token);
       }
 
+      // Prefill login email for seamless transition
       setLoginData((prev) => ({ ...prev, email: formData.email }));
 
       setShowOtpModal(false);
@@ -200,6 +273,7 @@ const Navbar = () => {
         showConfirmPassword: false,
       });
       setOtp("");
+      // Switch to login mode (modal stays open)
       setAuthMode("login");
     } catch (err) {
       setVerifyError(
@@ -211,6 +285,7 @@ const Navbar = () => {
     }
   };
 
+  // Forgot Password - Step 1: Request verification code
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setError("");
@@ -254,6 +329,7 @@ const Navbar = () => {
     }
   };
 
+  // Forgot Password - Step 2: Verify code and reset password
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setError("");
@@ -303,6 +379,7 @@ const Navbar = () => {
         throw new Error(data.message || `Password reset failed`);
       }
 
+      // Prefill login email for seamless transition
       setLoginData({ email: forgotEmail, password: "", showPassword: false });
 
       setSuccess(
@@ -323,9 +400,11 @@ const Navbar = () => {
     }
   };
 
+  // Signup function
   const handleSignup = async (e) => {
     e.preventDefault();
 
+    // Validate all fields
     const allFields = Object.keys(validationRules);
     const touched = {};
     allFields.forEach((field) => {
@@ -362,7 +441,6 @@ const Navbar = () => {
         );
       }
 
-      // Show OTP modal instead of closing auth modal
       setShowOtpModal(true);
       setSuccess(
         "Registration successful! Please check your email for verification code."
@@ -374,18 +452,21 @@ const Navbar = () => {
     }
   };
 
+  // Login function
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
 
+    // Frontend validation: Check if all fields are filled
     if (!loginData.email || !loginData.password) {
       setError("All fields are required. Please fill in email and password.");
       setLoading(false);
       return;
     }
 
+    // Additional frontend validation for email format (basic)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(loginData.email)) {
       setError("Please enter a valid email address.");
@@ -393,6 +474,7 @@ const Navbar = () => {
       return;
     }
 
+    // Additional frontend validation for password length
     if (loginData.password.length < 6) {
       setError("Password must be at least 6 characters long.");
       setLoading(false);
@@ -406,7 +488,7 @@ const Navbar = () => {
 
       const response = await fetch(`${API_URL}/user/login`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "x-device-id": deviceId,
         },
@@ -422,6 +504,7 @@ const Navbar = () => {
         let errorMsg =
           errorData?.message || `Login failed: ${response.statusText}`;
 
+        // Handle specific backend errors if available
         if (
           errorMsg.toLowerCase().includes("user not found") ||
           errorMsg.toLowerCase().includes("invalid credentials")
@@ -442,7 +525,8 @@ const Navbar = () => {
           errorData?.code === "SESSION_TERMINATED" ||
           errorMsg.toLowerCase().includes("session terminated")
         ) {
-          errorMsg = "Your session has been terminated. Another device has logged in.";
+          errorMsg =
+            "Your session has been terminated. Another device has logged in.";
           // Clear local storage and redirect
           localStorage.removeItem("vivahanamToken");
           localStorage.removeItem("vivahanamUser");
@@ -459,19 +543,22 @@ const Navbar = () => {
 
       if (data.user) {
         localStorage.setItem("vivahanamUser", JSON.stringify(data.user));
-        setUserData(data.user);
+        setUser(data.user);
       }
 
       // Show device limit info if available
       if (data.deviceLimit && data.activeDevices) {
         if (data.deviceLimit === 1) {
-          setSuccess(`Logged in successfully. Only 1 device can be active at a time.`);
+          setSuccess(
+            `Logged in successfully. Only 1 device can be active at a time.`
+          );
         } else {
-          setSuccess(`Logged in successfully. ${data.activeDevices}/${data.deviceLimit} devices active.`);
+          setSuccess(
+            `Logged in successfully. ${data.activeDevices}/${data.deviceLimit} devices active.`
+          );
         }
       }
 
-      setIsLoggedIn(true);
       setShowAuthModal(false);
       setLoginData({
         email: "",
@@ -487,6 +574,12 @@ const Navbar = () => {
     }
   };
 
+  // Handle partner search navigation
+  const handlePartnerSearch = () => {
+    navigate("/partners");
+  };
+
+  // Navigation functions
   const switchToLogin = () => {
     setAuthMode("login");
     setError("");
@@ -579,6 +672,7 @@ const Navbar = () => {
     setVerifyError("");
   };
 
+  // Helper functions for modal content
   const getTitle = () => {
     switch (authMode) {
       case "login":
@@ -645,6 +739,7 @@ const Navbar = () => {
     }
   };
 
+  // Render helpers for signup
   const renderFieldError = (fieldName) => {
     if (touchedFields[fieldName] && fieldErrors[fieldName]) {
       return (
@@ -665,260 +760,524 @@ const Navbar = () => {
     return `${baseClass} border-gray-300 focus:border-orange-500`;
   };
 
-  const checkAuthStatus = () => {
-    const token = localStorage.getItem("vivahanamToken");
-    const userInfo = localStorage.getItem("vivahanamUser");
+  // Handle free registration button
+  const handleFreeRegistration = () => {
+    setError("");
 
-    if (token && userInfo) {
-      setIsLoggedIn(true);
-      try {
-        setUserData(JSON.parse(userInfo));
-      } catch (error) {
-        console.error("Error parsing user info:", error);
-      }
+    // Check if user is logged in
+    if (!user) {
+      // If user is not logged in, show the auth modal in signup mode
+      setShowAuthModal(true);
+      setAuthMode("signup");
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        showPassword: false,
+        showConfirmPassword: false,
+      });
+      setFieldErrors({});
+      setTouchedFields({});
     } else {
-      setIsLoggedIn(false);
-      setUserData(null);
+      // If user is logged in, navigate to register page
+      navigate("/register");
     }
   };
 
   useEffect(() => {
-    checkAuthStatus();
-    const interval = setInterval(checkAuthStatus, 1000);
-    return () => clearInterval(interval);
+    setIsVisible(true);
   }, []);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  const toggleProfileDropdown = () =>
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
-
-  const handleLogout = () => {
-    localStorage.removeItem("vivahanamToken");
-    localStorage.removeItem("vivahanamUser");
-    setIsLoggedIn(false);
-    setUserData(null);
-    setIsProfileDropdownOpen(false);
-    
-    // Navigate to home first, then refresh
-    navigate("/", { replace: true });
-    
-    // Refresh the page after a short delay to ensure navigation happens
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
-  };
-
-  const handleViewProfile = () => {
-    setIsProfileDropdownOpen(false);
-    navigate("/profile");
-  };
-
-  const handleUpdateProfile = () => {
-    setIsProfileDropdownOpen(false);
-    navigate("/update-profile");
-  };
-
-  // Function to handle Home/Logo click with smooth scroll to top
-  const handleHomeClick = () => {
-    setIsMenuOpen(false);
-    
-    // If we're already on home page, scroll to top
-    if (window.location.pathname === "/") {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      // Navigate to home page
-      navigate("/");
-      
-      // Scroll to top after navigation (small delay to ensure page loads)
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
-    }
-  };
-
-  const navItems = [
-    { name: "Home", href: "/", onClick: handleHomeClick },
-    { name: "Services & Plan", href: "/PlanHomePage" },
-    { name: "Wedding Shop", href: "/shops" },
-    { name: "About Us", href: "/about" },
-    { name: "Contact Us", href: "/contact" },
+  const workItems = [
+    {
+      id: 1,
+      title: "Matchmaking",
+      description:
+        "Our matchmaking services focus on understanding individual preferences and values, enabling us to connect compatible matches. We delve into cultural nuances to create meaningful connections that resonate with your heritage.",
+      image:
+        "https://images.unsplash.com/photo-1529636798458-92182e662485?q=80&w=2069",
+    },
+    {
+      id: 2,
+      title: "Consultations/Marriage Registration",
+      description:
+        "Our consultations and marriage registration services are designed to understand your personal values and preferences, ensuring meaningful and culturally aligned connections.",
+      image:
+        "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069",
+    },
+    {
+      id: 3,
+      title: "Priest Support",
+      description:
+        "We connect you with experienced priests who understand cultural nuances and spiritual practices, helping you honor traditions with comfort and confidence.",
+      image: PriestSupport,
+    },
+    {
+      id: 4,
+      title: "Auspicious Date Discovery",
+      description:
+        "Our auspicious date discovery service helps you select spiritually aligned dates based on cultural and traditional calendars, ensuring harmony and good fortune.",
+      image: Auspicious,
+    },
+    {
+      id: 5,
+      title: "Event Management",
+      description:
+        "Our team manages each aspect of your ceremony and celebrations, blending organization, creativity, and tradition to deliver a smooth and meaningful experience.",
+      image: EventManagement,
+    },
+    {
+      id: 6,
+      title: "Decoration/Catering",
+      description:
+        "Our decoration and catering services prioritize cultural elements, refined presentation, and quality, ensuring your event is visually stunning and delightfully memorable.",
+      image: Decoration,
+    },
   ];
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-sm shadow-md border-b border-gray-200">
-        <div className="px-2 sm:px-4 lg:px-6 py-3 lg:py-4 max-w-7xl mx-auto">
-          <div className="flex items-center">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded overflow-visible flex-shrink-0 transition-all duration-300 hover:scale-200 cursor-pointer z-10 relative hover:-mb-5 rounded-full "
-                onClick={handleHomeClick}
-              >
-                <img
-                  src={Logo}
-                  alt="Vivahanam Logo"
-                  className="w-full h-full object-cover rounded"
-                />
+      {/* First Section - English Content */}
+      <div
+        ref={firstSectionRef}
+        className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100 mt-19.5"
+      >
+        {/* Adjust responsive py-1 (8) and sm;py-10(12) */}
+        <div className="w-full flex flex-col items-center justify-start py-1 sm:py-1 md:py-8 lg:py-0">
+          <div className="container mx-auto px-4 sm:px-4 md:px-8 lg:px-12 xl:px-16 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 w-full items-center">
+              {/* Left Side - Image */}
+              <div className="flex items-center justify-center lg:justify-start order-1 lg:order-1 w-full lg:m-0">
+                <div className="mt-2 relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto lg:mx-0 rounded-3xl overflow-hidden shadow-2xl">
+                  <img
+                    src={Home1}
+                    alt="Vedic Wedding Ceremony"
+                    className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
               </div>
-              <div className="flex flex-col">
+
+              {/* Right Side - Content */}
+              <div className="mb-5 flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-2 w-full px-4 lg:px-0 text-center lg:text-left">
                 <h1
-                  className="m-0 text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 cursor-pointer hover:text-amber-600 transition-colors"
-                  onClick={handleHomeClick}
+                  className={`text-sm sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-800 leading-tight transition-all duration-700 delay-100 ${
+                    isVisible
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 -translate-y-5"
+                  }`}
+                >
+                  Creating Memories
+                </h1>
+
+                {/* Sanskrit Line */}
+                <h2
+                  className={`mt-2 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
+                    isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                  }`}
+                  style={{ fontFamily: "serif" }}
+                >
+                  वसुधैव कुटुंबकम्
+                </h2>
+
+                {/* Description */}
+                <p
+                  className={`text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed font-medium text-justify hyphens-auto tracking-wide max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl mx-auto lg:mx-0 transition-all duration-700 delay-700 ${
+                    isVisible ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <span className="block">
+                    A sacred space for Vedic Indian matrimony in North America.
+                  </span>
+                  <span className="block">
+                    Connecting hearts with tradition, trust, and shared values.
+                  </span>
+                  <span className="block">
+                    Building lifelong alliances rooted in culture and faith.
+                  </span>
+                </p>
+
+                 <h2
+                  className={`mt-2 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
+                    isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                  }`}
+                  style={{ fontFamily: "serif" }}
                 >
                   Vivahanam
-                </h1>
-                <p
-                  className="m-0 ml-5 text-xs sm:text-sm lg:text-md text-gray-600 cursor-pointer hover:text-amber-500 transition-colors"
-                  onClick={handleHomeClick}
-                >
-                  ! विवाहनम् !
-                </p>
-              </div>
-            </div>
-            <div className="flex-1 flex justify-end items-center gap-1 lg:gap-2 ml-auto">
-              <div className="hidden lg:flex items-center gap-2">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={item.onClick}
-                    className="text-gray-700 hover:text-amber-700 transition-colors duration-200 font-medium px-1 py-1 rounded-md hover:bg-amber-50 text-sm"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-              <div className="relative">
-                <button
-                  onClick={toggleProfileDropdown}
-                  className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-full flex items-center justify-center border-2 border-amber-200 flex-shrink-0">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                  </div>
-                  {isLoggedIn && userData?.name && (
-                    <span className="hidden sm:inline text-xs sm:text-sm font-medium text-gray-700 truncate max-w-24">
-                      {userData.name}
-                    </span>
+                </h2>
+
+                {/* Buttons - FIXED FOR 936×730 */}
+                <div className="flex flex-col md:flex-row gap-3 md:gap-4 pt-4 md:pt-6 justify-center lg:justify-start">
+                  {/* Dynamic Button - Changes based on login status */}
+                  {user ? (
+                    // Show "Go for Partner Search" when user is logged in
+                    <button
+                      className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
+                      onClick={handlePartnerSearch}
+                    >
+                      Our Partner Page
+                    </button>
+                  ) : (
+                    // Show "Login" button when user is not logged in
+                    <button
+                      className="px-4 py-3 md:px-6 md:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full md:w-auto min-w-[140px] md:min-w-[160px] text-sm md:text-base"
+                      onClick={() => {
+                        setShowAuthModal(true);
+                        setAuthMode("login");
+                      }}
+                      disabled={loading}
+                    >
+                      {loading ? "Loading..." : "Login"}
+                    </button>
                   )}
-                </button>
-                {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
-                    {isLoggedIn ? (
-                      <>
-                        <div className="px-4 py-3 border-b border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                              <User className="h-5 w-5 text-amber-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {userData.name || "User"}
-                              </p>
-                              <p className="text-xs text-amber-600 font-medium truncate">
-                                {userData.vivId || "VIV ID"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={handleViewProfile}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
-                        >
-                          <User className="h-4 w-4 text-amber-600" />
-                          View Profile
-                        </button>
-                        <button
-                          onClick={handleUpdateProfile}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
-                        >
-                          <Edit className="h-4 w-4 text-amber-600" />
-                          Update Profile
-                        </button>
-                        <div className="border-t border-gray-100 my-1"></div>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Logout
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setShowAuthModal(true);
-                          setAuthMode("login");
-                          setIsProfileDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
-                      >
-                        <LogIn className="h-4 w-4 text-amber-600" />
-                        Login
-                      </button>
-                    )}
-                  </div>
-                )}
+
+                  <button
+                    className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
+                    onClick={handleFreeRegistration}
+                  >
+                    Register Now
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={toggleMenu}
-                className="lg:hidden text-gray-700 hover:text-amber-700 transition-colors duration-200 p-1.5"
-                aria-label="Toggle menu"
-              >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
             </div>
           </div>
         </div>
-        <div
-          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="px-2 py-2 bg-white/95 backdrop-blur-sm border-t border-gray-200">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="block py-2 px-3 text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all duration-200 font-medium text-sm"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  if (item.onClick) item.onClick();
-                }}
-              >
-                {item.name}
-              </Link>
-            ))}
-            {isLoggedIn ? (
-              <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  toggleProfileDropdown();
-                }}
-                className="w-full block py-2 px-3 text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all duration-200 font-medium text-left text-sm"
-              >
-                Profile
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  setShowAuthModal(true);
-                  setAuthMode("login");
-                }}
-                className="w-full block py-2 px-3 text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all duration-200 font-medium text-left text-sm"
-              >
-                Login
-              </button>
-            )}
+      </div>
+
+      {/* Rest of your existing homepage sections remain exactly the same */}
+      {/* Second Section - Hindi Content */}
+      <div className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100">
+        <div className="w-full flex flex-col items-center justify-start py-8 sm:py-12 md:py-0">
+          <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 w-full items-center">
+              {/* Right Side - Image */}
+              <div className="flex items-center justify-center lg:justify-end order-1 lg:order-2 w-full mb-6 lg:mb-0">
+                <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto lg:mx-0">
+                  <img
+                    src={Home2Img}
+                    alt="Vedic Wedding Ceremony"
+                    className="w-full h-auto rounded-2xl shadow-2xl object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
+              </div>
+
+              {/* Left Side - Content */}
+              <div className=" flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-1 w-full px-4 lg:px-0 text-center lg:text-left">
+                <h1 className="mt-5 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 leading-tight sm:leading-snug md:leading-tight break-words hyphens-auto">
+                  वैदिक भारतीय विवाह एवं प्रामाणिक पवित्र संबंध -
+                </h1>
+                <h2 className="mt-2 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-red-700 leading-tight sm:leading-snug break-words hyphens-auto">
+                  उत्तर अमेरिकी वैवाहिक संस्था
+                </h2>
+                <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:mx-0 mt-2 px-2 sm:px-0 break-words">
+                  Vivahanam preserves Vedic marriage traditions, uniting couples
+                  through sacred rituals and family values, bridging ancient
+                  spirituality with modern matrimony for Hindu families across
+                  North America.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center lg:justify-start">
+                  <button
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
+                    onClick={() => navigate("/about")}
+                  >
+                    About More
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </nav>
+      </div>
+
+      {/* Services Section */}
+      <div className="w-full min-h-screen bg-amber-100 py-5 md:py-10 lg:py-10 px-4 sm:px-6 lg:px-8 ">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-5 lg:mb-10">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-900 mb-2">
+              OUR SERVICES
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {workItems.map((item) => (
+              <div
+                key={item.id}
+                className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-amber-200 hover:border-amber-400"
+              >
+                <div className="relative h-48 sm:h-56 overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                </div>
+                <div className="p-8">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-amber-900 mb-4">
+                    {item.title}
+                  </h3>
+                  <p className="text-base md:text-lg text-gray-700 leading-relaxed">
+                    {item.description}
+                  </p>
+                  <div className="mt-6 h-1 w-16 bg-gradient-to-r from-amber-600 to-red-600 group-hover:w-full transition-all duration-500"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Vision Section */}
+      <div className="relative w-full min-h-screen overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1525258834046-fd4c94d5b050?q=80&w=2070')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-950/95 via-amber-900/90 to-transparent"></div>
+        </div>
+        <div className="relative h-full min-h-screen w-full flex items-center py-12 md:py-16 lg:py-20">
+          <div className="container mx-auto px-6 md:px-12 lg:px-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              <div className="flex flex-col justify-center space-y-8 lg:space-y-6">
+                <div className="inline-flex items-center space-x-3 mb-4">
+                  <div className="h-1 w-16 bg-gradient-to-r from-amber-500 to-red-600"></div>
+                  <span className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-amber-50 leading-tight text-amber-300">
+                    Vision
+                  </span>
+                </div>
+                <h4 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-amber-50 leading-tight">
+                  Our Commitment
+                </h4>
+                <p className="text-lg md:text-xl lg:text-xl text-amber-100 leading-relaxed max-w-2xl">
+                  Vivahanam.com offers a unique matrimonial platform designed
+                  for Hindus in North America, connecting individuals seeking
+                  Vedic Indian alliances. With personalized matchmaking and
+                  pre-wedding consultations, we ensure a culturally rich
+                  experience, honoring traditions while cultivating spiritual
+                  bonds.
+                </p>
+                <p className="text-base md:text-lg text-amber-200/90 leading-relaxed max-w-2xl">
+                  Discover our subscription options to explore wedding packages
+                  and traditional rituals that enrich your journey to matrimony.
+                </p>
+                <div className="grid grid-cols-3 gap-6 pt-8 border-t border-amber-700/30">
+                  <div className="text-center lg:text-left">
+                    <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
+                      500+
+                    </div>
+                    <div className="text-xl text-amber-200/80">
+                      Happy Couples
+                    </div>
+                  </div>
+                  <div className="text-center lg:text-left">
+                    <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
+                      10+
+                    </div>
+                    <div className="text-xl text-amber-200/80">
+                      Years Experience
+                    </div>
+                  </div>
+                  <div className="text-center lg:text-left">
+                    <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
+                      98%
+                    </div>
+                    <div className="text-xl text-amber-200/80">
+                      Satisfaction Rate
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="hidden lg:flex items-center justify-center">
+                <div className="relative w-full max-w-lg">
+                  <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                    <img
+                      src={unnamedImage}
+                      alt="Traditional Wedding"
+                      className="w-full h-150 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-amber-900/60 to-transparent"></div>
+                  </div>
+                  <div className="absolute -bottom-8 -left-8 bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl max-w-xs">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-6 h-6 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-800">
+                          Verified Profiles
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          100% Authentic
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute -top-8 -right-8 bg-gradient-to-br from-amber-500 to-red-500 rounded-2xl p-6 shadow-xl max-w-xs">
+                    <div className="text-white">
+                      <div className="text-3xl font-bold mb-1">Trusted</div>
+                      <div className="text-sm opacity-90">By Thousands</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Newsletter Section */}
+      <div className="relative w-full min-h-screen bg-amber-100 bg-gradient-to-bt from-amber-100 via-orange-100 to-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            <div className="flex justify-center lg:justify-start order-2 lg:order-1">
+              <div className="relative w-full max-w-md lg:max-w-lg">
+                <img
+                  src={Home3Img}
+                  alt="Wedding Couple"
+                  className="w-full h-auto rounded-2xl shadow-2xl object-cover"
+                />
+                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full opacity-20 blur-3xl -z-10"></div>
+                <div className="absolute -top-6 -right-6 w-40 h-40 bg-gradient-to-br from-stone-400 to-amber-300 rounded-full opacity-20 blur-3xl -z-10"></div>
+              </div>
+            </div>
+           <div className="flex flex-col justify-center space-y-8 lg:space-y-10 order-1 lg:order-2 max-w-2xl">
+  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-800 leading-tight text-center lg:text-left">
+    Welcome to Vivahanam
+  </h2>
+
+  <p className="text-lg sm:text-xl md:text-2xl text-gray-700 leading-relaxed text-center lg:text-left">
+    Marriage is the most natural state of man,  
+    where true happiness blooms.  
+    A sacred bond that nurtures the soul  
+    and weaves a lifetime of love and memories.
+  </p>
+
+  <div className="flex justify-center lg:justify-start pt-6">
+    <button className="px-8 py-4 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-lg rounded-full shadow-lg transition transform hover:scale-105">
+      Find Your Life Partner
+    </button>
+  </div>
+</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3 Steps Section */}
+      <div className="w-full bg-amber-100 px-4 sm:px-8 lg:px-16">
+        <div className="text-center mb-12">
+          <p className="text-red-900 text-3xl sm:text-4xl md:text-5xl sm:text-xl font-semibold">
+            Look For Your Soulmate
+          </p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-800 mt-4">
+             <span className="text-5xl">Easy Steps</span>
+          </h2>
+        </div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-around gap-10 lg:gap-16 max-w-7xl mx-auto">
+          {/* Step 1 */}
+          <div className="flex flex-col items-center text-center space-y-4 flex-1">
+            <h3 className="text-2xl font-bold text-red-600">STEP 1</h3>
+            <h3 className="text-2xl font-semibold text-gray-800">
+              Create your Profile
+            </h3>
+            <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden shadow-xl">
+              <img
+                src="https://images.unsplash.com/photo-1603415526960-f7e0328c63b1"
+                alt="Create Profile"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full shadow-md">
+                <i className="fa-solid fa-user text-lg"></i>
+              </div>
+            </div>
+            <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
+              Sign up for free, create your profile, and connect with members in
+              your community.
+            </p>
+          </div>
+          <div className="hidden md:flex md:items-center md:justify-center md:w-12">
+            <span className="text-red-900 font-bold text-5xl md:text-7xl">
+              →
+            </span>
+          </div>
+          {/* Step 2 */}
+          <div className="flex flex-col items-center text-center space-y-4 flex-1">
+            <h3 className="text-2xl font-bold text-red-600">STEP 2</h3>
+            <h3 className="text-2xl font-semibold text-gray-800">
+              Search for Partner
+            </h3>
+            <div className="relative w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden shadow-xl">
+              <img
+                src={stepimage2}
+                alt="Search Partner step page"
+                className="w-full h-full object-cover"
+              />
+              {/* <div className="absolute bottom-2 right-2 bg-red-600 text-white p-2 rounded-full">
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </div> */}
+            </div>
+            <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
+              Select options and Search your perfect partner easily.
+            </p>
+          </div>
+          <div className="hidden md:flex md:items-center md:justify-center md:w-12">
+            <span className="text-red-900 font-bold text-5xl md:text-7xl">
+              {" "}
+              →{" "}
+            </span>
+          </div>
+          {/* Step 3 */}
+          <div className="flex flex-col items-center text-center space-y-4 flex-1">
+            <h3 className="text-2xl font-bold text-red-600">STEP 3</h3>
+            <h3 className="text-2xl font-semibold text-gray-800">
+              Express your Interest
+            </h3>
+            <div className="relative w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden shadow-xl">
+              <img
+                src={stepimage3}
+                alt="Search Partner step page"
+                className="w-full h-full object-cover"
+              />
+              {/* <div className="absolute bottom-2 right-2 bg-red-600 text-white p-2 rounded-full">
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </div> */}
+            </div>
+            <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
+              Express Interests & go forward one step to connect with your
+              partner.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll to Top Arrow */}
+      {showScrollArrow && (
+        <button
+          onClick={scrollToFirstSection}
+          className="fixed bottom-8 right-8 z-40 p-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 animate-bounce"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp size={20} />
+        </button>
+      )}
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center space-x-2">
@@ -951,6 +1310,7 @@ const Navbar = () => {
               )}
             </div>
 
+            {/* Toggle Buttons - Only show for login/signup */}
             {(authMode === "login" || authMode === "signup") && (
               <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
                 <button
@@ -990,6 +1350,7 @@ const Navbar = () => {
               }
               className="space-y-4"
             >
+              {/* Error and Success Messages */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
                   {error}
@@ -1002,6 +1363,7 @@ const Navbar = () => {
                 </div>
               )}
 
+              {/* Name Fields - Show for Signup only */}
               {authMode === "signup" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1050,6 +1412,7 @@ const Navbar = () => {
                 </div>
               )}
 
+              {/* Email Field - Show for login, signup and forgot */}
               {(authMode === "login" ||
                 authMode === "signup" ||
                 authMode === "forgot") && (
@@ -1105,6 +1468,7 @@ const Navbar = () => {
                 </div>
               )}
 
+              {/* Verification Code + New Password Fields - Show for verify mode */}
               {authMode === "verify" && (
                 <>
                   <div>
@@ -1202,6 +1566,7 @@ const Navbar = () => {
                     </div>
                   </div>
 
+                  {/* Request new code link */}
                   <div className="text-center">
                     <button
                       type="button"
@@ -1215,6 +1580,7 @@ const Navbar = () => {
                 </>
               )}
 
+              {/* Password Field - Show for login and signup */}
               {(authMode === "login" || authMode === "signup") && (
                 <div>
                   <label
@@ -1302,6 +1668,7 @@ const Navbar = () => {
                 </div>
               )}
 
+              {/* Confirm Password Field - Show for signup */}
               {authMode === "signup" && (
                 <div>
                   <label
@@ -1345,6 +1712,7 @@ const Navbar = () => {
                 </div>
               )}
 
+              {/* Remember Me and Forgot Password - Only show for login */}
               {authMode === "login" && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -1373,6 +1741,7 @@ const Navbar = () => {
                 </div>
               )}
 
+              {/* Submit Button */}
               <div>
                 <button
                   type={authMode === "success" ? "button" : "submit"}
@@ -1410,6 +1779,7 @@ const Navbar = () => {
                 </button>
               </div>
 
+              {/* Navigation Links */}
               <div className="text-center space-y-2">
                 {authMode === "login" ? (
                   <>
@@ -1468,6 +1838,7 @@ const Navbar = () => {
               </div>
             </form>
 
+            {/* Additional Info */}
             <div className="text-center mt-6 pt-6 border-t border-gray-200">
               <p className="text-xs text-gray-500">
                 By continuing, you agree to our{" "}
@@ -1486,8 +1857,8 @@ const Navbar = () => {
 
       {/* OTP Modal for Email Verification */}
       {showOtpModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Verify Your Email
             </h3>
@@ -1531,15 +1902,8 @@ const Navbar = () => {
           </div>
         </div>
       )}
-
-      {isProfileDropdownOpen && !showAuthModal && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsProfileDropdownOpen(false)}
-        />
-      )}
     </>
   );
 };
 
-export default Navbar;
+export default HomePage;

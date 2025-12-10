@@ -1,4 +1,6 @@
+// Footer.jsx
 import React from "react";
+import logo from "../assets/Logo.jpg"
 import {
   Mail,
   Phone,
@@ -7,42 +9,85 @@ import {
   Instagram,
   Twitter,
   Linkedin,
+  Youtube,
   Heart,
 } from "lucide-react";
+import { useContactInfo } from "./useContactInfo";
 
 const Footer = () => {
+  const { contactInfo, loading: loadingContactInfo } = useContactInfo();
+
   const quickLinks = [
     { name: "Blogs", href: "/blogs" },
-    { name: "FAQ", href: "/faq" },
+    { name: "FAQs", href: "/faq" },
     { name: "About Us", href: "/about" },
     { name: "Contact Us", href: "/contact" },
     { name: "Testimonials", href: "/testimonials" },
   ];
 
   const services = [
-    { name: "Matchmaking", href: "#matchmaking" },
-    { name: "Consultations", href: "#consultations" },
-    { name: "Wedding Planning", href: "/plans" },
-    { name: "Traditional Rituals", href: "#rituals" },
+    { name: "Matchmaking", href: "PlanHomePage" },
+    { name: "Wedding Planning", href: "/subscription-plans" },
+    { name: "Traditional Rituals", href: "/" },
   ];
 
-  const socialLinks = [
-    { icon: <Facebook size={20} />, href: "#", label: "Facebook" },
-    { icon: <Instagram size={20} />, href: "#", label: "Instagram" },
-    { icon: <Twitter size={20} />, href: "#", label: "Twitter" },
-    { icon: <Linkedin size={20} />, href: "#", label: "LinkedIn" },
-  ];
+  // Dynamic Social Media Links based on contactInfo
+  const getSocialLinks = () => {
+    const socialPlatforms = [
+      {
+        key: 'facebook',
+        icon: <Facebook size={20} />,
+        label: "Facebook",
+        href: contactInfo.socialMedia?.facebook || "#",
+        active: contactInfo.socialMedia?.facebook && contactInfo.socialMedia.facebook.trim() !== ""
+      },
+      {
+        key: 'instagram',
+        icon: <Instagram size={20} />,
+        label: "Instagram",
+        href: contactInfo.socialMedia?.instagram || "#",
+        active: contactInfo.socialMedia?.instagram && contactInfo.socialMedia.instagram.trim() !== ""
+      },
+      {
+        key: 'twitter',
+        icon: <Twitter size={20} />,
+        label: "Twitter",
+        href: contactInfo.socialMedia?.twitter || "#",
+        active: contactInfo.socialMedia?.twitter && contactInfo.socialMedia.twitter.trim() !== ""
+      },
+      {
+        key: 'linkedin',
+        icon: <Linkedin size={20} />,
+        label: "LinkedIn",
+        href: contactInfo.socialMedia?.linkedin || "#",
+        active: contactInfo.socialMedia?.linkedin && contactInfo.socialMedia.linkedin.trim() !== ""
+      },
+      {
+        key: 'youtube',
+        icon: <Youtube size={20} />,
+        label: "YouTube",
+        href: contactInfo.socialMedia?.youtube || "#",
+        active: contactInfo.socialMedia?.youtube && contactInfo.socialMedia.youtube.trim() !== ""
+      }
+    ];
+
+    return socialPlatforms.filter(platform => platform.active);
+  };
+
+  const socialLinks = getSocialLinks();
 
   return (
     <footer className="bg-gradient-to-br from-amber-900 via-amber-800 to-amber-900 text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+          
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white rounded flex items-center justify-center flex-shrink-0">
-                <div className="w-10 h-10 border-2 border-amber-700 rounded" />
+              <div className="w-12 h-12 bg-white rounded flex items-center justify-center flex-shrink-0 rounded-full">
+                <div className="w-11 h-11 rounded-full" />
+                <img src={logo} alt="logo" srcset="" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-white">Vivahanam</h3>
@@ -53,18 +98,24 @@ const Footer = () => {
               Preserving Vedic marriage traditions, uniting couples through
               sacred rituals and family values across North America.
             </p>
-            <div className="flex gap-3 pt-2">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="w-10 h-10 bg-white/10 hover:bg-white hover:text-amber-800 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110"
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
+            
+            {/* Dynamic Social Media */}
+            {socialLinks.length > 0 && (
+              <div className="flex gap-3 pt-2">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                    className="w-10 h-10 bg-white/10 hover:bg-white hover:text-amber-800 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110"
+                  >
+                    {social.icon}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Quick Links */}
@@ -105,36 +156,43 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* Contact Info - DYNAMIC */}
           <div>
             <h4 className="text-lg font-bold text-white mb-4 border-b-2 border-amber-600 pb-2 inline-block">
               Contact Us
             </h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <MapPin
-                  size={20}
-                  className="text-amber-300 flex-shrink-0 mt-1"
-                />
-                <span className="text-amber-100 text-sm">11583 Independence Parkway, Suite 430, Frisco, TX 75035, USA,</span>
+                <MapPin size={20} className="text-amber-300 flex-shrink-0 mt-1" />
+                <span className="text-amber-100 text-sm">
+                  {loadingContactInfo ? "Loading..." : contactInfo.office}
+                </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={20} className="text-amber-300 flex-shrink-0" />
-                <a
-                  href="tel:+1234567890"
-                  className="text-amber-100 hover:text-white transition-colors"
-                >
-                  +1 888 768 8289
-                </a>
+                {loadingContactInfo ? (
+                  <span className="text-amber-100">Loading...</span>
+                ) : (
+                  <a
+                    href={`tel:${contactInfo.phone}`}
+                    className="text-amber-100 hover:text-white transition-colors"
+                  >
+                    {contactInfo.phone}
+                  </a>
+                )}
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={20} className="text-amber-300 flex-shrink-0" />
-                <a
-                  href="mailto:info@vivahanam.com"
-                  className="text-amber-100 hover:text-white transition-colors"
-                >
-                  ourdivinethoughts@gmail.com
-                </a>
+                {loadingContactInfo ? (
+                  <span className="text-amber-100">Loading...</span>
+                ) : (
+                  <a
+                    href={`mailto:${contactInfo.email}`}
+                    className="text-amber-100 hover:text-white transition-colors"
+                  >
+                    {contactInfo.email}
+                  </a>
+                )}
               </li>
             </ul>
           </div>
