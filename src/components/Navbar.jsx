@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Menu, X, User, LogOut, Edit, LogIn, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import Logo from "../assets/Logo.jpg";
+import Logo from "../assets/Vivahanam Logo.jpg";
 import { generateDeviceId, getDeviceInfo } from "../utils/deviceFingerprint.js";
 
 const Navbar = () => {
@@ -406,7 +406,7 @@ const Navbar = () => {
 
       const response = await fetch(`${API_URL}/user/login`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "x-device-id": deviceId,
           "x-device-info": JSON.stringify(deviceInfo),
@@ -443,7 +443,8 @@ const Navbar = () => {
           errorData?.code === "SESSION_TERMINATED" ||
           errorMsg.toLowerCase().includes("session terminated")
         ) {
-          errorMsg = "Your session has been terminated. Another device has logged in.";
+          errorMsg =
+            "Your session has been terminated. Another device has logged in.";
           // Clear local storage and redirect
           localStorage.removeItem("vivahanamToken");
           localStorage.removeItem("vivahanamUser");
@@ -466,9 +467,13 @@ const Navbar = () => {
       // Show device limit info if available
       if (data.deviceLimit && data.activeDevices) {
         if (data.deviceLimit === 1) {
-          setSuccess(`Logged in successfully. Only 1 device can be active at a time.`);
+          setSuccess(
+            `Logged in successfully. Only 1 device can be active at a time.`
+          );
         } else {
-          setSuccess(`Logged in successfully. ${data.activeDevices}/${data.deviceLimit} devices active.`);
+          setSuccess(
+            `Logged in successfully. ${data.activeDevices}/${data.deviceLimit} devices active.`
+          );
         }
       }
 
@@ -700,10 +705,10 @@ const Navbar = () => {
     setIsLoggedIn(false);
     setUserData(null);
     setIsProfileDropdownOpen(false);
-    
+
     // Navigate to home first, then refresh
     navigate("/", { replace: true });
-    
+
     // Refresh the page after a short delay to ensure navigation happens
     setTimeout(() => {
       window.location.reload();
@@ -723,17 +728,17 @@ const Navbar = () => {
   // Function to handle Home/Logo click with smooth scroll to top
   const handleHomeClick = () => {
     setIsMenuOpen(false);
-    
+
     // If we're already on home page, scroll to top
     if (window.location.pathname === "/") {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       // Navigate to home page
       navigate("/");
-      
+
       // Scroll to top after navigation (small delay to ensure page loads)
       setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }, 100);
     }
   };
@@ -751,9 +756,9 @@ const Navbar = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-sm shadow-md border-b border-gray-200">
         <div className="px-2 sm:px-4 lg:px-6 py-3 lg:py-4 max-w-7xl mx-auto">
           <div className="flex items-center">
-            <div className="flex items-center gap-2 flex-shrink-0">
+            {/* <div className="flex items-center gap-2 flex-shrink-0">
               <div
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded overflow-visible flex-shrink-0 transition-all duration-300 hover:scale-200 cursor-pointer z-10 relative hover:-mb-5 rounded-full "
+                className="w-15 h-10 sm:w-12 sm:h-12 rounded overflow-visible flex-shrink-0 transition-all duration-300 hover:scale-200 cursor-pointer z-10 relative hover:-mb-5 rounded-full "
                 onClick={handleHomeClick}
               >
                 <img
@@ -776,7 +781,20 @@ const Navbar = () => {
                   ! विवाहनम् !
                 </p>
               </div>
+            </div> */}
+            <div className="flex items-center flex-shrink-0">
+              <div
+                className="p-0.5 w-32 h-12 sm:w-36 sm:h-14 md:w-40 md:h-16 rounded-full overflow-hidden flex-shrink-0 transition-all duration-300 hover:scale-110 cursor-pointer"
+                onClick={handleHomeClick}
+              >
+                <img
+                  src={Logo}
+                  alt="Vivahanam Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
             </div>
+
             <div className="flex-1 flex justify-end items-center gap-1 lg:gap-2 ml-auto">
               <div className="hidden lg:flex items-center gap-2">
                 {navItems.map((item) => (
@@ -1192,7 +1210,9 @@ const Navbar = () => {
                       <button
                         type="button"
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                        onClick={() =>
+                          setShowConfirmNewPassword(!showConfirmNewPassword)
+                        }
                       >
                         {showConfirmNewPassword ? (
                           <EyeOff className="h-5 w-5 text-gray-400" />
@@ -1228,9 +1248,19 @@ const Navbar = () => {
                     <input
                       id="password"
                       name="password"
-                      type={authMode === "login" ? (loginData.showPassword ? "text" : "password") : (formData.showPassword ? "text" : "password")}
+                      type={
+                        authMode === "login"
+                          ? loginData.showPassword
+                            ? "text"
+                            : "password"
+                          : formData.showPassword
+                          ? "text"
+                          : "password"
+                      }
                       autoComplete={
-                        authMode === "login" ? "current-password" : "new-password"
+                        authMode === "login"
+                          ? "current-password"
+                          : "new-password"
                       }
                       required
                       value={
@@ -1273,30 +1303,29 @@ const Navbar = () => {
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => {
                         if (authMode === "login") {
-                          setLoginData(prev => ({
+                          setLoginData((prev) => ({
                             ...prev,
-                            showPassword: !prev.showPassword
+                            showPassword: !prev.showPassword,
                           }));
                         } else {
-                          setFormData(prev => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            showPassword: !prev.showPassword
+                            showPassword: !prev.showPassword,
                           }));
                         }
                       }}
                     >
-                      {authMode === "login" 
-                        ? (loginData.showPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-400" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-gray-400" />
-                          ))
-                        : (formData.showPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-400" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-gray-400" />
-                          ))
-                      }
+                      {authMode === "login" ? (
+                        loginData.showPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-400" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400" />
+                        )
+                      ) : formData.showPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
                     </button>
                   </div>
                   {authMode === "signup" && renderFieldError("password")}
@@ -1321,7 +1350,9 @@ const Navbar = () => {
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       onBlur={() => handleFieldBlur("confirmPassword")}
-                      className={getInputClassName("confirmPassword") + " pr-10"}
+                      className={
+                        getInputClassName("confirmPassword") + " pr-10"
+                      }
                       placeholder="Confirm your password"
                       disabled={loading}
                     />
@@ -1329,9 +1360,9 @@ const Navbar = () => {
                       type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => {
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
-                          showConfirmPassword: !prev.showConfirmPassword
+                          showConfirmPassword: !prev.showConfirmPassword,
                         }));
                       }}
                     >
