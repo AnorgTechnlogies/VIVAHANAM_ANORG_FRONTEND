@@ -409,6 +409,7 @@ const Navbar = () => {
         headers: { 
           "Content-Type": "application/json",
           "x-device-id": deviceId,
+          "x-device-info": JSON.stringify(deviceInfo),
         },
         body: JSON.stringify({
           loginId: loginData.email,

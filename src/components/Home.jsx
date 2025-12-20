@@ -491,6 +491,7 @@ const HomePage = () => {
         headers: {
           "Content-Type": "application/json",
           "x-device-id": deviceId,
+          "x-device-info": JSON.stringify(deviceInfo),
         },
         body: JSON.stringify({
           loginId: loginData.email,
@@ -860,7 +861,15 @@ const HomePage = () => {
               </div>
 
               {/* Right Side - Content */}
-              <div className="mb-5 flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-2 w-full px-4 lg:px-0 text-center lg:text-left">
+              <div className="mb-20 flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-2 w-full px-4 lg:px-0 text-center lg:text-left">
+               <h2
+                  className={` text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
+                    isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                  }`}
+                  style={{ fontFamily: "serif" }}
+                >
+                  Married Life A Perfect Yoga 
+                </h2>
                 <h1
                   className={`text-sm sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-800 leading-tight transition-all duration-700 delay-100 ${
                     isVisible
@@ -898,14 +907,7 @@ const HomePage = () => {
                   </span>
                 </p>
 
-                 <h2
-                  className={`mt-2 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
-                    isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-                  }`}
-                  style={{ fontFamily: "serif" }}
-                >
-                  Vivahanam
-                </h2>
+                 
 
                 {/* Buttons - FIXED FOR 936×730 */}
                 <div className="flex flex-col md:flex-row gap-3 md:gap-4 pt-4 md:pt-6 justify-center lg:justify-start">
@@ -1155,8 +1157,8 @@ const HomePage = () => {
                 <div className="absolute -top-6 -right-6 w-40 h-40 bg-gradient-to-br from-stone-400 to-amber-300 rounded-full opacity-20 blur-3xl -z-10"></div>
               </div>
             </div>
-           <div className="flex flex-col justify-center space-y-8 lg:space-y-10 order-1 lg:order-2 max-w-2xl">
-  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-800 leading-tight text-center lg:text-left">
+           <div className="flex flex-col justify-center space-y-7 lg:space-y-10 order-1 lg:order-2 max-w-2xl">
+  <h2 className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-800 leading-tight text-center lg:text-left">
     Welcome to Vivahanam
   </h2>
 
@@ -1180,12 +1182,13 @@ const HomePage = () => {
       {/* 3 Steps Section */}
       <div className="w-full bg-amber-100 px-4 sm:px-8 lg:px-16">
         <div className="text-center mb-12">
-          <p className="text-red-900 text-3xl sm:text-4xl md:text-5xl sm:text-xl font-semibold">
+          <p className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-800 leading-tight text-center">
             Look For Your Soulmate
           </p>
+{/*        
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-800 mt-4">
              <span className="text-5xl">Easy Steps</span>
-          </h2>
+          </h2> */}
         </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-around gap-10 lg:gap-16 max-w-7xl mx-auto">
           {/* Step 1 */}

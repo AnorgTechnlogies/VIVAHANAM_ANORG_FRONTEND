@@ -27,31 +27,11 @@ const RANGE_DEFAULT_LIMITS = {
   heightRange: { min: 48, max: 84 },
 };
 
-const STATIC_FILTER_CONFIG = [
-  { key: "diet", label: "Diet", options: ["Vegetarian", "Eggetarian", "Non-Vegetarian", "Vegan"] },
-  { key: "gender", label: "Gender", options: ["Male", "Female", "Other"] },
-  { key: "religion", label: "Religion", options: ["Hindu", "Jain", "Christian", "Muslim", "Sikh", "Buddhist"] },
-  { key: "maritalStatus", label: "Marital Status", options: ["Never Married", "Divorced", "Widowed", "Awaiting Divorce"] },
-  { key: "motherTongue", label: "Mother Tongue", options: ["Hindi", "English", "Bengali", "Tamil", "Telugu", "Marathi", "Gujarati", "Punjabi", "Malayalam", "Kannada", "Odia", "Urdu"] },
-  { key: "caste", label: "Caste", options: ["Brahmin", "Kshatriya", "Vaishya", "Shudra", "General", "OBC", "SC", "ST"] },
-  { key: "occupation", label: "Occupation", options: ["Software Engineer", "Teacher", "Doctor", "Business", "Government Service", "Self-employed"] },
-  { key: "complextion", label: "Complexion", options: ["Fair", "Wheatish", "Medium", "Dark"] },
-  { key: "hobbies", label: "Hobbies / Interests", options: ["Reading", "Sports", "Music", "Dance", "Travel", "Cooking"] },
-  { key: "zodiacSign", label: "Zodiac Sign", options: ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"] },
-  { key: "state", label: "State", options: [] },
-  { key: "city", label: "City", options: [] },
-  { key: "educationLevel", label: "Education Level", options: [] },
-  { key: "citizenshipStatus", label: "Citizenship Status", options: [] },
-  { key: "gotra", label: "Gotra", options: [] },
-];
-
 const buildInitialFilters = (config) => {
   const defaults = {};
   config.forEach((filter) => {
     defaults[filter.key] = [];
   });
-  defaults.ageRange = { ...RANGE_DEFAULT_LIMITS.ageRange };
-  defaults.heightRange = { ...RANGE_DEFAULT_LIMITS.heightRange };
   return defaults;
 };
 
@@ -66,13 +46,11 @@ const BrowseMatches = ({
   setActiveTab,
 }) => {
   const API_URL = import.meta.env.VITE_API_KEY;
-  
   const tabsRef = useRef(null);
 
-  const [filterConfig, setFilterConfig] = useState(STATIC_FILTER_CONFIG);
+  const [filterConfig, setFilterConfig] = useState([]);
   const [rangeDefaults, setRangeDefaults] = useState(RANGE_DEFAULT_LIMITS);
-  const [filters, setFilters] = useState(() => buildInitialFilters(STATIC_FILTER_CONFIG));
-
+  const [filters, setFilters] = useState({});
   const [matches, setMatches] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,13 +64,36 @@ const BrowseMatches = ({
   const [unlockingId, setUnlockingId] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [filtersLoaded, setFiltersLoaded] = useState(false);
-  const [unlockedProfileIds, setUnlockedProfileIds] = useState(() => new Set());
+  
+  // Use localStorage to persist unlocked profiles show the unlocked image UTH BY CHaitanya 
+  const [unlockedProfileIds, setUnlockedProfileIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vivahanamUnlockedProfiles');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return new Set(parsed);
+      }
+    } catch (err) {
+      console.error('Error loading unlocked profiles:', err);
+    }
+    return new Set();
+  });
+  
   const [unlockHistory, setUnlockHistory] = useState([]);
   const [historyStats, setHistoryStats] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [profileToUnlock, setProfileToUnlock] = useState(null);
+
+  // Persist unlocked profile IDs to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('vivahanamUnlockedProfiles', JSON.stringify(Array.from(unlockedProfileIds)));
+    } catch (err) {
+      console.error('Error saving unlocked profiles:', err);
+    }
+  }, [unlockedProfileIds]);
 
   // Check if user is authenticated and fully registered
   const isUserAuthenticatedAndRegistered = useMemo(() => {
@@ -109,38 +110,71 @@ const BrowseMatches = ({
   }, [setActiveTab, navigate]);
 
   const hydrateFilterConfig = (dynamicFilters = [], ranges = {}) => {
-    const map = new Map();
-    STATIC_FILTER_CONFIG.forEach((cfg) => map.set(cfg.key, cfg));
+    const allowedFields = [
+      'userType',
+      'diet',
+      'gender',
+      'motherTongue',
+      'caste',
+      'zodiacsign',
+      'gotra',
+      'country',
+      'fieldofstudy',
+      'educationlevel',
+      'occupation',
+      'height',
+      'citizenshipstatus',
+      'hobbies',
+      'languages',
+      'religion',
+      'indianReligious'
+    ];
 
-    dynamicFilters.forEach((cfg) => {
-      if (!cfg?.key) return;
-      const options = Array.isArray(cfg.options)
-        ? cfg.options
-            .map((opt) => (typeof opt === "string" ? opt : opt?.value))
-            .filter(Boolean)
-        : [];
-      map.set(cfg.key, {
-        key: cfg.key,
-        label: cfg.label || cfg.key,
-        options,
+    const excludedKeys = [
+      'preferredReligion', 'preferredCaste', 'preferredMotherTongue',
+      'preferredEducation', 'preferredLocation', 'preferredheight',
+      'preferredLanguages', 'preferredHeight', 'preferredAge',
+      'preferredOccupation', 'preferredGender', 'preferredDiet',
+      'showmobile', 'profileVisibility', 'photoVisibility',
+      'mobileVisibility', 'emailVisibility'
+    ];
+
+    const config = dynamicFilters
+      .filter((cfg) => {
+        if (!cfg?.key) return false;
+        if (excludedKeys.includes(cfg.key)) return false;
+        if (!allowedFields.includes(cfg.key)) return false;
+        if (!cfg.options || !Array.isArray(cfg.options) || cfg.options.length === 0) return false;
+        return true;
+      })
+      .map((cfg) => {
+        const processedOptions = cfg.options
+          .filter((opt) => {
+            if (typeof opt === 'object' && opt.isActive === false) return false;
+            return true;
+          })
+          .map((opt) => {
+            if (typeof opt === 'string') {
+              return { label: opt, value: opt };
+            }
+            const value = opt.value || opt.label || '';
+            const label = opt.label || opt.value || '';
+            return { label, value };
+          })
+          .filter((opt) => opt.value && opt.label);
+
+        return {
+          key: cfg.key,
+          label: cfg.label || cfg.key,
+          options: processedOptions,
+        };
       });
-    });
 
     return {
-      config: Array.from(map.values()),
+      config,
       ranges: {
-        ageRange: ranges.ageRange
-          ? {
-              min: ranges.ageRange.min ?? RANGE_DEFAULT_LIMITS.ageRange.min,
-              max: ranges.ageRange.max ?? RANGE_DEFAULT_LIMITS.ageRange.max,
-            }
-          : RANGE_DEFAULT_LIMITS.ageRange,
-        heightRange: ranges.heightRange
-          ? {
-              min: ranges.heightRange.min ?? RANGE_DEFAULT_LIMITS.heightRange.min,
-              max: ranges.heightRange.max ?? RANGE_DEFAULT_LIMITS.heightRange.max,
-            }
-          : RANGE_DEFAULT_LIMITS.heightRange,
+        ageRange: ranges.ageRange || RANGE_DEFAULT_LIMITS.ageRange,
+        heightRange: ranges.heightRange || RANGE_DEFAULT_LIMITS.heightRange,
       },
     };
   };
@@ -154,7 +188,7 @@ const BrowseMatches = ({
       if (!token) {
         setUnlockHistory([]);
         setHistoryStats(null);
-        setUnlockedProfileIds(new Set());
+        // Don't clear unlockedProfileIds from localStorage on token absence
         return;
       }
 
@@ -170,11 +204,23 @@ const BrowseMatches = ({
         throw new Error(data.message || "Unable to load unlock history");
       }
 
-      const ids = new Set(
-        (data.data?.history || []).map((entry) => entry.profile?._id || entry.profile?.id).filter(Boolean)
-      );
-      setUnlockedProfileIds(ids);
-      setUnlockHistory(data.data?.history || []);
+      // Extract all unlocked profile IDs from history
+      const ids = new Set();
+      const history = data.data?.history || [];
+      
+      history.forEach((entry) => {
+        if (entry.profile?._id) ids.add(entry.profile._id);
+        if (entry.profile?.id) ids.add(entry.profile.id);
+        if (entry.targetUserId) ids.add(entry.targetUserId);
+      });
+
+      // Merge with existing unlocked profiles
+      setUnlockedProfileIds(prev => {
+        const merged = new Set([...prev, ...ids]);
+        return merged;
+      });
+      
+      setUnlockHistory(history);
       setHistoryStats(data.data?.stats || null);
     } catch (err) {
       console.error("Unlock history error:", err);
@@ -188,8 +234,10 @@ const BrowseMatches = ({
     const fetchFilters = async () => {
       try {
         const token = localStorage.getItem("vivahanamToken");
-        if (!token) return;
-
+        if (!token) {
+          setFiltersLoaded(true);
+          return;
+        }
         const response = await fetch(`${API_URL}/user/partners/filters`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -201,11 +249,21 @@ const BrowseMatches = ({
         if (!data.success) throw new Error(data.message || "Unable to load filters");
 
         const { config, ranges } = hydrateFilterConfig(data.data?.filters || [], data.data?.ranges || {});
+
+        config.sort((a, b) => a.label.localeCompare(b.label));
+
         setFilterConfig(config);
         setRangeDefaults(ranges);
         setFilters(buildInitialFilters(config));
+        
+        if (config.length > 0) {
+          const genderFilter = config.find(f => f.key === 'gender');
+          setSelectedFilterTab(genderFilter ? 'gender' : config[0].key);
+        }
       } catch (err) {
         console.error("Filter load error:", err);
+        setFilterConfig([]);
+        setFilters({});
       } finally {
         setFiltersLoaded(true);
       }
@@ -237,33 +295,24 @@ const BrowseMatches = ({
     const params = new URLSearchParams();
     params.append("page", page.toString());
     params.append("limit", limit.toString());
-    if (query?.trim()) params.append("search", query.trim());
+    
+    if (query?.trim()) {
+      params.append("search", query.trim());
+    }
 
     filterConfig.forEach(({ key }) => {
-      if (key === "ageRange" || key === "heightRange") return;
       const value = appliedFilters[key];
       if (Array.isArray(value) && value.length > 0) {
-        value.forEach((entry) => params.append(key, entry));
+        value.forEach((entry) => {
+          const filterValue = typeof entry === 'string' ? entry : (entry.value || entry);
+          if (filterValue && filterValue.trim()) {
+            params.append(key, filterValue.trim());
+          }
+        });
+      } else if (value && typeof value === 'string' && value.trim()) {
+        params.append(key, value.trim());
       }
     });
-
-    if (
-      appliedFilters.ageRange &&
-      (appliedFilters.ageRange.min !== rangeDefaults.ageRange.min ||
-        appliedFilters.ageRange.max !== rangeDefaults.ageRange.max)
-    ) {
-      params.append("ageMin", appliedFilters.ageRange.min.toString());
-      params.append("ageMax", appliedFilters.ageRange.max.toString());
-    }
-
-    if (
-      appliedFilters.heightRange &&
-      (appliedFilters.heightRange.min !== rangeDefaults.heightRange.min ||
-        appliedFilters.heightRange.max !== rangeDefaults.heightRange.max)
-    ) {
-      params.append("heightMin", appliedFilters.heightRange.min.toString());
-      params.append("heightMax", appliedFilters.heightRange.max.toString());
-    }
 
     return params;
   };
@@ -387,11 +436,22 @@ const BrowseMatches = ({
       const newlyUnlocked = !data.data?.alreadyUnlocked;
       const unlockCost = data.data?.cost ?? 1;
 
+      // Add to unlocked profiles set
       setUnlockedProfileIds((prev) => {
         const next = new Set(prev);
         next.add(partnerId);
         return next;
       });
+      
+      // Also update the match in the list to show as unlocked
+      setMatches(prev => prev.map(p => {
+        const pid = p._id || p.id;
+        if (pid === partnerId) {
+          return { ...p, isUnlocked: true };
+        }
+        return p;
+      }));
+      
       setSelectedProfile(unlockedProfile);
 
       if (newlyUnlocked) {
@@ -475,44 +535,45 @@ const BrowseMatches = ({
 
   const activeFilterCount = useMemo(() => {
     return filterConfig.reduce((count, { key }) => {
-      if (key === "ageRange" || key === "heightRange") {
-        const defaults = rangeDefaults[key];
-        const current = filters[key];
-        if (!current || !defaults) return count;
-        const changed = current.min !== defaults.min || current.max !== defaults.max;
-        return changed ? count + 1 : count;
-      }
       const selection = filters[key];
       return Array.isArray(selection) && selection.length > 0 ? count + 1 : count;
     }, 0);
-  }, [filterConfig, filters, rangeDefaults]);
+  }, [filterConfig, filters]);
 
   // Get tab icon function from PartnersPage
   const getTabIcon = (key) => {
     switch (key) {
+      case "userType":
+        return <User className="w-4 h-4" />;
       case "diet":
         return <Cake className="w-4 h-4" />;
       case "gender":
         return <Users className="w-4 h-4" />;
-      case "religion":
-        return <User className="w-4 h-4" />;
-      case "maritalStatus":
-        return <Heart className="w-4 h-4" />;
       case "motherTongue":
+      case "languages":
+        return <Users className="w-4 h-4" />;
       case "caste":
         return <Users className="w-4 h-4" />;
+      case "zodiacsign":
+        return <Heart className="w-4 h-4" />;
+      case "gotra":
+        return <User className="w-4 h-4" />;
+      case "country":
+        return <MapPin className="w-4 h-4" />;
+      case "fieldofstudy":
+      case "educationlevel":
+        return <Briefcase className="w-4 h-4" />;
       case "occupation":
         return <Briefcase className="w-4 h-4" />;
-      case "complextion":
+      case "height":
         return <User className="w-4 h-4" />;
-      case "hobbies":
-      case "zodiacSign":
-        return <Heart className="w-4 h-4" />;
-      case "state":
-      case "city":
+      case "citizenshipstatus":
         return <MapPin className="w-4 h-4" />;
-      case "educationLevel":
-        return <Briefcase className="w-4 h-4" />;
+      case "hobbies":
+        return <Heart className="w-4 h-4" />;
+      case "religion":
+      case "indianReligious":
+        return <User className="w-4 h-4" />;
       default:
         return <Filter className="w-4 h-4" />;
     }
@@ -691,28 +752,6 @@ const BrowseMatches = ({
                       </span>
                     </button>
                   ))}
-                  <button
-                    onClick={() => setSelectedFilterTab("ageRange")}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl whitespace-nowrap transition-all duration-300 flex-shrink-0 shadow-sm hover:shadow-md snap-center min-w-fit ${
-                      selectedFilterTab === "ageRange"
-                        ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white scale-105"
-                        : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 hover:from-amber-50 hover:to-amber-100 hover:scale-105"
-                    }`}
-                  >
-                    <Cake className="w-4 h-4" />
-                    <span className="font-semibold text-sm">Age Range</span>
-                  </button>
-                  <button
-                    onClick={() => setSelectedFilterTab("heightRange")}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl whitespace-nowrap transition-all duration-300 flex-shrink-0 shadow-sm hover:shadow-md snap-center min-w-fit ${
-                      selectedFilterTab === "heightRange"
-                        ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white scale-105"
-                        : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 hover:from-amber-50 hover:to-amber-100 hover:scale-105"
-                    }`}
-                  >
-                    <User className="w-4 h-4" />
-                    <span className="font-semibold text-sm">Height Range</span>
-                  </button>
                 </div>
               </div>
 
@@ -787,7 +826,20 @@ const BrowseMatches = ({
       </div>
 
       {selectedProfile && (
-        <UnlockedProfileDetails profile={selectedProfile} onClose={() => setSelectedProfile(null)} />
+        <UnlockedProfileDetails 
+          profile={selectedProfile} 
+          onClose={() => {
+            setSelectedProfile(null);
+            // Refresh the matches to update unlocked status
+            if (selectedProfile._id) {
+              setUnlockedProfileIds(prev => {
+                const next = new Set(prev);
+                next.add(selectedProfile._id);
+                return next;
+              });
+            }
+          }} 
+        />
       )}
     </div>
   );
@@ -807,57 +859,6 @@ const FilterContent = ({
       ? "opacity-100 translate-y-0 scale-100"
       : "opacity-0 translate-y-4 scale-95"
   }`;
-
-  // For ageRange and heightRange
-  if (selectedFilterTab === "ageRange" || selectedFilterTab === "heightRange") {
-    const range = filters[selectedFilterTab];
-    const defaults = rangeDefaults[selectedFilterTab];
-    const minLimit = defaults.min;
-    const maxLimit = defaults.max;
-
-    return (
-      <div className={contentClasses}>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
-            <label className="text-sm font-semibold text-gray-600">
-              Min {selectedFilterTab === "ageRange" ? "Age" : "Height"}
-            </label>
-            <input
-              type="range"
-              min={minLimit}
-              max={maxLimit}
-              value={range.min}
-              onChange={onRangeChange(selectedFilterTab, "min")}
-              className="w-full accent-amber-600"
-            />
-            <div className="flex justify-between mt-1">
-              <span className="text-xs text-gray-500">Min: {minLimit}</span>
-              <span className="text-sm font-semibold text-amber-700">{range.min}</span>
-              <span className="text-xs text-gray-500">Max: {maxLimit}</span>
-            </div>
-          </div>
-          <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
-            <label className="text-sm font-semibold text-gray-600">
-              Max {selectedFilterTab === "ageRange" ? "Age" : "Height"}
-            </label>
-            <input
-              type="range"
-              min={minLimit}
-              max={maxLimit}
-              value={range.max}
-              onChange={onRangeChange(selectedFilterTab, "max")}
-              className="w-full accent-amber-600"
-            />
-            <div className="flex justify-between mt-1">
-              <span className="text-xs text-gray-500">Min: {minLimit}</span>
-              <span className="text-sm font-semibold text-amber-700">{range.max}</span>
-              <span className="text-xs text-gray-500">Max: {maxLimit}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const currentFilter = filterConfig.find((config) => config.key === selectedFilterTab);
 
@@ -887,31 +888,29 @@ const FilterContent = ({
     return (
       <div className="flex flex-wrap gap-2 p-2">
         {options.map((option) => {
-          const value =
-            typeof option === "string"
-              ? option
-              : option.value ?? option.label ?? "";
-          const label =
-            typeof option === "string"
-              ? option
-              : option.label || option.value;
+          const optionValue = typeof option === "string" ? option : (option.value || "");
+          const optionLabel = typeof option === "string" ? option : (option.label || option.value || "");
 
-          if (!value || !label) return null;
+          if (!optionValue || !optionLabel) return null;
+
+          const isSelected = Array.isArray(filters[filterKey]) 
+            ? filters[filterKey].includes(optionValue)
+            : false;
 
           return (
             <label
-              key={`${filterKey}-${value}`}
+              key={`${filterKey}-${optionValue}`}
               className="flex items-center space-x-2 cursor-pointer group bg-white rounded-lg px-3 py-2 shadow-sm hover:shadow-md hover:bg-amber-50 transition-all border border-gray-100"
             >
               <input
                 type="checkbox"
-                value={value}
-                checked={filters[filterKey]?.includes(value) || false}
+                value={optionValue}
+                checked={isSelected}
                 onChange={onFilterChange(filterKey)}
                 className="w-4 h-4 rounded border-2 border-amber-200 text-amber-600 focus:ring-amber-500 cursor-pointer"
               />
               <span className="text-sm text-gray-700 group-hover:text-amber-600 transition-colors font-medium truncate max-w-[150px]">
-                {label}
+                {optionLabel}
               </span>
             </label>
           );
@@ -1116,10 +1115,6 @@ const UnlockedProfileDetails = ({ profile, onClose }) => {
               />
             </div>
             <div className="space-y-1 text-sm text-gray-600">
-              <p className="flex items-center justify-center gap-2 font-semibold text-gray-800">
-                <Cake className="w-4 h-4 text-pink-600" />
-                {formData.age || profile.age || "N/A"} yrs
-              </p>
               <p className="flex items-center justify-center gap-2">
                 <Briefcase className="w-4 h-4 text-blue-600" />
                 {formData.occupation || profile.occupation || "Not shared"}
@@ -1213,62 +1208,3 @@ const prettifyLabel = (key) =>
     .replace(/^./, (c) => c.toUpperCase());
 
 export default BrowseMatches;
-
-// Add CSS styles
-// const styles = `
-// @keyframes popup-lift {
-//   from {
-//     opacity: 0;
-//     transform: translateY(20px) scale(0.95);
-//   }
-//   to {
-//     opacity: 1;
-//     transform: translateY(0) scale(1);
-//   }
-// }
-
-// .animate-popup-lift {
-//   animation: popup-lift 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-// }
-
-// .scrollbar-thin::-webkit-scrollbar {
-//   height: 8px;
-// }
-
-// .scrollbar-thin::-webkit-scrollbar-track {
-//   background: #e5e7eb;
-//   border-radius: 4px;
-// }
-
-// .scrollbar-thin::-webkit-scrollbar-thumb {
-//   background: #f59e0b;
-//   border-radius: 4px;
-//   border: 1px solid #e5e7eb;
-// }
-
-// .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-//   background: #d97706;
-// }
-
-// .scrollbar-thin {
-//   scrollbar-width: thin;
-//   scrollbar-color: #f59e0b #e5e7eb;
-// }
-
-// .scrollbar-visible {
-//   overflow-x: auto;
-// }
-
-// .snap-x {
-//   scroll-snap-type: x mandatory;
-// }
-
-// .snap-center {
-//   scroll-snap-align: center;
-// }
-// `;
-
-// // Inject styles
-// const styleSheet = document.createElement("style");
-// styleSheet.textContent = styles;
-// document.head.appendChild(styleSheet);

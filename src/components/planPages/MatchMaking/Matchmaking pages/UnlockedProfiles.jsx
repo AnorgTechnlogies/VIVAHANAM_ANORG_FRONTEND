@@ -133,9 +133,7 @@ const UnlockedProfiles = ({
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Unlocked profiles</p>
           <h2 className="text-2xl font-semibold text-gray-900">Profiles you've already Unlocked</h2>
-          <p className="text-sm text-gray-500">
-            Revisit contact details, biodata, and documents for every profile you have unlocked.
-          </p>
+     
         </div>
         <button
           onClick={() => fetchHistory(1, true)}

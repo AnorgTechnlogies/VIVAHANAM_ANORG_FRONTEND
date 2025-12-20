@@ -12,7 +12,7 @@ import {
   Youtube,
   Heart,
 } from "lucide-react";
-import { useContactInfo } from "./useContactInfo";
+import { useContactInfo } from "../utils/useContactInfo";
 
 const Footer = () => {
   const { contactInfo, loading: loadingContactInfo } = useContactInfo();
@@ -212,7 +212,7 @@ const Footer = () => {
               sacred unions
             </p>
             <div className="flex gap-4">
-              <a href="#privacy" className="hover:text-white transition-colors">
+              <a href="/Privacy-Policy-Page" className="hover:text-white transition-colors">
                 Privacy Policy
               </a>
               <span>|</span>

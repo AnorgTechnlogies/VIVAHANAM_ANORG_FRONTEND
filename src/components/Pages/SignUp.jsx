@@ -58,8 +58,14 @@ const AuthPage = () => {
         try {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
-          // If user is already logged in, redirect to register page
-          navigate("/register");
+
+          // If a redirect target is provided (e.g., Wedding Service Form), honor it
+          const redirectTo = location.state?.redirectTo || "/register";
+          const selectedPlan = location.state?.selectedPlan;
+
+          navigate(redirectTo, {
+            state: selectedPlan ? { selectedPlan } : undefined,
+          });
         } catch (error) {
           console.error("Error parsing user data:", error);
           // Clear invalid data
@@ -70,7 +76,7 @@ const AuthPage = () => {
     };
 
     checkUserLoggedIn();
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   // Validation rules for signup
   const validationRules = {
@@ -491,7 +497,14 @@ const AuthPage = () => {
       });
       
       const redirectTo = location.state?.redirectTo || "/";
-      if (data.user?.profileCompleted) {
+      const selectedPlan = location.state?.selectedPlan;
+
+      // If a redirect target is provided (wedding flow), always go there
+      if (location.state?.redirectTo) {
+        navigate(redirectTo, {
+          state: selectedPlan ? { selectedPlan } : undefined,
+        });
+      } else if (data.user?.profileCompleted) {
         navigate(redirectTo);
       } else {
         navigate("/register", { state: { redirectTo } });

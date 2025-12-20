@@ -1,5 +1,5 @@
 // ➡️ Ye page user ko selected plan ka payment complete karne ka option deta hai.
-
+// ye page purchase store se link hai kuki user koi bhi plan ko leta hai toh yhi se redirect hoke paypal me jatahai 
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -84,7 +84,11 @@ const PaymentPage = () => {
       console.log("PayPal order created:", data.orderID);
 
       // Redirect to PayPal for card payment
-      if (data.orderID) {
+      if (data.approvalUrl) {
+        // Backend se direct approvalUrl mila hai (sandbox ya live env ke hisaab se)
+        window.location.href = data.approvalUrl;
+      } else if (data.orderID) {
+        // Fallback (normally approvalUrl hamesha aana chahiye)
         window.location.href = `https://www.sandbox.paypal.com/checkoutnow?token=${data.orderID}`;
       }
       

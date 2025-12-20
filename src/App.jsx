@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // component folder
 import Navbar from "./components/Navbar";
-import SignUp from "./components/SignUp"
+import SignUp from "./components/Pages/SignUp"
 import HomePage from "./components/Home";
 import Footer from "./components/Footer";
 
@@ -19,6 +19,7 @@ import PartnersPage from './components/Pages/PartnersPage';
 import ProfileViewPage from './components/Pages/ProfileViewPage';
 import UpdateProfilePage from './components/Pages/UpdateProfilePage';
 import PlansHomePage from './components/Pages/PlansHomePage';
+import PrivacyPolicy from "./components/OtherPages/PrivacyPolicy";
 
 import WeddingForm from "./components/planPages/WeddingPlan/WeddingForm"
 
@@ -61,6 +62,8 @@ function App() {
         <Route path="/register" element={<RegistrationPage />} />
         <Route path="/partners" element={<PartnersPage />} />
         <Route path="/payas" element={<PayAsDashboard />} />
+        {/* Credit store ke liye simple route, jo PayAsDashboard (credits store) kholta hai */}
+        <Route path="/credit-store" element={<PayAsDashboard />} />
         <Route path="/plans-home" element={<PlansHomePage />} />
         <Route path="/shops" element={<ShopPage />} />
         <Route path="/PlanHomePage" element={<PlansHomePage />} />
@@ -69,6 +72,7 @@ function App() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/PreMarital-Investigation-page" element={< PreMaritalInvestigationPage/>} />
         <Route path ="/Wedding-Service-Form" element ={<WeddingForm/>} />
+        <Route path ="/Privacy-Policy-Page" element ={<PrivacyPolicy/>} />
      </Routes>
       <Footer />
     </Router>

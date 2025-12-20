@@ -28,9 +28,40 @@ const SubscriptionPlans = () => {
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
   const [showContactPopup, setShowContactPopup] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isWeddingFormComplete, setIsWeddingFormComplete] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Helpers to store form completion per user (avoids mixing across accounts)
+  const getUserKey = (userInfo) => {
+    if (!userInfo) return null;
+    return userInfo._id || userInfo.email || userInfo.vivId || "guest";
+  };
+
+  const getFormMap = () => {
+    try {
+      return JSON.parse(localStorage.getItem("vivahanamWeddingFormSubmittedMap")) || {};
+    } catch {
+      return {};
+    }
+  };
+
+  const isFormCompleteForUser = (userInfo) => {
+    const key = getUserKey(userInfo);
+    if (!key) return false;
+    const map = getFormMap();
+    return !!map[key];
+  };
+
+  const setFormCompleteForUser = (userInfo) => {
+    const key = getUserKey(userInfo);
+    if (!key) return;
+    const map = getFormMap();
+    map[key] = true;
+    localStorage.setItem("vivahanamWeddingFormSubmittedMap", JSON.stringify(map));
+  };
 
   // Plan data without React elements for navigation
   const planDataForNavigation = [
@@ -279,16 +310,39 @@ const SubscriptionPlans = () => {
   ];
 
   useEffect(() => {
+    const token = localStorage.getItem("vivahanamToken");
+    const hasToken = !!token;
+    setIsAuthenticated(hasToken);
+
+    if (hasToken) {
     fetchUserData();
+    } else {
+      setLoading(false);
+      setIsWeddingFormComplete(false);
+    }
     
-    // Check if redirected from Wedding Service Form with formSubmitted flag
+    // If redirected from form submission, show contact popup and mark completion for this user
     if (location.state?.formSubmitted && location.state?.selectedPlan) {
       const plan = location.state.selectedPlan;
-      setSelectedPlan({
+      const planWithIcon = {
         ...plan,
-        icon: getPlanIcon(plan.name)
-      });
+        icon: getPlanIcon(plan.name),
+      };
+      setSelectedPlan(planWithIcon);
       setShowContactPopup(true);
+
+      // If we already know the user (from local storage), mark completion for them
+      const localUser = (() => {
+        try {
+          return JSON.parse(localStorage.getItem("vivahanamUser"));
+        } catch {
+          return null;
+        }
+      })();
+      if (localUser) {
+        setFormCompleteForUser(localUser);
+        setIsWeddingFormComplete(true);
+      }
     }
   }, [location]);
 
@@ -326,33 +380,91 @@ const SubscriptionPlans = () => {
 
       if (data.success) {
         setUser(data.user);
+        setIsAuthenticated(true);
+        setIsWeddingFormComplete(isFormCompleteForUser(data.user));
+        // Also verify against backend status to avoid stale local data
+        checkWeddingFormStatus();
       } else {
         throw new Error(data.message);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
       setProfileError("Failed to load user profile");
+      setIsAuthenticated(false);
+      setIsWeddingFormComplete(false);
     } finally {
       setLoading(false);
     }
   };
 
+  const checkWeddingFormStatus = async () => {
+    try {
+      const token = localStorage.getItem("vivahanamToken");
+      if (!token) return;
+
+      const response = await fetch(`${import.meta.env.VITE_API_KEY}/user/wedding-form/status`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setIsWeddingFormComplete(!!data.completed);
+        if (data.completed && data.data) {
+          // best-effort store for local cache
+          setFormCompleteForUser(data.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error checking wedding form status:", error);
+    }
+  };
+
   const handleGoForSubscription = (plan) => {
     // Create a plain object for navigation (without React elements)
-    const planForNavigation = planDataForNavigation.find(p => p.id === plan.id);
-    
-    // Navigate to Wedding Service Form first
+    const planForNavigation = planDataForNavigation.find(
+      (p) => p.id === plan.id
+    );
+    const planWithIcon = {
+      ...planForNavigation,
+      icon: getPlanIcon(plan.name),
+    };
+
+    // Not authenticated -> send to auth page, then to wedding form with selected plan
+    if (!isAuthenticated) {
+      navigate("/signup", {
+        state: {
+          redirectTo: "/Wedding-Service-Form",
+          selectedPlan: planForNavigation,
+        },
+      });
+      return;
+    }
+
+    // Authenticated but form not complete -> send to form
+    if (!isWeddingFormComplete) {
     navigate("/Wedding-Service-Form", { 
       state: { 
-        selectedPlan: planForNavigation
+          selectedPlan: planForNavigation,
+        },
+      });
+      return;
       } 
-    });
+
+    // Auth + form done -> show consultant contact popup
+    setSelectedPlan(planWithIcon);
+    setShowContactPopup(true);
   };
 
   const closeContactPopup = () => {
     setShowContactPopup(false);
     setSelectedPlan(null);
   };
+
+  // Auth flow is handled by navigating to /signup; no inline popup required
 
   const handleBackClick = () => {
     navigate("/PlanHomePage");

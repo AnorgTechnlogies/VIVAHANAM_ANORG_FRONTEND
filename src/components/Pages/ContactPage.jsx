@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { getCountryCallingCode } from "react-phone-number-input";
-import { useContactInfo } from "../useContactInfo"; // Import shared hook
+import { useContactInfo } from "../../utils/useContactInfo"; // Import shared hook
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

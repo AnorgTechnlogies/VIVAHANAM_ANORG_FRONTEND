@@ -7,7 +7,6 @@ import Overview from "./Matchmaking pages/Overview";
 import BrowseMatches from "./Matchmaking pages/BrowseMatches";
 import CreditStore from "./Matchmaking pages/PurchaseStore";
 import PurchaseHistory from "./Matchmaking pages/PurchaseHistory";
-import AuthPagePopup from "./Matchmaking pages/AuthPagePopup";
 import UnlockedProfiles from "./Matchmaking pages/UnlockedProfiles";
 
 const PayAsYouGoDashboard = () => {

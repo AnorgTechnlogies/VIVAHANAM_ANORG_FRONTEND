@@ -1,3 +1,4 @@
+// line no 74 m4 "F" use kiya hu pehle "f" tha 
 import React, { useState, useEffect } from "react";
 import { Heart, Search, Calendar, User, ArrowLeft, Loader } from "lucide-react";
 
@@ -71,7 +72,7 @@ export default function BlogList() {
   }, [API_URL]);
 
   // Fetch single blog by slug
-  const fetchBlogBySlug = async (slug) => {
+  const FetchBlogBySlug = async (slug) => {
     try {
       setBlogLoading(true);
       setError(null);

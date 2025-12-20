@@ -380,7 +380,6 @@ const UpdateProfile = () => {
             Back to Profile
           </button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Update Your Profile</h1>
-          <p className="text-gray-600">Edit your existing profile information</p>
         </div>
 
         {/* Success Popup */}
@@ -403,13 +402,7 @@ const UpdateProfile = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Profile Fields</h3>
-              <p className="text-sm text-gray-600">
-                {showEmptyFields ? 'Showing all fields' : 'Showing only filled and mandatory fields'}
-                <span className="ml-2 text-amber-600 flex items-center gap-1">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                  Mandatory fields are marked with orange dot
-                </span>
-              </p>
+          
             </div>
             <button
               onClick={() => setShowEmptyFields(!showEmptyFields)}

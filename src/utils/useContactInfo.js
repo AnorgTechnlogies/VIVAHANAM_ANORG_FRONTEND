@@ -1,7 +1,8 @@
 // hooks/useContactInfo.js
+// file change kiya hu pehle ye component me thi maine utils me add kiya hu usko iske route ko adjust kiya hu contactPage me 
 import { useState, useEffect } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_KEY || "http://localhost:8000/api";
+const API_URL = import.meta.env.VITE_API_KEY ;
 
 export const useContactInfo = () => {
   const [contactInfo, setContactInfo] = useState({
@@ -23,7 +24,7 @@ export const useContactInfo = () => {
     const fetchContactInfo = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE}/admin/contact-info/active`);
+        const response = await fetch(`${API_URL}/admin/contact-info/active`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch contact info');

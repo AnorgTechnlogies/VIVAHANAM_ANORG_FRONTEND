@@ -196,7 +196,7 @@ const Overview = ({ user, Balance, checkAuthAndRedirect, navigate, setActiveTab 
                   <div className="p-3">
                     <div className="flex justify-between items-center text-xs text-gray-600">
                       <span>{profile.religion}</span>
-                      <span className="font-semibold text-blue-600">2 Balance</span>
+                      <span className="font-semibold text-blue-600"></span>
                     </div>
                   </div>
                 </div>
