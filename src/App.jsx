@@ -11,7 +11,7 @@ import Footer from "./components/Footer";
 import AboutPage from "./components/Pages/AboutPage"; 
 import ContactPage from "./components/Pages/ContactPage"; 
 import BlogsPage from "./components/Pages/BlogsPage"; 
-import BlogDetails from './components/Otherpages/BlogDetails';
+import BlogDetails from "./components/OtherPages/BlogDetails";
 import FaqPage from "./components/Pages/FaqPage"; 
 import TestimonialPage from './components/Pages/TestimonialPage';
 import RegistrationPage from './components/Pages/RegistrationPage';
