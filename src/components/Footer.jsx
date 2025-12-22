@@ -1,6 +1,6 @@
 // Footer.jsx
 import React from "react";
-import logo from "../assets/Logo.jpg"
+import logo from "../assets/Vivahanam Logo.jpg"
 import {
   Mail,
   Phone,
@@ -85,8 +85,8 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white rounded flex items-center justify-center flex-shrink-0 rounded-full">
-                <div className="w-11 h-11 rounded-full" />
+              <div className="w-22 h-22  rounded flex items-center justify-center flex-shrink-0 rounded-full ">
+                <div className="" />
                 <img src={logo} alt="logo" srcset="" />
               </div>
               <div>
