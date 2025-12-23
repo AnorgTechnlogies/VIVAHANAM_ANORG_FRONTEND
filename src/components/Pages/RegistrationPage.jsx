@@ -806,7 +806,7 @@ useEffect(() => {
                   <div className="mt-4 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {section.fields.map(field => (
-                        <div key={field.name} className={field.type === 'textarea' ? 'col-span-2' : ''}>
+                        <div key={field.name} className={field.type === 'textarea' ? 'col-span-1' : ''}>
                           <label className="block text-sm font-medium text-gray-700">
                             {field.label}
                             {(field.isRequired || field.validation?.required) && (
