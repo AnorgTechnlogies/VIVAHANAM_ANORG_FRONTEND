@@ -753,38 +753,13 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-sm shadow-md border-b border-gray-200">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#a4161a] via-[#d62828] to-[#f4b228] backdrop-blur-sm shadow-md ">
         <div className="px-2 sm:px-4 lg:px-6 py-3 lg:py-4 max-w-7xl mx-auto">
           <div className="flex items-center">
-            {/* <div className="flex items-center gap-2 flex-shrink-0">
-              <div
-                className="w-15 h-10 sm:w-12 sm:h-12 rounded overflow-visible flex-shrink-0 transition-all duration-300 hover:scale-200 cursor-pointer z-10 relative hover:-mb-5 rounded-full "
-                onClick={handleHomeClick}
-              >
-                <img
-                  src={Logo}
-                  alt="Vivahanam Logo"
-                  className="w-full h-full object-cover rounded"
-                />
-              </div>
-              <div className="flex flex-col">
-                <h1
-                  className="m-0 text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 cursor-pointer hover:text-amber-600 transition-colors"
-                  onClick={handleHomeClick}
-                >
-                  Vivahanam
-                </h1>
-                <p
-                  className="m-0 ml-5 text-xs sm:text-sm lg:text-md text-gray-600 cursor-pointer hover:text-amber-500 transition-colors"
-                  onClick={handleHomeClick}
-                >
-                  ! विवाहनम् !
-                </p>
-              </div>
-            </div> */}
+       
             <div className="flex items-center flex-shrink-0">
               <div
-                className="p-0.5 w-32 h-12 sm:w-36 sm:h-14 md:w-40 md:h-16 rounded-full overflow-hidden flex-shrink-0 transition-all duration-300 hover:scale-110 cursor-pointer"
+                className=" w-32 h-12 sm:w-36 sm:h-14 md:w-40 md:h-16 rounded-full overflow-hidden flex-shrink-0 transition-all duration-300 hover:scale-110 cursor-pointer"
                 onClick={handleHomeClick}
               >
                 <img
@@ -802,7 +777,7 @@ const Navbar = () => {
                     key={item.name}
                     to={item.href}
                     onClick={item.onClick}
-                    className="text-gray-700 hover:text-amber-700 transition-colors duration-200 font-medium px-1 py-1 rounded-md hover:bg-amber-50 text-sm"
+                    className="text-white hover:text-amber-700 transition-colors duration-200 font-medium px-1 py-1 rounded-md hover:bg-amber-50 text-sm"
                   >
                     {item.name}
                   </Link>
@@ -811,13 +786,13 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={toggleProfileDropdown}
-                  className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-black-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-full flex items-center justify-center border-2 border-amber-200 flex-shrink-0">
                     <User className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                   </div>
                   {isLoggedIn && userData?.name && (
-                    <span className="hidden sm:inline text-xs sm:text-sm font-medium text-gray-700 truncate max-w-24">
+                    <span className="hidden sm:inline text-xs sm:text-sm font-medium text-white truncate max-w-24">
                       {userData.name}
                     </span>
                   )}

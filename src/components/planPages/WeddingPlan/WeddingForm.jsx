@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -152,6 +152,55 @@ const UserForm = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("vivahanamToken");
+      if (!token) {
+        setIsLoadingUserData(false);
+        return;
+      }
+
+      try {
+        setIsLoadingUserData(true);
+        const response = await axios.get(`${API_URL}/user/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.success && response.data.user) {
+          const user = response.data.user;
+          
+          // Update form data with user information
+          setFormData(prev => ({
+            ...prev,
+            // Fill name from user data
+            firstName: user.name?.split(' ')[0] || user.firstName || '',
+            lastName: user.name?.split(' ').slice(-1)[0] || user.lastName || '',
+            middleName: user.middleName || '',
+            // Fill other fields if available from user data
+            gender: user.gender || '',
+            religion: user.religion || '',
+            city: user.city || '',
+            state: user.state || '',
+            country: user.country || '',
+            // Mobile number from user data
+            mobileNumber: user.mobileNo || user.mobileNumber || '',
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        // Silently fail - user can still fill the form manually
+      } finally {
+        setIsLoadingUserData(false);
+      }
+    };
+
+    fetchUserData();
+  }, []); // Empty dependency array to run only on mount
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -202,6 +251,29 @@ const UserForm = () => {
   const checkNumberExists = async (type, number) => {
     if (!number || number.length !== 10) return false;
     
+    // Skip checking if it's the user's own mobile number
+    if (type === 'mobile') {
+      const token = localStorage.getItem("vivahanamToken");
+      if (token) {
+        try {
+          const response = await axios.get(`${API_URL}/user/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          
+          if (response.data.success && response.data.user) {
+            const userMobile = response.data.user.mobileNo || response.data.user.mobileNumber;
+            if (userMobile === number) {
+              return false; // It's the user's own number, so it's not "already registered"
+            }
+          }
+        } catch (error) {
+          console.error('Error checking current user:', error);
+        }
+      }
+    }
+    
     try {
       setIsChecking(true);
       const response = await axios.get(`${API_URL}/user/check-contact`, {
@@ -241,10 +313,34 @@ const UserForm = () => {
       if (!/^\d{10}$/.test(formData.mobileNumber)) {
         newErrors.mobileNumber = 'Must be a valid 10-digit number';
       } else {
-        // Check if mobile number already exists
-        const mobileExists = await checkNumberExists('mobile', formData.mobileNumber);
-        if (mobileExists) {
-          newErrors.mobileNumber = 'This mobile number is already registered';
+        // Check if mobile number already exists (excluding user's own number)
+        const token = localStorage.getItem("vivahanamToken");
+        let shouldCheck = true;
+        
+        if (token) {
+          try {
+            const response = await axios.get(`${API_URL}/user/me`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            
+            if (response.data.success && response.data.user) {
+              const userMobile = response.data.user.mobileNo || response.data.user.mobileNumber;
+              if (userMobile === formData.mobileNumber) {
+                shouldCheck = false; // Skip check for user's own number
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching user info:', error);
+          }
+        }
+        
+        if (shouldCheck) {
+          const mobileExists = await checkNumberExists('mobile', formData.mobileNumber);
+          if (mobileExists) {
+            newErrors.mobileNumber = 'This mobile number is already registered';
+          }
         }
       }
     }
@@ -359,6 +455,24 @@ const UserForm = () => {
     }
   };
 
+  // Show loading state while fetching user data
+  if (isLoadingUserData) {
+    return (
+      <div className="container mx-auto px-4 py-22">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-amber-50 rounded-2xl shadow-xl overflow-hidden border border-amber-200 p-8">
+            <div className="flex justify-center items-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
+                <p className="mt-4 text-amber-700 font-medium">Loading your information...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-22">
       <div className="max-w-4xl mx-auto">
@@ -460,6 +574,11 @@ const UserForm = () => {
                   {isChecking && (
                     <p className="text-amber-600 text-sm">Checking number availability...</p>
                   )}
+                  {formData.mobileNumber && (
+                    <p className="text-green-600 text-sm">
+                      ✓ Pre-filled from your profile
+                    </p>
+                  )}
                 </div>
                 
                 {/* WhatsApp Number */}
@@ -528,6 +647,11 @@ const UserForm = () => {
                   </select>
                   {errors.gender && (
                     <p className="text-red-500 text-sm">{errors.gender}</p>
+                  )}
+                  {formData.gender && (
+                    <p className="text-green-600 text-sm">
+                      ✓ Pre-filled from your profile
+                    </p>
                   )}
                 </div>
                 
@@ -638,6 +762,11 @@ const UserForm = () => {
                   {errors.religion && (
                     <p className="text-red-500 text-sm">{errors.religion}</p>
                   )}
+                  {formData.religion && (
+                    <p className="text-green-600 text-sm">
+                      ✓ Pre-filled from your profile
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -685,6 +814,11 @@ const UserForm = () => {
                   {errors.country && (
                     <p className="text-red-500 text-sm">{errors.country}</p>
                   )}
+                  {formData.country && (
+                    <p className="text-green-600 text-sm">
+                      ✓ Pre-filled from your profile
+                    </p>
+                  )}
                 </div>
                 
                 {/* State */}
@@ -705,6 +839,11 @@ const UserForm = () => {
                   {errors.state && (
                     <p className="text-red-500 text-sm">{errors.state}</p>
                   )}
+                  {formData.state && (
+                    <p className="text-green-600 text-sm">
+                      ✓ Pre-filled from your profile
+                    </p>
+                  )}
                 </div>
                 
                 {/* City */}
@@ -724,6 +863,11 @@ const UserForm = () => {
                   />
                   {errors.city && (
                     <p className="text-red-500 text-sm">{errors.city}</p>
+                  )}
+                  {formData.city && (
+                    <p className="text-green-600 text-sm">
+                      ✓ Pre-filled from your profile
+                    </p>
                   )}
                 </div>
                 

@@ -26,7 +26,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 const SubscriptionPlans = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [profileError, setProfileError] = useState("");
   const [showContactPopup, setShowContactPopup] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isWeddingFormComplete, setIsWeddingFormComplete] = useState(false);
@@ -389,7 +388,6 @@ const SubscriptionPlans = () => {
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
-      setProfileError("Failed to load user profile");
       setIsAuthenticated(false);
       setIsWeddingFormComplete(false);
     } finally {
@@ -529,7 +527,7 @@ const SubscriptionPlans = () => {
                 </p>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
                   <p className="text-2xl font-bold text-amber-700">
-                    6267436883
+                    +1 214 836 4935
                   </p>
                   <p className="text-sm text-gray-600 mt-1">Available 24/7</p>
                 </div>
@@ -548,7 +546,7 @@ const SubscriptionPlans = () => {
                 </button>
                 <button
                   onClick={() => {
-                    window.open("tel:6267436883");
+                    window.open("tel:+1 214 836 4935");
                     closeContactPopup();
                   }}
                   className="flex-1 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md transition-all duration-300 flex items-center justify-center gap-2"
@@ -592,7 +590,7 @@ const SubscriptionPlans = () => {
 
       {/* Plans Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl relative z-10 mb-16">
-        {plansData.map((plan, index) => {
+        {plansData.map((plan) => {
           const color = getPlanColor(plan.color);
 
           return (
@@ -687,7 +685,7 @@ const SubscriptionPlans = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {detailedFeatures.map((feature, index) => (
+          {detailedFeatures.map((feature) => (
             <div
               key={feature.id}
               className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-amber-300 group p-5"

@@ -252,29 +252,12 @@ export default function BlogList() {
             Wedding <span className="text-red-600 italic">Blog</span> & Advice
           </h1>
           
-          {/* Your Guide to Love, Marriage & Matchmaking with Animation */}
-          <h2 className={`text-2xl sm:text-3xl font-semibold text-gray-800 mb-8 transition-all duration-1000 delay-400 ${
-            isVisible
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 -translate-y-10"
-          }`}>
-            Your Guide to Love, Marriage & Matchmaking
-          </h2>
+        
           
           {/* Search & Filter */}
           <div className="max-w-3xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-              {/* Search Input */}
-              <div className="relative w-full sm:w-64">
-                <input
-                  type="text"
-                  placeholder="Search articles..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-amber-200 rounded-xl focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 bg-white/80 backdrop-blur-sm text-gray-700 transition-all duration-300"
-                />
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-amber-400 w-5 h-5" />
-              </div>
+             
               
               {/* All Categories with Animation */}
               <div className={`transition-all duration-1000 delay-600 ${
@@ -325,11 +308,11 @@ export default function BlogList() {
               No articles found
             </p>
             <p className="text-gray-500 max-w-md mx-auto mb-6">
-              {searchTerm || selectedCategory !== "All Categories" 
+              { selectedCategory !== "All Categories" 
                 ? "Try adjusting your search or filter criteria."
                 : "No blogs have been published yet. Check back soon!"}
             </p>
-            {(searchTerm || selectedCategory !== "All Categories") && (
+            {( selectedCategory !== "All Categories") && (
               <button 
                 onClick={() => {
                   setSearchTerm("");

@@ -5,8 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ChevronUp, Eye, EyeOff } from "lucide-react"; // Import the arrow icon and eye icons
 import Home2Img from "../assets/Home2Img.jpg";
 import Home3Img from "../assets/Home3Img.jpg";
-import unnamedImage from "../assets/unnamed.jpg";
-import Home5RitualImg from "../assets/Home5RitualImg.jpg";
+// import Home5RitualImg from "../assets/Home5RitualImg.jpg";
 import Home1 from "../assets/Homeimage.jpeg";
 import stepimage2 from "../assets/image2stepPage.jpeg";
 import stepimage3 from "../assets/step3image2.jpg";
@@ -62,6 +61,10 @@ const HomePage = () => {
   const firstSectionRef = useRef(null);
 
   const API_URL = import.meta.env.VITE_API_KEY;
+
+  const handlewhyabout = () => {
+    navigate("/Why-About-Page");
+  };
 
   // Check if user is already logged in on component mount
   useEffect(() => {
@@ -846,7 +849,8 @@ const HomePage = () => {
         className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100 mt-19.5"
       >
         {/* Adjust responsive py-1 (8) and sm;py-10(12) */}
-        <div className="w-full flex flex-col items-center justify-start py-1 sm:py-1 md:py-8 lg:py-0">
+        {/* yadi uper se space ka problem aaye toh mt-5 hata dena niche se */}
+        <div className="w-full flex flex-col items-center justify-start py-1 sm:py-1 md:py-8 lg:py-0 mt-4">
           <div className="container mx-auto px-4 sm:px-4 md:px-8 lg:px-12 xl:px-16 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 w-full items-center">
               {/* Left Side - Image */}
@@ -861,56 +865,49 @@ const HomePage = () => {
               </div>
 
               {/* Right Side - Content */}
-              <div className="mb-20 flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-2 w-full px-4 lg:px-0 text-center lg:text-left">
-               <h2
-                  className={` text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
+              <div className="mb-15 flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-2 w-full px-4 lg:px-0 text-center lg:text-left">
+                <h2
+                  className={` text-center text-md sm:text-xl md:text-2xl lg:text-3xl xl:text-3xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
                     isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   }`}
                   style={{ fontFamily: "serif" }}
                 >
-                  Married Life A Perfect Yoga 
+                  VIVAHANAM (विवाहनम्):Vedic Indian Vivah
                 </h2>
-                <h1
-                  className={`text-sm sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-800 leading-tight transition-all duration-700 delay-100 ${
-                    isVisible
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 -translate-y-5"
-                  }`}
-                >
-                  Creating Memories
-                </h1>
+                <h3 className="text-center text-md sm:text-xl md:text-xl lg:text-2xl xl:text-2xl font-bold text-red-700">
+                  Authentic Holy Alliances in North American Matrimony
+                </h3>
+                <h6 className="text-center text-md sm:text-xl md:text-xl lg:text-xl xl:text-xl font-bold text-black-700">
+                  वैदिक भारतीय विवाह एवं प्रामाणिक पवित्र संबंध :उत्तर अमेरिकी
+                  वैवाहिक संस्था
+                </h6>
 
                 {/* Sanskrit Line */}
                 <h2
-                  className={`mt-2 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
+                  className={`text-center text-lg sm:text-xl md:text-xl lg:text-2xl xl:text-3xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
                     isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   }`}
                   style={{ fontFamily: "serif" }}
                 >
-                  वसुधैव कुटुंबकम्
+                  !! वसुधैव कुटुंबकम् !!
                 </h2>
 
                 {/* Description */}
                 <p
-                  className={`text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed font-medium text-justify hyphens-auto tracking-wide max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl mx-auto lg:mx-0 transition-all duration-700 delay-700 ${
+                  className={`text-xs sm:text-sm md:text-base lg:text-lg xl:text-md text-gray-700 leading-relaxed font-medium text-justify hyphens-auto tracking-wide max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl mx-auto lg:mx-0 transition-all duration-700 delay-700 ${
                     isVisible ? "opacity-100" : "opacity-0"
                   }`}
                 >
                   <span className="block">
-                    A sacred space for Vedic Indian matrimony in North America.
-                  </span>
-                  <span className="block">
-                    Connecting hearts with tradition, trust, and shared values.
-                  </span>
-                  <span className="block">
-                    Building lifelong alliances rooted in culture and faith.
+                    <span className="font-black">Vivahanam</span> embodies the sacred Vedic vision of marriage as a divine
+                     union of two souls. It views marriage as a spiritual journey of trust and faith, strengthened by family 
+                     blessings. Vedic rituals sanctify this bond, uniting individuals and families. Vivahanam bridges ancient traditions and modern matrimony, helping families, especially in North America,
+                     form alliances rooted in culture, spirituality, and enduring values.{" "}
                   </span>
                 </p>
 
-                 
-
                 {/* Buttons - FIXED FOR 936×730 */}
-                <div className="flex flex-col md:flex-row gap-3 md:gap-4 pt-4 md:pt-6 justify-center lg:justify-start">
+                <div className="flex flex-col md:flex-row gap-3 md:gap-5 pt-4 md:pt-6 justify-center lg:justify-start">
                   {/* Dynamic Button - Changes based on login status */}
                   {user ? (
                     // Show "Go for Partner Search" when user is logged in
@@ -965,25 +962,47 @@ const HomePage = () => {
               </div>
 
               {/* Left Side - Content */}
-              <div className=" flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-1 w-full px-4 lg:px-0 text-center lg:text-left">
-                <h1 className="mt-5 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 leading-tight sm:leading-snug md:leading-tight break-words hyphens-auto">
-                  वैदिक भारतीय विवाह एवं प्रामाणिक पवित्र संबंध -
+              <div className=" py-2  flex flex-col justify-center space-y-4 sm:space-y-6 lg:space-y-8 order-2 lg:order-1 w-full px-4 lg:px-0 text-center lg:text-left">
+                <h1 className="  text-center mt-2 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight sm:leading-snug md:leading-tight break-words hyphens-auto">
+                  !!वसुधैव कुटुंबकम्!!
                 </h1>
-                <h2 className="mt-2 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-red-700 leading-tight sm:leading-snug break-words hyphens-auto">
-                  उत्तर अमेरिकी वैवाहिक संस्था
+                <h1 className=" text-center mt-2 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-red-700 leading-tight sm:leading-snug md:leading-tight break-words hyphens-auto">
+                  Married Life : A Perfect Yoga
+                </h1>
+
+                <h2 className="mt-2 text-center text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-700 leading-tight sm:leading-snug break-words hyphens-auto">
+                  गृहस्थ जीवन : एक योग साधना
                 </h2>
-                <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto lg:mx-0 mt-2 px-2 sm:px-0 break-words">
-                  Vivahanam preserves Vedic marriage traditions, uniting couples
-                  through sacred rituals and family values, bridging ancient
-                  spirituality with modern matrimony for Hindu families across
-                  North America.
+
+                <p
+                  className={`py-2 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed font-medium text-justify hyphens-auto tracking-wide max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl mx-auto lg:mx-0 transition-all duration-700 delay-700 ${
+                    isVisible ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <span className="block">
+                    Blessed by Aadishakti Veda Mata Gayatri and inspired by the
+                    teachings of our Gurudev Pt. Shriram Sharma Acharya and
+                    Vandaniya Mata Bhagwati Devi Sharma, drawing from their
+                    profound books, works and thoughts—Married Life is a Perfect
+                    Yoga{" "}
+                    <span className="text-black-700 font-bold">
+                      {" "}
+                      (गृहस्थ जीवन : एक योग साधना)
+                    </span>{" "}
+                    and Fundamental Principles of a Successful Married Life{" "}
+                    <span className="text-black-700 font-bold">
+                      {" "}
+                      (सफल दांपत्य जीवन के मौलिक सिद्धांत)
+                    </span>{" "}
+                  </span>
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center lg:justify-start">
+
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center ">
                   <button
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
                     onClick={() => navigate("/about")}
                   >
-                    About More
+                    About Vivahanam
                   </button>
                 </div>
               </div>
@@ -993,10 +1012,10 @@ const HomePage = () => {
       </div>
 
       {/* Services Section */}
-      <div className="w-full min-h-screen bg-amber-100 py-5 md:py-10 lg:py-10 px-4 sm:px-6 lg:px-8 ">
-        <div className="container mx-auto max-w-7xl">
+      <div className="w-full min-h-screen bg-amber-100 md:py-10 lg:py-10 px-4 sm:px-6 lg:px-8 ">
+        <div className="container mx-auto max-w-7xl ">
           <div className="text-center mb-5 lg:mb-10">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-amber-900 mb-2">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-5xl font-bold text-red-700 mb-2">
               OUR SERVICES
             </h2>
           </div>
@@ -1029,119 +1048,6 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Vision Section */}
-      <div className="relative w-full min-h-screen overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1525258834046-fd4c94d5b050?q=80&w=2070')",
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-950/95 via-amber-900/90 to-transparent"></div>
-        </div>
-        <div className="relative h-full min-h-screen w-full flex items-center py-12 md:py-16 lg:py-20">
-          <div className="container mx-auto px-6 md:px-12 lg:px-20">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              <div className="flex flex-col justify-center space-y-8 lg:space-y-6">
-                <div className="inline-flex items-center space-x-3 mb-4">
-                  <div className="h-1 w-16 bg-gradient-to-r from-amber-500 to-red-600"></div>
-                  <span className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-amber-50 leading-tight text-amber-300">
-                    Vision
-                  </span>
-                </div>
-                <h4 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-amber-50 leading-tight">
-                  Our Commitment
-                </h4>
-                <p className="text-lg md:text-xl lg:text-xl text-amber-100 leading-relaxed max-w-2xl">
-                  Vivahanam.com offers a unique matrimonial platform designed
-                  for Hindus in North America, connecting individuals seeking
-                  Vedic Indian alliances. With personalized matchmaking and
-                  pre-wedding consultations, we ensure a culturally rich
-                  experience, honoring traditions while cultivating spiritual
-                  bonds.
-                </p>
-                <p className="text-base md:text-lg text-amber-200/90 leading-relaxed max-w-2xl">
-                  Discover our subscription options to explore wedding packages
-                  and traditional rituals that enrich your journey to matrimony.
-                </p>
-                <div className="grid grid-cols-3 gap-6 pt-8 border-t border-amber-700/30">
-                  <div className="text-center lg:text-left">
-                    <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
-                      500+
-                    </div>
-                    <div className="text-xl text-amber-200/80">
-                      Happy Couples
-                    </div>
-                  </div>
-                  <div className="text-center lg:text-left">
-                    <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
-                      10+
-                    </div>
-                    <div className="text-xl text-amber-200/80">
-                      Years Experience
-                    </div>
-                  </div>
-                  <div className="text-center lg:text-left">
-                    <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">
-                      98%
-                    </div>
-                    <div className="text-xl text-amber-200/80">
-                      Satisfaction Rate
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="hidden lg:flex items-center justify-center">
-                <div className="relative w-full max-w-lg">
-                  <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                    <img
-                      src={unnamedImage}
-                      alt="Traditional Wedding"
-                      className="w-full h-150 object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-amber-900/60 to-transparent"></div>
-                  </div>
-                  <div className="absolute -bottom-8 -left-8 bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl max-w-xs">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center">
-                        <svg
-                          className="w-6 h-6 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M5 13l4 4L19 7"
-                          ></path>
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="font-bold text-gray-800">
-                          Verified Profiles
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          100% Authentic
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute -top-8 -right-8 bg-gradient-to-br from-amber-500 to-red-500 rounded-2xl p-6 shadow-xl max-w-xs">
-                    <div className="text-white">
-                      <div className="text-3xl font-bold mb-1">Trusted</div>
-                      <div className="text-sm opacity-90">By Thousands</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Newsletter Section */}
       <div className="relative w-full min-h-screen bg-amber-100 bg-gradient-to-bt from-amber-100 via-orange-100 to-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-7xl">
@@ -1157,35 +1063,51 @@ const HomePage = () => {
                 <div className="absolute -top-6 -right-6 w-40 h-40 bg-gradient-to-br from-stone-400 to-amber-300 rounded-full opacity-20 blur-3xl -z-10"></div>
               </div>
             </div>
-           <div className="flex flex-col justify-center space-y-7 lg:space-y-10 order-1 lg:order-2 max-w-2xl">
-  <h2 className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-800 leading-tight text-center lg:text-left">
-    Welcome to Vivahanam
-  </h2>
+            <div className="flex flex-col justify-center space-y-7 lg:space-y-10 order-1 lg:order-2 max-w-2xl">
+              <h2 className="text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-red-700 leading-tight text-center lg:text-left">
+                Welcome to Vivahanam
+              </h2>
+              <p
+                className={`text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed font-medium text-justify hyphens-auto tracking-wide max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl mx-auto lg:mx-0 transition-all duration-700 delay-700 ${
+                  isVisible ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <span className="block">
+                  Marriage is the legal and lifelong state or relationship of
+                  being wed, a commitment with rights and duties, while the
+                  wedding is the one-time ceremony or party celebrating and
+                  formalizing that union, often with vows and guests. <br />
+                  <br />
+                  Vivahanam embodies the sacred essence of Vivah the Vedic
+                  concept of marriage as a divine union of two souls. Rooted in
+                  timeless Vedic wisdom, Vivahanam reflects that marriage is not
+                  merely a social arrangement, but a spiritual journey built on
+                  trust and faith between partners, and strengthened by the
+                  blessings of their families{" "}
+                </span>
+              </p>
 
-  <p className="text-lg sm:text-xl md:text-2xl text-gray-700 leading-relaxed text-center lg:text-left">
-    Marriage is the most natural state of man,  
-    where true happiness blooms.  
-    A sacred bond that nurtures the soul  
-    and weaves a lifetime of love and memories.
-  </p>
-
-  <div className="flex justify-center lg:justify-start pt-6">
-    <button className="px-8 py-4 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-lg rounded-full shadow-lg transition transform hover:scale-105">
-      Find Your Life Partner
-    </button>
-  </div>
-</div>
+              <div className="flex justify-center pt-6  ">
+                <button
+                  className="w-64 px-8 py-4 bg-red-700 hover:bg-amber-800 text-white font-semibold text-lg rounded-full shadow-lg transition transform hover:scale-105"
+                  onClick={handlewhyabout}
+                >
+                  Why Vivahanam ?
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      {/* Vision Section */}
 
       {/* 3 Steps Section */}
-      <div className="w-full bg-amber-100 px-4 sm:px-8 lg:px-16">
+      <div className="w-full bg-amber-100 py-8 px-4 sm:px-8 lg:px-16">
         <div className="text-center mb-12">
-          <p className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-800 leading-tight text-center">
-            Look For Your Soulmate
+          <p className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-red-700 leading-tight text-center">
+            Meet your soulmate
           </p>
-{/*        
+          {/*        
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-800 mt-4">
              <span className="text-5xl">Easy Steps</span>
           </h2> */}
@@ -1197,15 +1119,12 @@ const HomePage = () => {
             <h3 className="text-2xl font-semibold text-gray-800">
               Create your Profile
             </h3>
-            <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden shadow-xl">
+            <div className="relative w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden shadow-xl">
               <img
                 src="https://images.unsplash.com/photo-1603415526960-f7e0328c63b1"
                 alt="Create Profile"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full shadow-md">
-                <i className="fa-solid fa-user text-lg"></i>
-              </div>
             </div>
             <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
               Sign up for free, create your profile, and connect with members in
@@ -1229,9 +1148,6 @@ const HomePage = () => {
                 alt="Search Partner step page"
                 className="w-full h-full object-cover"
               />
-              {/* <div className="absolute bottom-2 right-2 bg-red-600 text-white p-2 rounded-full">
-                <i className="fa-solid fa-magnifying-glass"></i>
-              </div> */}
             </div>
             <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
               Select options and Search your perfect partner easily.
@@ -1255,9 +1171,6 @@ const HomePage = () => {
                 alt="Search Partner step page"
                 className="w-full h-full object-cover"
               />
-              {/* <div className="absolute bottom-2 right-2 bg-red-600 text-white p-2 rounded-full">
-                <i className="fa-solid fa-magnifying-glass"></i>
-              </div> */}
             </div>
             <p className="text-gray-700 max-w-xs text-base sm:text-lg leading-relaxed">
               Express Interests & go forward one step to connect with your
@@ -1558,7 +1471,9 @@ const HomePage = () => {
                       <button
                         type="button"
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                        onClick={() =>
+                          setShowConfirmNewPassword(!showConfirmNewPassword)
+                        }
                       >
                         {showConfirmNewPassword ? (
                           <EyeOff className="h-5 w-5 text-gray-400" />
@@ -1596,9 +1511,19 @@ const HomePage = () => {
                     <input
                       id="password"
                       name="password"
-                      type={authMode === "login" ? (loginData.showPassword ? "text" : "password") : (formData.showPassword ? "text" : "password")}
+                      type={
+                        authMode === "login"
+                          ? loginData.showPassword
+                            ? "text"
+                            : "password"
+                          : formData.showPassword
+                          ? "text"
+                          : "password"
+                      }
                       autoComplete={
-                        authMode === "login" ? "current-password" : "new-password"
+                        authMode === "login"
+                          ? "current-password"
+                          : "new-password"
                       }
                       required
                       value={
@@ -1641,30 +1566,29 @@ const HomePage = () => {
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => {
                         if (authMode === "login") {
-                          setLoginData(prev => ({
+                          setLoginData((prev) => ({
                             ...prev,
-                            showPassword: !prev.showPassword
+                            showPassword: !prev.showPassword,
                           }));
                         } else {
-                          setFormData(prev => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            showPassword: !prev.showPassword
+                            showPassword: !prev.showPassword,
                           }));
                         }
                       }}
                     >
-                      {authMode === "login" 
-                        ? (loginData.showPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-400" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-gray-400" />
-                          ))
-                        : (formData.showPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-400" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-gray-400" />
-                          ))
-                      }
+                      {authMode === "login" ? (
+                        loginData.showPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-400" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400" />
+                        )
+                      ) : formData.showPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
                     </button>
                   </div>
                   {authMode === "signup" && renderFieldError("password")}
@@ -1690,7 +1614,9 @@ const HomePage = () => {
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       onBlur={() => handleFieldBlur("confirmPassword")}
-                      className={getInputClassName("confirmPassword") + " pr-10"}
+                      className={
+                        getInputClassName("confirmPassword") + " pr-10"
+                      }
                       placeholder="Confirm your password"
                       disabled={loading}
                     />
@@ -1698,9 +1624,9 @@ const HomePage = () => {
                       type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => {
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
-                          showConfirmPassword: !prev.showConfirmPassword
+                          showConfirmPassword: !prev.showConfirmPassword,
                         }));
                       }}
                     >

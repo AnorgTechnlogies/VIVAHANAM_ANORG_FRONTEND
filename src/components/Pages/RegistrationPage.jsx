@@ -763,7 +763,7 @@ useEffect(() => {
         <div className="max-w-4xl w-full space-y-8">
           {/* Header */}
           <div className="text-center bg-red-200 rounded-xl p-6 shadow-sm">
-            <h2 className="text-3xl font-bold text-red-700">वसुधैव कुटुम्बकम्</h2>
+            <h2 className="text-3xl font-bold text-red-700">!! वसुधैव कुटुम्बकम् !!</h2>
             <h2 className="mt-2 text-3xl font-bold text-gray-900">
               Join Vivahanam - Find Your Life Partner
             </h2>
@@ -773,7 +773,7 @@ useEffect(() => {
             {userVivId && (
               <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 inline-block">
                 <p className="text-sm text-red-700">
-                  <strong>Your VIV ID:</strong> {userVivId}
+                  <strong>VIV ID:</strong> {userVivId}
                 </p>
               </div>
             )}

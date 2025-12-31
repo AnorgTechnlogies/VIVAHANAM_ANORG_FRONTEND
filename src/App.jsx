@@ -20,8 +20,9 @@ import ProfileViewPage from './components/Pages/ProfileViewPage';
 import UpdateProfilePage from './components/Pages/UpdateProfilePage';
 import PlansHomePage from './components/Pages/PlansHomePage';
 import PrivacyPolicy from "./components/OtherPages/PrivacyPolicy";
+import WhychooseAboutPage from "../src/components/OtherPages/WhychooseAboutPage"
 
-import WeddingForm from "./components/planPages/WeddingPlan/WeddingForm"
+import WeddingForm from "./components/planPages/WeddingPlan/WeddingForm";
 
 // shop folder
 import ShopPage from "./components/shop/ShopPage";
@@ -73,6 +74,7 @@ function App() {
         <Route path="/PreMarital-Investigation-page" element={< PreMaritalInvestigationPage/>} />
         <Route path ="/Wedding-Service-Form" element ={<WeddingForm/>} />
         <Route path ="/Privacy-Policy-Page" element ={<PrivacyPolicy/>} />
+        <Route path ="/Why-About-Page" element ={<WhychooseAboutPage/>} />
      </Routes>
       <Footer />
     </Router>

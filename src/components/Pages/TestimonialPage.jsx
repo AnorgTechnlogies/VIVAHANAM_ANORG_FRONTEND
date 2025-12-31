@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_KEY ;
+const API_URL = import.meta.env.VITE_API_KEY;
 //  const API_URL = import.meta.env.VITE_API_KEY;
 
 // Reusable Star Rating Component
@@ -76,44 +76,44 @@ export default function TestimonialPage() {
   }, []);
 
   // === HANDLE FORM SUBMIT ===
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  // Validation
-  if (!form.image) {
-    alert("Please upload a photo of the couple.");
-    return;
-  }
-  if (form.message.length < 50) {
-    alert("Please write a message of at least 50 characters.");
-    return;
-  }
+    // Validation
+    if (!form.image) {
+      alert("Please upload a photo of the couple.");
+      return;
+    }
+    if (form.message.length < 50) {
+      alert("Please write a message of at least 50 characters.");
+      return;
+    }
 
-  setSubmitting(true);
-  setSubmitStatus(null);
+    setSubmitting(true);
+    setSubmitStatus(null);
 
-  try {
-    // Send as JSON with base64 image
-    await axios.post(`${API_URL}/admin/testimonials/submit`, {
-      name: form.name.trim(),
-      weddingDate: form.weddingDate.trim(),
-      message: form.message.trim(),
-      rating: form.rating,
-      image: form.image, // base64 string
-    });
+    try {
+      // Send as JSON with base64 image
+      await axios.post(`${API_URL}/admin/testimonials/submit`, {
+        name: form.name.trim(),
+        weddingDate: form.weddingDate.trim(),
+        message: form.message.trim(),
+        rating: form.rating,
+        image: form.image, // base64 string
+      });
 
-    setSubmitStatus("success");
-    setTimeout(() => {
-      setShowForm(false);
-      resetForm();
-    }, 2000);
-  } catch (err) {
-    console.error("Submit error:", err);
-    setSubmitStatus("error");
-  } finally {
-    setSubmitting(false);
-  }
-}
+      setSubmitStatus("success");
+      setTimeout(() => {
+        setShowForm(false);
+        resetForm();
+      }, 2000);
+    } catch (err) {
+      console.error("Submit error:", err);
+      setSubmitStatus("error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // === RESET FORM ===
   const resetForm = () => {
@@ -129,25 +129,25 @@ const handleSubmit = async (e) => {
   };
 
   // === HANDLE IMAGE CHANGE ===
-const handleImageChange = (e) => {
-  const file = e.target.files[0];
-  if (file && file.type.startsWith("image/")) {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      // reader.result will be: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
-      setForm((prev) => ({ 
-        ...prev, 
-        image: reader.result 
-      }));
-    };
-    reader.onerror = () => {
-      alert("Failed to read image file. Please try another image.");
-    };
-    reader.readAsDataURL(file); // This converts to base64
-  } else {
-    alert("Please upload a valid image file (JPEG, PNG, etc.).");
-  }
-};
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // reader.result will be: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
+        setForm((prev) => ({
+          ...prev,
+          image: reader.result,
+        }));
+      };
+      reader.onerror = () => {
+        alert("Failed to read image file. Please try another image.");
+      };
+      reader.readAsDataURL(file); // This converts to base64
+    } else {
+      alert("Please upload a valid image file (JPEG, PNG, etc.).");
+    }
+  };
 
   // === LOADING STATE ===
   if (loading) {
@@ -193,7 +193,7 @@ const handleImageChange = (e) => {
             className="mt-8 inline-flex items-center gap-2 bg-amber-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-amber-700 transition"
           >
             <Plus className="w-5 h-5" />
-             Add Your Testimonial
+            Add Your Testimonial
           </button>
         </div>
       </section>
@@ -205,9 +205,18 @@ const handleImageChange = (e) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {testimonials.map((t) => {
                 // Defensive text rendering
-                const safeName = typeof t.name === "string" && t.name.length < 100 ? t.name : "Anonymous Couple";
-                const safeDate = typeof t.weddingDate === "string" && t.weddingDate.length < 50 ? t.weddingDate : "Date Unknown";
-                const safeMessage = typeof t.message === "string" && t.message.length < 1000 ? t.message : "No message available.";
+                const safeName =
+                  typeof t.name === "string" && t.name.length < 100
+                    ? t.name
+                    : "Anonymous Couple";
+                const safeDate =
+                  typeof t.weddingDate === "string" && t.weddingDate.length < 50
+                    ? t.weddingDate
+                    : "Date Unknown";
+                const safeMessage =
+                  typeof t.message === "string" && t.message.length < 1000
+                    ? t.message
+                    : "No message available.";
 
                 return (
                   <div
@@ -222,8 +231,12 @@ const handleImageChange = (e) => {
                         loading="lazy"
                       />
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-800">{safeName}</h3>
-                        <p className="text-sm text-rose-600">Married on {safeDate}</p>
+                        <h3 className="text-xl font-semibold text-gray-800">
+                          {safeName}
+                        </h3>
+                        <p className="text-sm text-rose-600">
+                          Married on {safeDate}
+                        </p>
                       </div>
                     </div>
 
@@ -236,7 +249,7 @@ const handleImageChange = (e) => {
                       className="text-gray-700  text-lg leading-relaxed
                                  break-words hyphens-auto
                                  overflow-hidden
-                                 line-clamp-4"  // Remove this line if you want unlimited lines
+                                 line-clamp-4" // Remove this line if you want unlimited lines
                       title={safeMessage}
                     >
                       "{safeMessage}"
@@ -258,11 +271,11 @@ const handleImageChange = (e) => {
             Be the First to Share!
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            No testimonials yet. Click the button above to share your beautiful wedding story!
+            No testimonials yet. Click the button above to share your beautiful
+            wedding story!
           </p>
         </section>
       )}
-
 
       {/* SUBMISSION MODAL */}
       {showForm && (
@@ -283,52 +296,55 @@ const handleImageChange = (e) => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+             
               {/* Image Upload */}
-              {/* Image Upload */}
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Couple Photo <span className="text-red-500">*</span>
-  </label>
-  <div className="flex items-center justify-center w-full">
-    <label
-      htmlFor="image-upload"
-      className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-amber-300 rounded-lg cursor-pointer bg-amber-50 hover:bg-amber-100 transition"
-    >
-      {form.image ? (
-        // ✅ FIX: Check if it's base64 string
-        typeof form.image === 'string' && form.image.startsWith('data:image') ? (
-          <img
-            src={form.image}
-            alt="Preview"
-            className="h-full w-full object-cover rounded-lg"
-          />
-        ) : (
-          // Fallback for File objects
-          <img
-            src={URL.createObjectURL(form.image)}
-            alt="Preview"
-            className="h-full w-full object-cover rounded-lg"
-          />
-        )
-      ) : (
-        <div className="text-center p-4">
-          <Upload className="w-10 h-10 text-amber-600 mx-auto mb-2" />
-          <p className="text-sm text-amber-600">Click to upload</p>
-        </div>
-      )}
-      <input
-        id="image-upload"
-        name="image"
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleImageChange}
-        className="hidden"
-        required
-      />
-    </label>
-  </div>
-</div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Couple Photo <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center justify-center w-full">
+                  <label
+                    htmlFor="image-upload"
+                    className="flex flex-col items-center justify-center w-full h-17 border-2 border-dashed border-amber-300 rounded-lg cursor-pointer bg-amber-50 hover:bg-amber-100 transition"
+                  >
+                    {form.image ? (
+                      // ✅ FIX: Check if it's base64 string
+                      typeof form.image === "string" &&
+                      form.image.startsWith("data:image") ? (
+                        <img
+                          src={form.image}
+                          alt="Preview"
+                          className="h-full w-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        // Fallback for File objects
+                        <img
+                          src={URL.createObjectURL(form.image)}
+                          alt="Preview"
+                          className="h-full w-full object-cover rounded-lg"
+                        />
+                      )
+                    ) : (
+                      <div className="text-center p-4">
+                        <Upload className="w-10 h-5 text-amber-600 mx-auto mb-2" />
+                        <p className="text-sm text-amber-600">
+                          Click to upload
+                        </p>
+                      </div>
+                    )}
+                    <input
+                      id="image-upload"
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={handleImageChange}
+                      className="hidden"
+                      required
+                    />
+                  </label>
+                </div>
+              </div>
 
               {/* Name */}
               <input
@@ -347,7 +363,9 @@ const handleImageChange = (e) => {
                 name="weddingDate"
                 placeholder="Wedding Date (e.g. March 15, 2024)"
                 value={form.weddingDate}
-                onChange={(e) => setForm({ ...form, weddingDate: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, weddingDate: e.target.value })
+                }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
                 required
               />
@@ -358,7 +376,7 @@ const handleImageChange = (e) => {
                 placeholder="Your beautiful story... (min 50 characters)"
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg h-32 resize-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
+                className="w-full p-3 border border-gray-300 rounded-lg h-22 resize-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
                 required
                 minLength="50"
               />
