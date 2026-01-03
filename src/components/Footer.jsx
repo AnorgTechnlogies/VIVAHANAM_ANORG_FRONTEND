@@ -26,7 +26,7 @@ const Footer = () => {
   ];
 
   const services = [
-    { name: "Matchmaking", href: "PlanHomePage" },
+    { name: "Matchmaking", href: "payas" },
     { name: "Wedding Planning", href: "/subscription-plans" },
     { name: "Traditional Rituals", href: "/" },
   ];

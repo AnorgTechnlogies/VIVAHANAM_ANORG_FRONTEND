@@ -158,7 +158,7 @@ const generateReceiptPDF = () => {
   doc.setFillColor(254, 242, 242); // red-100
   doc.roundedRect(30, 80, pageWidth - 60, 30, 8, 8, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
+  doc.setFontSize(17);
   doc.setTextColor(220, 38, 38); // red-600
   doc.text(`+${credits} Profile Credits Activated`, pageWidth / 2, 98, { align: 'center' });
 
@@ -197,13 +197,13 @@ const generateReceiptPDF = () => {
   doc.line(20, pageHeight - 50, pageWidth - 20, pageHeight - 50);
 
   doc.setFont('helvetica', 'italic');
-  doc.setFontSize(11);
+  doc.setFontSize(13);
   doc.setTextColor(100, 100, 100);
   doc.text('Thank you for choosing Vivahanam', pageWidth / 2, pageHeight - 35, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('This is a system-generated receipt • support@vivahanam.com', pageWidth / 2, pageHeight - 25, { align: 'center' });
+  doc.text('This is a system-generated receipt • support-vivahanam25@gmail.com', pageWidth / 2, pageHeight - 25, { align: 'center' });
 
   return doc;
 };
@@ -277,12 +277,12 @@ const handleDownloadReceipt = () => {
   }
 
   return (
-    <div className="min-h-screen bg-amber-100 py-21">
-      <div className="max-w-2xl mx-auto px-4">
+    <div className="min-h-screen bg-amber-100 py-25">
+      <div className="max-w-2xl mx-auto px-18">
         {/* Success Card */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 text-center text-white">
+          <div className="bg-green-500 p-8 text-center text-white">
             <CheckCircle className="w-20 h-20 mx-auto mb-4" />
             <h1 className="text-3xl font-bold mb-2">Payment Successful!</h1>
             <p className="text-green-100">Your plan has been activated successfully</p>
