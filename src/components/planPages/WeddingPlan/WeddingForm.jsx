@@ -929,7 +929,7 @@ const UserForm = () => {
                 >
                   {formData.selectedServices.length === weddingServices.length 
                     ? 'Deselect All' 
-                    : 'Select All'}
+                    : 'Select All'} 
                 </button>
               </div>
               

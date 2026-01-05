@@ -41,7 +41,10 @@ const SubscriptionPlans = () => {
 
   const getFormMap = () => {
     try {
-      return JSON.parse(localStorage.getItem("vivahanamWeddingFormSubmittedMap")) || {};
+      return (
+        JSON.parse(localStorage.getItem("vivahanamWeddingFormSubmittedMap")) ||
+        {}
+      );
     } catch {
       return {};
     }
@@ -59,7 +62,10 @@ const SubscriptionPlans = () => {
     if (!key) return;
     const map = getFormMap();
     map[key] = true;
-    localStorage.setItem("vivahanamWeddingFormSubmittedMap", JSON.stringify(map));
+    localStorage.setItem(
+      "vivahanamWeddingFormSubmittedMap",
+      JSON.stringify(map)
+    );
   };
 
   // Plan data without React elements for navigation
@@ -67,7 +73,8 @@ const SubscriptionPlans = () => {
     {
       id: 2,
       name: "Gold",
-      description: "Enhanced planning with essential wedding services included.",
+      description:
+        "Enhanced planning with essential wedding services included.",
       color: "yellow",
       highlight: false,
       popular: true,
@@ -85,7 +92,8 @@ const SubscriptionPlans = () => {
     {
       id: 4,
       name: "Platinum",
-      description: "Hassle Free - Complete end-to-end wedding planning and management.",
+      description:
+        "Hassle Free - Complete end-to-end wedding planning and management.",
       color: "purple",
       highlight: false,
       popular: false,
@@ -314,12 +322,12 @@ const SubscriptionPlans = () => {
     setIsAuthenticated(hasToken);
 
     if (hasToken) {
-    fetchUserData();
+      fetchUserData();
     } else {
       setLoading(false);
       setIsWeddingFormComplete(false);
     }
-    
+
     // If redirected from form submission, show contact popup and mark completion for this user
     if (location.state?.formSubmitted && location.state?.selectedPlan) {
       const plan = location.state.selectedPlan;
@@ -347,11 +355,15 @@ const SubscriptionPlans = () => {
 
   // Helper function to get plan icon based on name
   const getPlanIcon = (planName) => {
-    switch(planName) {
-      case 'Gold': return <FaStar className="text-yellow-600 text-2xl" />;
-      case 'Diamond': return <FaGem className="text-blue-600 text-2xl" />;
-      case 'Platinum': return <FaCrown className="text-purple-600 text-2xl" />;
-      default: return <FaStar className="text-yellow-600 text-2xl" />;
+    switch (planName) {
+      case "Gold":
+        return <FaStar className="text-yellow-600 text-2xl" />;
+      case "Diamond":
+        return <FaGem className="text-blue-600 text-2xl" />;
+      case "Platinum":
+        return <FaCrown className="text-purple-600 text-2xl" />;
+      default:
+        return <FaStar className="text-yellow-600 text-2xl" />;
     }
   };
 
@@ -400,13 +412,16 @@ const SubscriptionPlans = () => {
       const token = localStorage.getItem("vivahanamToken");
       if (!token) return;
 
-      const response = await fetch(`${import.meta.env.VITE_API_KEY}/user/wedding-form/status`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_KEY}/user/wedding-form/status`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
       if (response.ok && data.success) {
@@ -444,13 +459,13 @@ const SubscriptionPlans = () => {
 
     // Authenticated but form not complete -> send to form
     if (!isWeddingFormComplete) {
-    navigate("/Wedding-Service-Form", { 
-      state: { 
+      navigate("/Wedding-Service-Form", {
+        state: {
           selectedPlan: planForNavigation,
         },
       });
       return;
-      } 
+    }
 
     // Auth + form done -> show consultant contact popup
     setSelectedPlan(planWithIcon);
@@ -532,7 +547,9 @@ const SubscriptionPlans = () => {
                   <p className="text-sm text-gray-600 mt-1">Available 24/7</p>
                 </div>
                 <p className="text-gray-600 text-sm">
-                  Thank you for submitting your wedding service form! Our wedding consultant will guide you through the subscription process and answer any questions you may have about the{" "}
+                  Thank you for submitting your wedding service form! Our
+                  wedding consultant will guide you through the subscription
+                  process and answer any questions you may have about the{" "}
                   {selectedPlan?.name} plan.
                 </p>
               </div>
@@ -561,29 +578,31 @@ const SubscriptionPlans = () => {
       )}
 
       {/* Header with Back Button */}
+      {/* Header with Back Button */}
       <div className="w-full max-w-6xl mb-12 relative z-10">
         <div className="flex items-center justify-between mb-4">
-          {/* Back Button */}
+          {/* Back Button - Always visible */}
           <button
             onClick={handleBackClick}
-            className="flex items-center gap-2 text-amber-800 px-4 py-2 transition-all duration-300 font-semibold"
+            className="flex items-center gap-2 text-amber-800 px-1 py-2 transition-all duration-300 font-semibold whitespace-nowrap"
           >
             <FaArrowLeft className="text-amber-700" />
-            Back to Plan
+            <span className="hidden sm:inline">Back to Plan</span>
+            <span className="sm:hidden">Back</span>
           </button>
 
-          {/* Center Title - This will push the title to center and back button to left */}
-          <div className="flex-1 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-amber-900">
+          {/* Center Title - Takes available space */}
+          <div className="flex-1 text-center px-2">
+            <h2 className="text-xl sm:text-2xl md:text-4xl font-bold text-amber-900 truncate">
               Choose Your Perfect Plan
             </h2>
           </div>
 
-          {/* Empty div to balance the flex layout */}
-          <div className="w-24"></div>
+          {/* Empty div for balance - can adjust width for mobile */}
+          <div className="w-12 sm:w-24"></div>
         </div>
-        
-        <p className="text-xl md:text-2xl text-center text-gray-700 font-semibold">
+
+        <p className="text-lg md:text-2xl text-center text-gray-700 font-semibold">
           Your Soulmate Wedding Plan
         </p>
       </div>

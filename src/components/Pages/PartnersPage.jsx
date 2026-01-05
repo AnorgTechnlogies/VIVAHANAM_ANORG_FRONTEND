@@ -993,7 +993,7 @@ const PartnersPage = () => {
 
 // Partner Card Component
 const PartnerCard = ({ partner, onClick }) => {
-  const [isLiked, setIsLiked] = useState(false);
+  // const [isLiked, setIsLiked] = useState(false);
 
   // Helper function to safely get any field value
   const getFieldValue = (fieldName) => {
@@ -1033,7 +1033,7 @@ const PartnerCard = ({ partner, onClick }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
 
-        <button
+        {/* <button
           onClick={(e) => {
             e.stopPropagation();
             setIsLiked(!isLiked);
@@ -1045,7 +1045,7 @@ const PartnerCard = ({ partner, onClick }) => {
               isLiked ? "fill-rose-600 text-rose-600" : "text-gray-600"
             }`}
           />
-        </button>
+        </button> */}
       </div>
 
       <div className="p-3 space-y-2">
