@@ -472,7 +472,7 @@ const PartnersPage = () => {
         });
       } catch (error) {
         console.error("Initial fetch error:", error);
-        setError(`Failed to load partners: ${error.message}`);
+        setError(` Unable to fetch partners at the moment : please try after some time `);
         setAllPartners([]);
       } finally {
         setLoading(false);

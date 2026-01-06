@@ -638,9 +638,7 @@ const BrowseMatches = ({
             <Users className="w-5 h-5 text-amber-600" />
             Browse Matches
           </h2>
-          <p className="text-sm text-gray-600">
-            Use dynamic filters to find the right partners. Unlock complete profiles using your plan balance.
-          </p>
+          
         </div>
         <div className="flex items-center gap-3">
           <div className="px-4 py-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-sm font-semibold">
@@ -659,7 +657,7 @@ const BrowseMatches = ({
         <div className="relative">
           <input
             type="text"
-            placeholder="Search by name, location, profession..."
+            placeholder="Search by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full border border-gray-200 rounded-xl py-3 pl-12 pr-4 focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
@@ -1020,7 +1018,7 @@ const PartnerCard = ({
                   Unlock <span className="font-semibold text-white">{partner.name || "this profile"}</span>?
                 </p>
                 <p className="text-xs text-white mt-1">
-                  Uses 1 credit 
+                  Uses 1 Balance 
                 </p>
               </div>
               

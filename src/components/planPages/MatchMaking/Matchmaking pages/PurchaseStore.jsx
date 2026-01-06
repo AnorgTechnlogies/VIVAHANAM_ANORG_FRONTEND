@@ -173,10 +173,10 @@ const PlanSummaryModal = ({ plan, onClose }) => {
                       {plan.validity} {plan.validityUnit}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  {/* <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-gray-600">Users</span>
-                    <span className="text-lg font-semibold text-gray-700">3</span>
-                  </div>
+                    <span className="text-lg font-semibold text-gray-700">1</span>
+                  </div> */}
                   {plan.creditRate && (
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600">Cost per Profile</span>

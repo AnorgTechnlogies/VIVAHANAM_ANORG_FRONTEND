@@ -71,7 +71,7 @@ const ProfileView = () => {
       setError(null);
       const token = localStorage.getItem('vivahanamToken');
       if (!token) {
-        throw new Error('No authentication token found. Please log in.');
+        throw new Error('Please log in.');
       }
 
       const response = await fetch(`${API_URL}/user/me`, {
@@ -425,8 +425,8 @@ const ProfileView = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">Error Loading Profile</h2>
-            <p className="text-gray-600 text-center mb-6">{error}</p>
+            <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">Something went wrong. Please try again later</h2>
+            {/* <p className="text-gray-600 text-center mb-6">{error}</p> */}
             <button
               onClick={fetchUserInfo}
               className="bg-amber-500 text-white py-2 px-6 rounded-lg hover:bg-amber-600 transition flex items-center justify-center gap-2 mx-auto"

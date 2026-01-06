@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -35,6 +35,9 @@ const setFormCompleteForCurrentUser = () => {
 const UserForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Refs for form fields to scroll to
+  const fieldRefs = useRef({});
   
   // Mother Tongue Options
   const motherTongueOptions = [
@@ -153,6 +156,49 @@ const UserForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [isLoadingUserData, setIsLoadingUserData] = useState(true);
+  const [hasValidationError, setHasValidationError] = useState(false);
+
+  // Function to scroll to error field
+  const scrollToErrorField = (fieldName) => {
+    const fieldRef = fieldRefs.current[fieldName];
+    if (fieldRef) {
+      // Add a highlight effect
+      fieldRef.style.boxShadow = '0 0 0 2px rgba(239, 68, 68, 0.5)';
+      fieldRef.style.borderColor = '#ef4444';
+      
+      // Scroll to the field with offset for header
+      const offset = 120;
+      const elementPosition = fieldRef.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+
+      // Focus the field
+      setTimeout(() => {
+        fieldRef.focus();
+      }, 300);
+
+      // Remove highlight after some time
+      setTimeout(() => {
+        fieldRef.style.boxShadow = '';
+        fieldRef.style.borderColor = '';
+      }, 3000);
+    }
+  };
+
+  // Scroll to first error when validation fails
+  useEffect(() => {
+    if (hasValidationError && Object.keys(errors).length > 0) {
+      const firstErrorField = Object.keys(errors)[0];
+      if (firstErrorField) {
+        scrollToErrorField(firstErrorField);
+      }
+      setHasValidationError(false);
+    }
+  }, [errors, hasValidationError]);
 
   // Fetch user data on component mount
   useEffect(() => {
@@ -303,7 +349,7 @@ const UserForm = () => {
     ];
     
     requiredFields.forEach(field => {
-      if (!formData[field].trim()) {
+      if (!formData[field]?.trim()) {
         newErrors[field] = 'This field is required';
       }
     });
@@ -365,6 +411,19 @@ const UserForm = () => {
       newErrors.postalCode = 'Must be 5-6 digits';
     }
     
+    // Check if at least one service is selected
+    if (formData.selectedServices.length === 0) {
+      toast.error('Please select at least one wedding service');
+      // Scroll to services section
+      setTimeout(() => {
+        const servicesSection = document.querySelector('.services-section');
+        if (servicesSection) {
+          servicesSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return false;
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -387,6 +446,7 @@ const UserForm = () => {
     const isValid = await validateForm();
     if (!isValid) {
       toast.error('Please fix all errors before submitting');
+      setHasValidationError(true);
       return;
     }
     
@@ -474,10 +534,10 @@ const UserForm = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-22">
+    <div className="container mx-auto px-4 py-25">
       <div className="max-w-4xl mx-auto">
         <div className="bg-amber-50 rounded-2xl shadow-xl overflow-hidden border border-amber-200">
-          <div className="bg-amber-600 text-white p-6">
+          <div className="bg-amber-600 text-white p-6 ">
             <h2 className="text-3xl font-bold text-center">Wedding Service Registration Form</h2>
             <p className="text-center text-amber-100 mt-2">
               Please fill in all required fields marked with *
@@ -503,17 +563,23 @@ const UserForm = () => {
                     First Name <span className="text-red-500">*</span>
                   </label>
                   <input
+                    ref={el => fieldRefs.current.firstName = el}
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
                     placeholder="Enter first name"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.firstName ? 'border-red-500' : 'border-gray-300'
+                      errors.firstName ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   {errors.firstName && (
-                    <p className="text-red-500 text-sm">{errors.firstName}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.firstName}
+                    </p>
                   )}
                 </div>
                 
@@ -523,6 +589,7 @@ const UserForm = () => {
                     Middle Name
                   </label>
                   <input
+                    ref={el => fieldRefs.current.middleName = el}
                     type="text"
                     name="middleName"
                     value={formData.middleName}
@@ -538,17 +605,23 @@ const UserForm = () => {
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   <input
+                    ref={el => fieldRefs.current.lastName = el}
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
                     placeholder="Enter last name"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.lastName ? 'border-red-500' : 'border-gray-300'
+                      errors.lastName ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   {errors.lastName && (
-                    <p className="text-red-500 text-sm">{errors.lastName}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.lastName}
+                    </p>
                   )}
                 </div>
                 
@@ -558,6 +631,7 @@ const UserForm = () => {
                     Mobile Number <span className="text-red-500">*</span>
                   </label>
                   <input
+                    ref={el => fieldRefs.current.mobileNumber = el}
                     type="tel"
                     name="mobileNumber"
                     value={formData.mobileNumber}
@@ -565,11 +639,16 @@ const UserForm = () => {
                     placeholder="Enter 10-digit mobile number"
                     maxLength="10"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.mobileNumber ? 'border-red-500' : 'border-gray-300'
+                      errors.mobileNumber ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   {errors.mobileNumber && (
-                    <p className="text-red-500 text-sm">{errors.mobileNumber}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.mobileNumber}
+                    </p>
                   )}
                   {isChecking && (
                     <p className="text-amber-600 text-sm">Checking number availability...</p>
@@ -587,6 +666,7 @@ const UserForm = () => {
                     WhatsApp Number
                   </label>
                   <input
+                    ref={el => fieldRefs.current.whatsappNumber = el}
                     type="tel"
                     name="whatsappNumber"
                     value={formData.whatsappNumber}
@@ -594,13 +674,17 @@ const UserForm = () => {
                     placeholder="Enter 10-digit WhatsApp number (optional)"
                     maxLength="10"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.whatsappNumber ? 'border-red-500' : 'border-gray-300'
+                      errors.whatsappNumber ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   {errors.whatsappNumber && (
-                    <p className="text-red-500 text-sm">{errors.whatsappNumber}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.whatsappNumber}
+                    </p>
                   )}
-                 
                 </div>
                 
                 {/* User Type */}
@@ -609,11 +693,12 @@ const UserForm = () => {
                     User Type <span className="text-red-500">*</span>
                   </label>
                   <select
+                    ref={el => fieldRefs.current.userType = el}
                     name="userType"
                     value={formData.userType}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.userType ? 'border-red-500' : 'border-gray-300'
+                      errors.userType ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   >
                     <option value="">Select user type</option>
@@ -623,7 +708,12 @@ const UserForm = () => {
                     <option value="relative">Relative</option>
                   </select>
                   {errors.userType && (
-                    <p className="text-red-500 text-sm">{errors.userType}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.userType}
+                    </p>
                   )}
                 </div>
                 
@@ -633,11 +723,12 @@ const UserForm = () => {
                     Gender <span className="text-red-500">*</span>
                   </label>
                   <select
+                    ref={el => fieldRefs.current.gender = el}
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.gender ? 'border-red-500' : 'border-gray-300'
+                      errors.gender ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   >
                     <option value="">Select gender</option>
@@ -646,7 +737,12 @@ const UserForm = () => {
                     <option value="other">Other</option>
                   </select>
                   {errors.gender && (
-                    <p className="text-red-500 text-sm">{errors.gender}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.gender}
+                    </p>
                   )}
                   {formData.gender && (
                     <p className="text-green-600 text-sm">
@@ -661,11 +757,12 @@ const UserForm = () => {
                     Mother Tongue <span className="text-red-500">*</span>
                   </label>
                   <select
+                    ref={el => fieldRefs.current.motherTongue = el}
                     name="motherTongue"
                     value={formData.motherTongue}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.motherTongue ? 'border-red-500' : 'border-gray-300'
+                      errors.motherTongue ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   >
                     <option value="">Select Mother Tongue</option>
@@ -701,7 +798,12 @@ const UserForm = () => {
                     <option value="other_language">Other</option>
                   </select>
                   {errors.motherTongue && (
-                    <p className="text-red-500 text-sm">{errors.motherTongue}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.motherTongue}
+                    </p>
                   )}
                 </div>
                 
@@ -711,11 +813,12 @@ const UserForm = () => {
                     Religion <span className="text-red-500">*</span>
                   </label>
                   <select
+                    ref={el => fieldRefs.current.religion = el}
                     name="religion"
                     value={formData.religion}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.religion ? 'border-red-500' : 'border-gray-300'
+                      errors.religion ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   >
                     <option value="">Select Religion</option>
@@ -760,7 +863,12 @@ const UserForm = () => {
                     </optgroup>
                   </select>
                   {errors.religion && (
-                    <p className="text-red-500 text-sm">{errors.religion}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.religion}
+                    </p>
                   )}
                   {formData.religion && (
                     <p className="text-green-600 text-sm">
@@ -784,11 +892,12 @@ const UserForm = () => {
                     Country <span className="text-red-500">*</span>
                   </label>
                   <select
+                    ref={el => fieldRefs.current.country = el}
                     name="country"
                     value={formData.country}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.country ? 'border-red-500' : 'border-gray-300'
+                      errors.country ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   >
                     <option value="">Select Country</option>
@@ -812,7 +921,12 @@ const UserForm = () => {
                     <option value="other">Other</option>
                   </select>
                   {errors.country && (
-                    <p className="text-red-500 text-sm">{errors.country}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.country}
+                    </p>
                   )}
                   {formData.country && (
                     <p className="text-green-600 text-sm">
@@ -827,17 +941,23 @@ const UserForm = () => {
                     State <span className="text-red-500">*</span>
                   </label>
                   <input
+                    ref={el => fieldRefs.current.state = el}
                     type="text"
                     name="state"
                     value={formData.state}
                     onChange={handleChange}
                     placeholder="Enter your state"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.state ? 'border-red-500' : 'border-gray-300'
+                      errors.state ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   {errors.state && (
-                    <p className="text-red-500 text-sm">{errors.state}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.state}
+                    </p>
                   )}
                   {formData.state && (
                     <p className="text-green-600 text-sm">
@@ -852,17 +972,23 @@ const UserForm = () => {
                     City <span className="text-red-500">*</span>
                   </label>
                   <input
+                    ref={el => fieldRefs.current.city = el}
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
                     placeholder="Enter your city"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.city ? 'border-red-500' : 'border-gray-300'
+                      errors.city ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   {errors.city && (
-                    <p className="text-red-500 text-sm">{errors.city}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.city}
+                    </p>
                   )}
                   {formData.city && (
                     <p className="text-green-600 text-sm">
@@ -877,17 +1003,23 @@ const UserForm = () => {
                     Postal Code <span className="text-red-500">*</span>
                   </label>
                   <input
+                    ref={el => fieldRefs.current.postalCode = el}
                     type="text"
                     name="postalCode"
                     value={formData.postalCode}
                     onChange={handleChange}
                     placeholder="Enter postal code"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.postalCode ? 'border-red-500' : 'border-gray-300'
+                      errors.postalCode ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   {errors.postalCode && (
-                    <p className="text-red-500 text-sm">{errors.postalCode}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.postalCode}
+                    </p>
                   )}
                   <p className="text-sm text-gray-500">
                     Enter 5-6 digit postal code
@@ -900,24 +1032,30 @@ const UserForm = () => {
                     Street Address <span className="text-red-500">*</span>
                   </label>
                   <textarea
+                    ref={el => fieldRefs.current.streetAddress = el}
                     name="streetAddress"
                     value={formData.streetAddress}
                     onChange={handleChange}
                     placeholder="Enter full street address"
                     rows="3"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors ${
-                      errors.streetAddress ? 'border-red-500' : 'border-gray-300'
+                      errors.streetAddress ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   {errors.streetAddress && (
-                    <p className="text-red-500 text-sm">{errors.streetAddress}</p>
+                    <p className="text-red-500 text-sm flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      {errors.streetAddress}
+                    </p>
                   )}
                 </div>
               </div>
             </div>
             
             {/* Wedding Services Selection Section */}
-            <div className="mb-12">
+            <div className="mb-12 services-section">
               <div className="flex justify-between items-center mb-6 pb-2 border-b-2 border-amber-200">
                 <h3 className="text-2xl font-bold text-amber-800">
                   Wedding Services Selection
@@ -929,7 +1067,7 @@ const UserForm = () => {
                 >
                   {formData.selectedServices.length === weddingServices.length 
                     ? 'Deselect All' 
-                    : 'Select All'} 
+                    : 'Select All'}
                 </button>
               </div>
               
@@ -944,18 +1082,35 @@ const UserForm = () => {
                           ? 'border-amber-500 bg-amber-50'
                           : 'border-gray-200 bg-white'
                       }`}
-                      onClick={() => handleServiceChange(service.name)}
+                      onClick={(e) => {
+                        // Check if click is directly on checkbox
+                        if (e.target.type === 'checkbox') {
+                          // Let the checkbox's own onChange handle it
+                          return;
+                        }
+                        handleServiceChange(service.name);
+                      }}
                     >
                       <div className="flex items-center h-5">
                         <input
                           type="checkbox"
                           id={`service-${service.name}`}
                           checked={formData.selectedServices.includes(service.name)}
-                          onChange={() => handleServiceChange(service.name)}
+                          onChange={(e) => {
+                            e.stopPropagation(); // Prevent div click handler from firing
+                            handleServiceChange(service.name);
+                          }}
                           className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
                         />
                       </div>
-                      <label htmlFor={`service-${service.name}`} className="ml-3 w-full cursor-pointer">
+                      <label 
+                        htmlFor={`service-${service.name}`} 
+                        className="ml-3 w-full cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault(); // Prevent default label behavior
+                          handleServiceChange(service.name);
+                        }}
+                      >
                         <div className="font-medium text-gray-900">{service.name}</div>
                         <div className="text-sm text-gray-500">{service.description}</div>
                       </label>
@@ -973,18 +1128,35 @@ const UserForm = () => {
                           ? 'border-amber-500 bg-amber-50'
                           : 'border-gray-200 bg-white'
                       }`}
-                      onClick={() => handleServiceChange(service.name)}
+                      onClick={(e) => {
+                        // Check if click is directly on checkbox
+                        if (e.target.type === 'checkbox') {
+                          // Let the checkbox's own onChange handle it
+                          return;
+                        }
+                        handleServiceChange(service.name);
+                      }}
                     >
                       <div className="flex items-center h-5">
                         <input
                           type="checkbox"
                           id={`service-${service.name}`}
                           checked={formData.selectedServices.includes(service.name)}
-                          onChange={() => handleServiceChange(service.name)}
+                          onChange={(e) => {
+                            e.stopPropagation(); // Prevent div click handler from firing
+                            handleServiceChange(service.name);
+                          }}
                           className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
                         />
                       </div>
-                      <label htmlFor={`service-${service.name}`} className="ml-3 w-full cursor-pointer">
+                      <label 
+                        htmlFor={`service-${service.name}`} 
+                        className="ml-3 w-full cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault(); // Prevent default label behavior
+                          handleServiceChange(service.name);
+                        }}
+                      >
                         <div className="font-medium text-gray-900">{service.name}</div>
                         <div className="text-sm text-gray-500">{service.description}</div>
                       </label>
@@ -1002,18 +1174,35 @@ const UserForm = () => {
                           ? 'border-amber-500 bg-amber-50'
                           : 'border-gray-200 bg-white'
                       }`}
-                      onClick={() => handleServiceChange(service.name)}
+                      onClick={(e) => {
+                        // Check if click is directly on checkbox
+                        if (e.target.type === 'checkbox') {
+                          // Let the checkbox's own onChange handle it
+                          return;
+                        }
+                        handleServiceChange(service.name);
+                      }}
                     >
                       <div className="flex items-center h-5">
                         <input
                           type="checkbox"
                           id={`service-${service.name}`}
                           checked={formData.selectedServices.includes(service.name)}
-                          onChange={() => handleServiceChange(service.name)}
+                          onChange={(e) => {
+                            e.stopPropagation(); // Prevent div click handler from firing
+                            handleServiceChange(service.name);
+                          }}
                           className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
                         />
                       </div>
-                      <label htmlFor={`service-${service.name}`} className="ml-3 w-full cursor-pointer">
+                      <label 
+                        htmlFor={`service-${service.name}`} 
+                        className="ml-3 w-full cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault(); // Prevent default label behavior
+                          handleServiceChange(service.name);
+                        }}
+                      >
                         <div className="font-medium text-gray-900">{service.name}</div>
                         <div className="text-sm text-gray-500">{service.description}</div>
                       </label>

@@ -946,7 +946,7 @@ const HomePage = () => {
 
       {/* Rest of your existing homepage sections remain exactly the same */}
       {/* Second Section - Hindi Content */}
-      <div className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100">
+      <div className="relative w-full min-h-[80vh] sm:min-h-[70vh] md:h-screen overflow-hidden bg-amber-100 py-8">
         <div className="w-full flex flex-col items-center justify-start py-8 sm:py-12 md:py-0">
           <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 w-full items-center">

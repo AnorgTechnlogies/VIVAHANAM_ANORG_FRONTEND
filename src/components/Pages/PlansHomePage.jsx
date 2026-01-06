@@ -95,8 +95,7 @@ const PlansHomePage = () => {
                       : "opacity-0 -translate-x-10"
                   }`}
                 >
-                  <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Find Your Perfect Match</h2>
-                  <p className="text-xs sm:text-sm md:text-base opacity-90">Begin your journey to forever</p>
+                  {/* <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Find Your Perfect Match</h2> */}
                   <div className="mt-1 sm:mt-2 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     {/* Optional: Add some interactive element here */}
                   </div>
@@ -104,16 +103,16 @@ const PlansHomePage = () => {
               </div>
               
               {/* Right Side - Content with Fixed Height */}
-              <div className="lg:w-1/2 h-1/2 lg:h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 bg-amber-100">
+              <div className="lg:w-1/2 h-1/2 lg:h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 bg-amber-100 ">
                 {/* Header with Animation */}
                 <div 
-                  className={`text-center mb-4 sm:mb-6 md:mb-8 w-full transition-all duration-1000 delay-200 ${
+                  className={` text-center mb-1 sm:mb-6 md:mb-8 w-full transition-all duration-1000 delay-200 ${
                     isVisible
                       ? "opacity-100 translate-y-0"
                       : "opacity-0 translate-y-10"
                   }`}
                 >
-                  <div className="inline-flex items-center space-x-3 mb-4">
+                  <div className="inline-flex items-center space-x-3 mb-2 ">
                     <div className="h-1 w-8 bg-gradient-to-r from-amber-500 to-red-600"></div>
                     <span className="text-amber-700 text-sm font-semibold tracking-wider uppercase">
                       Choose Your Path
@@ -212,9 +211,9 @@ const PlansHomePage = () => {
                       : "opacity-0 translate-y-10"
                   }`}
                 >
-                  <p className="text-gray-500 text-xs sm:text-sm">
+                  {/* <p className="text-gray-500 text-xs sm:text-sm">
                     Trusted by thousands of happy couples worldwide
-                  </p>
+                  </p> */}
                   {/* Optional: Add star rating or other elements here */}
                 </div>
               </div>

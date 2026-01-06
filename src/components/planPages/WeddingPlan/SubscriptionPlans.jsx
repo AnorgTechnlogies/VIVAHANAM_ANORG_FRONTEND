@@ -578,7 +578,7 @@ const SubscriptionPlans = () => {
       )}
 
       {/* Header with Back Button */}
-      {/* Header with Back Button */}
+      
       <div className="w-full max-w-6xl mb-12 relative z-10">
         <div className="flex items-center justify-between mb-4">
           {/* Back Button - Always visible */}
@@ -615,60 +615,71 @@ const SubscriptionPlans = () => {
           return (
             <div
               key={plan.id}
-              className={`relative rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden min-h-[650px] flex flex-col ${
+              className={`relative rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden min-h-[650px] flex flex-col group cursor-pointer transform hover:-translate-y-2 ${
                 plan.highlight
-                  ? "border-2 border-transparent bg-gradient-to-br from-amber-400 via-red-500 to-amber-600 p-[2px] transform scale-105"
-                  : "border border-amber-200"
-              } ${plan.popular ? "ring-2 ring-yellow-400" : ""}`}
+                  ? "border-2 border-transparent bg-gradient-to-br from-amber-400 via-red-500 to-amber-600 p-[2px] transform scale-105 hover:scale-110"
+                  : "border border-amber-200 hover:border-amber-400"
+              } ${
+                plan.popular
+                  ? "ring-2 ring-yellow-400 hover:ring-yellow-500"
+                  : ""
+              }`}
             >
-              <div className="bg-white rounded-xl p-6 h-full flex flex-col flex-grow">
+              <div className="bg-white rounded-xl p-6 h-full flex flex-col flex-grow relative overflow-hidden">
                 {/* Premium Badge - Only for Platinum */}
                 {plan.premium && (
-                  <span className="absolute top-0 right-0 px-4 py-2 text-sm font-bold bg-purple-600 text-white rounded-bl-xl">
+                  <span className="absolute top-0 right-0 px-4 py-2 text-sm font-bold bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-bl-xl transform transition-all duration-300 group-hover:scale-110">
                     PREMIUM
                   </span>
                 )}
 
                 {plan.popular && (
-                  <span className="absolute top-0 right-0 px-4 py-2 text-sm font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-bl-xl">
+                  <span className="absolute top-0 right-0 px-4 py-2 text-sm font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-bl-xl transform transition-all duration-300 group-hover:scale-110">
                     Popular
                   </span>
                 )}
 
                 {plan.highlight && (
-                  <span className="absolute top-0 right-0 px-4 py-2 text-sm font-bold bg-gradient-to-r from-red-500 to-red-600 text-white rounded-bl-xl">
+                  <span className="absolute top-0 right-0 px-4 py-2 text-sm font-bold bg-gradient-to-r from-red-500 to-red-600 text-white rounded-bl-xl transform transition-all duration-300 group-hover:scale-110">
                     Best Value
                   </span>
                 )}
 
-                <div className="flex items-center justify-center mb-4 mt-2">
+                {/* Hover gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-transparent group-hover:from-amber-50/20 group-hover:via-orange-50/10 group-hover:to-amber-50/30 transition-all duration-500 pointer-events-none"></div>
+
+                <div className="flex items-center justify-center mb-4 mt-2 transform transition-all duration-300 group-hover:scale-110">
                   {plan.icon}
                 </div>
 
-                <h4 className="text-2xl font-bold mb-4 text-center text-amber-900">
+                <h4 className="text-2xl font-bold mb-4 text-center text-amber-900 transform transition-all duration-300 group-hover:text-amber-800">
                   {plan.name}
                 </h4>
 
-                <p className="text-base mb-6 leading-relaxed text-center text-gray-600 min-h-[3rem]">
+                <p className="text-base mb-6 leading-relaxed text-center text-gray-600 min-h-[3rem] transform transition-all duration-300 group-hover:text-gray-800">
                   {plan.description}
                 </p>
 
-                <div className="w-20 h-1 bg-gradient-to-r from-amber-500 to-red-600 mx-auto mb-6 rounded-full"></div>
+                <div className="w-20 h-1 bg-gradient-to-r from-amber-500 to-red-600 mx-auto mb-6 rounded-full transform transition-all duration-300 group-hover:w-24 group-hover:from-amber-600 group-hover:to-red-700"></div>
 
-                <ul className="space-y-3 mb-8 flex-grow text-sm">
+                <ul className="space-y-3 mb-8 flex-grow text-sm relative">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
+                    <li
+                      key={idx}
+                      className="flex items-start gap-3 transform transition-all duration-300 group-hover:translate-x-1"
+                      style={{ transitionDelay: `${idx * 50}ms` }}
+                    >
                       {feature.included ? (
-                        <FaCheckCircle className="text-green-600 mt-0.5 flex-shrink-0 text-base" />
+                        <FaCheckCircle className="text-green-600 mt-0.5 flex-shrink-0 text-base transform transition-all duration-300 group-hover:scale-125 group-hover:text-green-700" />
                       ) : (
-                        <FaTimesCircle className="text-gray-400 mt-0.5 flex-shrink-0 text-base" />
+                        <FaTimesCircle className="text-gray-400 mt-0.5 flex-shrink-0 text-base transform transition-all duration-300 group-hover:scale-125" />
                       )}
                       <span
-                        className={
+                        className={`transform transition-all duration-300 ${
                           feature.included
-                            ? "text-gray-800 font-medium"
-                            : "text-gray-400"
-                        }
+                            ? "text-gray-800 font-medium group-hover:text-gray-900 group-hover:font-semibold"
+                            : "text-gray-400 group-hover:text-gray-500"
+                        }`}
                       >
                         {feature.text}
                       </span>
@@ -677,12 +688,13 @@ const SubscriptionPlans = () => {
                 </ul>
 
                 {/* Subscribe Button */}
-                <div className="mt-auto pt-4">
+                <div className="mt-auto pt-4 relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                   <button
-                    className={`w-full py-4 rounded-xl font-bold text-white transition-all duration-300 text-lg bg-gradient-to-r ${color.gradient} hover:shadow-lg transform hover:scale-105`}
+                    className={`w-full py-4 rounded-xl font-bold text-white transition-all duration-300 text-lg bg-gradient-to-r ${color.gradient} hover:shadow-xl transform hover:scale-105 relative overflow-hidden group-hover:shadow-lg group-hover:from-amber-700 group-hover:to-amber-800`}
                     onClick={() => handleGoForSubscription(plan)}
                   >
-                    Select Plan
+                    <span className="relative z-10">Select Plan</span>
                   </button>
                 </div>
               </div>

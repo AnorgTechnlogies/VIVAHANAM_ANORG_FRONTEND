@@ -222,10 +222,11 @@ const PayAsYouGoDashboard = () => {
     return (
       <div className="min-h-screen bg-amber-100 flex items-center  justify-center px-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-lg w-full text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            Unable to load dashboard
+          <h2 className="text-2xl font-bold text-red-700 mb-3">
+            Dashboard is unavailable right now. Please try again.
           </h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <br />
+          {/* <p className="text-gray-600 mb-6">{error}</p> */}
           <button
             onClick={() => {
               fetchUserProfile();

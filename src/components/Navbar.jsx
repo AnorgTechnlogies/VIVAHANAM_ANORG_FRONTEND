@@ -746,9 +746,10 @@ const Navbar = () => {
   const navItems = [
     { name: "Home", href: "/", onClick: handleHomeClick },
     { name: "Services & Plan", href: "/PlanHomePage" },
-    { name: "Wedding Shop", href: "/shops" },
     { name: "About Us", href: "/about" },
     { name: "Contact Us", href: "/contact" },
+    { name: "Wedding Shop", href: "/shops" },
+
   ];
 
   return (
