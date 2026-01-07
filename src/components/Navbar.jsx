@@ -254,74 +254,88 @@ const Navbar = () => {
     }
   };
 
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
+const handleResetPassword = async (e) => {
+  e.preventDefault();
+  setError("");
+  setSuccess("");
+  setLoading(true);
 
-    if (!otp || !newPassword || !confirmNewPassword) {
-      setError("Please fill in all fields");
-      setLoading(false);
-      return;
+  // Debug logging
+  console.log("🔧 Reset Password Attempt:");
+  console.log("Email:", forgotEmail);
+  console.log("OTP:", otp);
+  console.log("New Password:", newPassword);
+  console.log("Confirm Password:", confirmNewPassword);
+
+  if (!otp || !newPassword || !confirmNewPassword) {
+    setError("Please fill in all fields");
+    setLoading(false);
+    return;
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    setError("Passwords do not match");
+    setLoading(false);
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    setError("Password must be at least 6 characters long");
+    setLoading(false);
+    return;
+  }
+
+  if (otp.length !== 6) {
+    setError("Please enter a valid 6-digit verification code");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    console.log("📤 Sending request to:", `${API_URL}/user/reset-password`);
+    console.log("Request body:", {
+      email: forgotEmail,
+      verificationCode: otp,
+      newPassword: newPassword
+    });
+
+    const response = await fetch(`${API_URL}/user/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: forgotEmail.trim().toLowerCase(), // Important: lowercase
+        verificationCode: otp.trim(), // Important: trim whitespace
+        newPassword: newPassword,
+      }),
+    });
+
+    console.log("📥 Response status:", response.status);
+    
+    const data = await response.json();
+    console.log("📥 Response data:", data);
+
+    if (!response.ok) {
+      throw new Error(data.message || `Password reset failed (Status: ${response.status})`);
     }
 
-    if (newPassword !== confirmNewPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters long");
-      setLoading(false);
-      return;
-    }
-
-    if (otp.length !== 6) {
-      setError("Please enter a valid 6-digit verification code");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/user/reset-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: forgotEmail,
-          verificationCode: otp,
-          newPassword: newPassword,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Password reset failed`);
-      }
-
-      setLoginData({ email: forgotEmail, password: "", showPassword: false });
-
-      setSuccess(
-        "✅ Password reset successfully! You can now login with your new password."
-      );
-      setAuthMode("login");
-      setForgotEmail("");
-      setNewPassword("");
-      setConfirmNewPassword("");
-      setOtp("");
-      setShowNewPassword(false);
-      setShowConfirmNewPassword(false);
-    } catch (err) {
-      console.error("Reset password error:", err);
-      setError(err.message || "Failed to reset password. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setSuccess("✅ Password reset successfully! You can now login with your new password.");
+    setAuthMode("login");
+    setForgotEmail("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setOtp("");
+    setShowNewPassword(false);
+    setShowConfirmNewPassword(false);
+    
+  } catch (err) {
+    console.error("❌ Reset password error:", err);
+    setError(err.message || "Failed to reset password. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSignup = async (e) => {
     e.preventDefault();
