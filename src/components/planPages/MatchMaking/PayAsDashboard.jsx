@@ -109,8 +109,12 @@ const PayAsYouGoDashboard = () => {
           );
         }
         setShowAuthModal(true);
-        navigate("/signup", { state: { redirectTo } });
-        return false;
+        navigate("/signup", {
+          state: {
+            redirectTo,
+            from: location.pathname
+          },
+        });
       }
 
       const ensuredUser = user || (await fetchUserProfile());
@@ -142,17 +146,6 @@ const PayAsYouGoDashboard = () => {
 
   const closeAuthModal = () => {
     setShowAuthModal(false);
-  };
-
-  const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      localStorage.removeItem("vivahanamToken");
-      setIsAuthenticated(false);
-      setUser(null);
-      setPlanSummary(null);
-      setBalance(0);
-      navigate("/signup");
-    }
   };
 
   const upgradePlan = async () => {
@@ -244,14 +237,13 @@ const PayAsYouGoDashboard = () => {
   return (
     <div className="min-h-screen bg-amber-100 mt-14">
       {/* Header */}
-     
 
       <div className="max-w-8xl mx-auto py-6 bg-amber-100 sm:px-8 lg:px-10">
         <div className="px-6 py-6 sm:px-0">
           <div className="grid grid-cols-1 xl:grid-cols-8 gap-8">
             {/* Sidebar - Increased width */}
             <div className="xl:col-span-2">
-              <Sidebar 
+              <Sidebar
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
                 Balance={Balance}
@@ -261,9 +253,7 @@ const PayAsYouGoDashboard = () => {
             </div>
 
             {/* Main Content - Adjusted width */}
-            <div className="xl:col-span-6">
-              {renderActiveTab()}
-            </div>
+            <div className="xl:col-span-6">{renderActiveTab()}</div>
           </div>
         </div>
       </div>
@@ -272,7 +262,7 @@ const PayAsYouGoDashboard = () => {
       {showAuthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 transform animate-popup-lift max-h-[90vh] overflow-y-auto">
-            <AuthPagePopup 
+            <AuthPagePopup
               onSuccess={handleAuthSuccess}
               onClose={closeAuthModal}
             />

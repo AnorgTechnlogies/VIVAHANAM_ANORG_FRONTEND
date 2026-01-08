@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react"; // Import eye icons
 
+
 const AuthPage = () => {
   const [showAuthModal, setShowAuthModal] = useState(true);
   const [authMode, setAuthMode] = useState("login"); // 'login', 'signup', 'forgot', 'verify', 'success'
@@ -21,6 +22,7 @@ const AuthPage = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  
 
   // Login state
   const [loginData, setLoginData] = useState({
@@ -45,6 +47,10 @@ const AuthPage = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const from = location.state?.from || "/";
+
+
+  
 
   const API_URL = import.meta.env.VITE_API_KEY;
 
@@ -576,34 +582,40 @@ const AuthPage = () => {
     setOtp("");
   };
 
-  const closeAuthModal = () => {
-    setShowAuthModal(false);
-    setError("");
-    setSuccess("");
-    setLoginData({
-      email: "",
-      password: "",
-      showPassword: false,
-    });
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      showPassword: false,
-      showConfirmPassword: false,
-    });
-    setFieldErrors({});
-    setTouchedFields({});
-    setForgotEmail("");
-    setNewPassword("");
-    setConfirmNewPassword("");
-    setOtp("");
-    setShowNewPassword(false);
-    setShowConfirmNewPassword(false);
-    navigate("/");
-  };
+ const closeAuthModal = () => {
+  setShowAuthModal(false);
+  setError("");
+  setSuccess("");
+
+  setLoginData({
+    email: "",
+    password: "",
+    showPassword: false,
+  });
+
+  setFormData({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    showPassword: false,
+    showConfirmPassword: false,
+  });
+
+  setFieldErrors({});
+  setTouchedFields({});
+  setForgotEmail("");
+  setNewPassword("");
+  setConfirmNewPassword("");
+  setOtp("");
+  setShowNewPassword(false);
+  setShowConfirmNewPassword(false);
+
+  // ⬇️ THIS IS THE ONLY IMPORTANT CHANGE
+  const from = location.state?.from || "/";
+  navigate(from);
+};
 
   const closeOtpModal = () => {
     setShowOtpModal(false);
@@ -700,6 +712,7 @@ const AuthPage = () => {
   };
 
   // If user is logged in, show a loading state or redirect message
+  
   if (user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center p-4">
@@ -754,6 +767,7 @@ const AuthPage = () => {
               </div>
               <button
                 onClick={closeAuthModal}
+                
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
                 disabled={loading}
               >

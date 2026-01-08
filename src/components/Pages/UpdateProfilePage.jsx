@@ -19,6 +19,7 @@ const UpdateProfile = () => {
   useEffect(() => {
     initializeData();
   }, []);
+  
 
   const initializeData = async () => {
     setLoading(true);

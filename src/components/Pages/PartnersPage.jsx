@@ -366,7 +366,7 @@ const PartnersPage = () => {
   // Enhanced fetch function with better error handling
   const fetchSinglePage = async (page, query, appliedFilters, limit = 20) => {
     const params = buildParams(query, appliedFilters, page, limit);
-    const url = `${API_URL}/user/partners?${params.toString()}`;
+    const url = `${API_URL}/user/partners-withoutlogin?${params.toString()}`;
 
     const token = localStorage.getItem("vivahanamToken");
 
@@ -482,7 +482,7 @@ const PartnersPage = () => {
     loadInitialPartners();
   }, [debouncedSearch, filters, isUserLoaded, API_URL]);
 
-  const handleProfileClick = (partnerId) => {
+  const handleProfileClick = () => {
     navigate("/PlanHomePage");
   };
 
@@ -720,7 +720,7 @@ const PartnersPage = () => {
                   >
                     <span className="flex items-center justify-center gap-2">
                       <Search className="w-5 h-5" />
-                      Search Partners
+                      Search Profile
                     </span>
                   </button>
                 </div>
@@ -760,7 +760,7 @@ const PartnersPage = () => {
               >
                 <div className="flex items-center gap-2 w-full">
                   <Filter className="w-5 h-5" />
-                  <span>Search Partner Filters</span>
+                  <span>Search Profile Filters</span>
                   {activeFilterCount > 0 && (
                     <span className="bg-white text-rose-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md ml-2">
                       {activeFilterCount}
@@ -919,74 +919,6 @@ const PartnersPage = () => {
           )}
         </div>
       </section>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px) translateX(0px);
-            opacity: 0.4;
-          }
-          50% {
-            transform: translateY(-30px) translateX(20px);
-            opacity: 0.8;
-          }
-        }
-
-        @keyframes popup-lift {
-          from {
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        .animate-float {
-          animation: float linear infinite;
-        }
-
-        .animate-popup-lift {
-          animation: popup-lift 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .scrollbar-thin::-webkit-scrollbar {
-          height: 8px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: #e5e7eb;
-          border-radius: 4px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #fb7185;
-          border-radius: 4px;
-          border: 1px solid #e5e7eb;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #f43f5e;
-        }
-
-        .scrollbar-thin {
-          scrollbar-width: thin;
-          scrollbar-color: #fb7185 #e5e7eb;
-        }
-
-        .scrollbar-visible {
-          overflow-x: auto;
-        }
-
-        .snap-x {
-          scroll-snap-type: x mandatory;
-        }
-
-        .snap-center {
-          scroll-snap-align: center;
-        }
-      `}</style>
     </div>
   );
 };
@@ -1033,19 +965,6 @@ const PartnerCard = ({ partner, onClick }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
 
-        {/* <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsLiked(!isLiked);
-          }}
-          className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:scale-110 transition-transform"
-        >
-          <Heart
-            className={`w-4 h-4 transition-colors ${
-              isLiked ? "fill-rose-600 text-rose-600" : "text-gray-600"
-            }`}
-          />
-        </button> */}
       </div>
 
       <div className="p-3 space-y-2">

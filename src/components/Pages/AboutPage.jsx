@@ -187,27 +187,23 @@ const About = () => {
               </div>
 
               {/* Right Content Box */}
-             <div className="bg-red-700 backdrop-blur-sm rounded-xl p-3 md:p-3 flex-1">
-  <p className="text-lg sm:text-xl md:text-2xl text-amber-100 font-serif italic mb-3 text-center">
-    "Divine Guidance"
-  </p>
+              <div className="bg-red-700 backdrop-blur-sm rounded-xl p-3 md:p-3 flex-1">
+                <p className="text-lg sm:text-xl md:text-2xl text-amber-100 font-serif italic mb-3 text-center">
+                  "Divine Guidance"
+                </p>
+                <p className="text-base sm:text-lg md:text-lg text-amber-200 font-semibold  text-center">
+                Extravagant weddings make us poor and dishonest <br />Pt. Shriram Sharma Acharya
+                </p>
+                <div className="h-px w-20 md:w-24 bg-amber-400/50 mx-auto my-2 md:my-2"></div>
 
-  <p className="text-base sm:text-lg md:text-lg text-amber-200 font-semibold text-center">
-    Extravagant weddings make us poor and dishonest <br />
-    Pt. Shriram Sharma Acharya
-  </p>
-
-  <div className="h-px w-20 bg-amber-400/50 mx-auto my-2"></div>
-
-  <div className="flex justify-center mb-7">
-    <img
-      src={MAGURUJI}
-      alt="Guruji and Mataji"
-      className="w-100 h-90 md:w-90 md:h-80 lg:w-80 lg:h-92 p-1 object-cover border-4 border-amber-400 shadow-lg"
-    />
-  </div>
-</div>
-
+                <div className="flex justify-center mb-5 md:mb-7">
+                  <img
+                    src={MAGURUJI}
+                    alt="Guruji and Mataji"
+                    className="w-100 h-90 md:w-70 md:h-60 lg:w-80 lg:h-92 p-1 object-cover border-4 border-amber-400 shadow-lg"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

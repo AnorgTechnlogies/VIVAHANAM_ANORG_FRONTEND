@@ -392,19 +392,19 @@ const UserForm = () => {
     }
     
     // WhatsApp number validation (optional)
-    if (formData.whatsappNumber && formData.whatsappNumber.trim() !== '') {
-      if (!/^\d{10}$/.test(formData.whatsappNumber)) {
-        newErrors.whatsappNumber = 'Must be a valid 10-digit number';
-      } else if (formData.whatsappNumber === formData.mobileNumber) {
-        newErrors.whatsappNumber = 'WhatsApp number cannot be same as mobile number';
-      } else {
-        // Check if WhatsApp number already exists
-        const whatsappExists = await checkNumberExists('whatsapp', formData.whatsappNumber);
-        if (whatsappExists) {
-          newErrors.whatsappNumber = 'This WhatsApp number is already registered';
-        }
-      }
-    }
+    // if (formData.whatsappNumber && formData.whatsappNumber.trim() !== '') {
+    //   if (!/^\d{10}$/.test(formData.whatsappNumber)) {
+    //     newErrors.whatsappNumber = 'Must be a valid 10-digit number';
+    //   } else if (formData.whatsappNumber === formData.mobileNumber) {
+    //     newErrors.whatsappNumber = 'WhatsApp number cannot be same as mobile number';
+    //   } else {
+    //     // Check if WhatsApp number already exists
+    //     const whatsappExists = await checkNumberExists('whatsapp', formData.whatsappNumber);
+    //     if (whatsappExists) {
+    //       newErrors.whatsappNumber = 'This WhatsApp number is already registered';
+    //     }
+    //   }
+    // }
     
     // Postal code validation
     if (formData.postalCode && !/^\d{5,6}$/.test(formData.postalCode)) {
@@ -653,11 +653,11 @@ const UserForm = () => {
                   {isChecking && (
                     <p className="text-amber-600 text-sm">Checking number availability...</p>
                   )}
-                  {formData.mobileNumber && (
+                  {/* {formData.mobileNumber && (
                     <p className="text-green-600 text-sm">
                       ✓ Pre-filled from your profile
                     </p>
-                  )}
+                  )} */}
                 </div>
                 
                 {/* WhatsApp Number */}
@@ -744,11 +744,11 @@ const UserForm = () => {
                       {errors.gender}
                     </p>
                   )}
-                  {formData.gender && (
+                  {/* {formData.gender && (
                     <p className="text-green-600 text-sm">
                       ✓ Pre-filled from your profile
                     </p>
-                  )}
+                  )} */}
                 </div>
                 
                 {/* Mother Tongue */}
@@ -870,11 +870,11 @@ const UserForm = () => {
                       {errors.religion}
                     </p>
                   )}
-                  {formData.religion && (
+                  {/* {formData.religion && (
                     <p className="text-green-600 text-sm">
                       ✓ Pre-filled from your profile
                     </p>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>
@@ -928,11 +928,11 @@ const UserForm = () => {
                       {errors.country}
                     </p>
                   )}
-                  {formData.country && (
+                  {/* {formData.country && (
                     <p className="text-green-600 text-sm">
                       ✓ Pre-filled from your profile
                     </p>
-                  )}
+                  )} */}
                 </div>
                 
                 {/* State */}
@@ -959,11 +959,11 @@ const UserForm = () => {
                       {errors.state}
                     </p>
                   )}
-                  {formData.state && (
+                  {/* {formData.state && (
                     <p className="text-green-600 text-sm">
                       ✓ Pre-filled from your profile
                     </p>
-                  )}
+                  )} */}
                 </div>
                 
                 {/* City */}
@@ -990,11 +990,11 @@ const UserForm = () => {
                       {errors.city}
                     </p>
                   )}
-                  {formData.city && (
+                  {/* {formData.city && (
                     <p className="text-green-600 text-sm">
                       ✓ Pre-filled from your profile
                     </p>
-                  )}
+                  )} */}
                 </div>
                 
                 {/* Postal Code */}
@@ -1055,170 +1055,119 @@ const UserForm = () => {
             </div>
             
             {/* Wedding Services Selection Section */}
-            <div className="mb-12 services-section">
-              <div className="flex justify-between items-center mb-6 pb-2 border-b-2 border-amber-200">
-                <h3 className="text-2xl font-bold text-amber-800">
-                  Wedding Services Selection
-                </h3>
-                <button
-                  type="button"
-                  onClick={handleSelectAll}
-                  className="px-4 py-2 text-sm bg-amber-100 text-amber-800 rounded-lg hover:bg-amber-200 transition-colors font-medium"
-                >
-                  {formData.selectedServices.length === weddingServices.length 
-                    ? 'Deselect All' 
-                    : 'Select All'}
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {/* First Column */}
-                <div className="space-y-4">
-                  {weddingServices.slice(0, 4).map(service => (
-                    <div 
-                      key={service.name}
-                      className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:border-amber-400 hover:bg-amber-50 ${
-                        formData.selectedServices.includes(service.name)
-                          ? 'border-amber-500 bg-amber-50'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                      onClick={(e) => {
-                        // Check if click is directly on checkbox
-                        if (e.target.type === 'checkbox') {
-                          // Let the checkbox's own onChange handle it
-                          return;
-                        }
-                        handleServiceChange(service.name);
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          type="checkbox"
-                          id={`service-${service.name}`}
-                          checked={formData.selectedServices.includes(service.name)}
-                          onChange={(e) => {
-                            e.stopPropagation(); // Prevent div click handler from firing
-                            handleServiceChange(service.name);
-                          }}
-                          className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
-                        />
-                      </div>
-                      <label 
-                        htmlFor={`service-${service.name}`} 
-                        className="ml-3 w-full cursor-pointer"
-                        onClick={(e) => {
-                          e.preventDefault(); // Prevent default label behavior
-                          handleServiceChange(service.name);
-                        }}
-                      >
-                        <div className="font-medium text-gray-900">{service.name}</div>
-                        <div className="text-sm text-gray-500">{service.description}</div>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Second Column */}
-                <div className="space-y-4">
-                  {weddingServices.slice(4, 7).map(service => (
-                    <div 
-                      key={service.name}
-                      className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:border-amber-400 hover:bg-amber-50 ${
-                        formData.selectedServices.includes(service.name)
-                          ? 'border-amber-500 bg-amber-50'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                      onClick={(e) => {
-                        // Check if click is directly on checkbox
-                        if (e.target.type === 'checkbox') {
-                          // Let the checkbox's own onChange handle it
-                          return;
-                        }
-                        handleServiceChange(service.name);
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          type="checkbox"
-                          id={`service-${service.name}`}
-                          checked={formData.selectedServices.includes(service.name)}
-                          onChange={(e) => {
-                            e.stopPropagation(); // Prevent div click handler from firing
-                            handleServiceChange(service.name);
-                          }}
-                          className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
-                        />
-                      </div>
-                      <label 
-                        htmlFor={`service-${service.name}`} 
-                        className="ml-3 w-full cursor-pointer"
-                        onClick={(e) => {
-                          e.preventDefault(); // Prevent default label behavior
-                          handleServiceChange(service.name);
-                        }}
-                      >
-                        <div className="font-medium text-gray-900">{service.name}</div>
-                        <div className="text-sm text-gray-500">{service.description}</div>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Third Column */}
-                <div className="space-y-4">
-                  {weddingServices.slice(7, 10).map(service => (
-                    <div 
-                      key={service.name}
-                      className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:border-amber-400 hover:bg-amber-50 ${
-                        formData.selectedServices.includes(service.name)
-                          ? 'border-amber-500 bg-amber-50'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                      onClick={(e) => {
-                        // Check if click is directly on checkbox
-                        if (e.target.type === 'checkbox') {
-                          // Let the checkbox's own onChange handle it
-                          return;
-                        }
-                        handleServiceChange(service.name);
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          type="checkbox"
-                          id={`service-${service.name}`}
-                          checked={formData.selectedServices.includes(service.name)}
-                          onChange={(e) => {
-                            e.stopPropagation(); // Prevent div click handler from firing
-                            handleServiceChange(service.name);
-                          }}
-                          className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
-                        />
-                      </div>
-                      <label 
-                        htmlFor={`service-${service.name}`} 
-                        className="ml-3 w-full cursor-pointer"
-                        onClick={(e) => {
-                          e.preventDefault(); // Prevent default label behavior
-                          handleServiceChange(service.name);
-                        }}
-                      >
-                        <div className="font-medium text-gray-900">{service.name}</div>
-                        <div className="text-sm text-gray-500">{service.description}</div>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                <p className="text-sm text-amber-800 font-medium">
-                  Selected Services: {formData.selectedServices.length > 0 
-                    ? formData.selectedServices.join(', ') 
-                    : 'No services selected'}
-                </p>
-              </div>
-            </div>
+         <div className="mb-12 services-section">
+  <div className="flex justify-between items-center mb-6 pb-2 border-b-2 border-amber-200">
+    <h3 className="text-2xl font-bold text-amber-800">
+      Wedding Services Selection
+    </h3>
+    <button
+      type="button"
+      onClick={handleSelectAll}
+      className="px-4 py-2 text-sm bg-amber-100 text-amber-800 rounded-lg hover:bg-amber-200 transition-colors font-medium"
+    >
+      {formData.selectedServices.length === weddingServices.length 
+        ? 'Deselect All' 
+        : 'Select All'}
+    </button>
+  </div>
+  
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    {/* First Column */}
+    <div className="space-y-4">
+      {weddingServices.slice(0, 4).map(service => (
+        <label 
+          key={service.name}
+          htmlFor={`service-${service.name}`}
+          className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:border-amber-400 hover:bg-amber-50 ${
+            formData.selectedServices.includes(service.name)
+              ? 'border-amber-500 bg-amber-50'
+              : 'border-gray-200 bg-white'
+          }`}
+        >
+          <div className="flex items-center h-5">
+            <input
+              type="checkbox"
+              id={`service-${service.name}`}
+              checked={formData.selectedServices.includes(service.name)}
+              onChange={() => handleServiceChange(service.name)}
+              className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
+            />
+          </div>
+          <div className="ml-3 w-full">
+            <div className="font-medium text-gray-900">{service.name}</div>
+            <div className="text-sm text-gray-500">{service.description}</div>
+          </div>
+        </label>
+      ))}
+    </div>
+    
+    {/* Second Column */}
+    <div className="space-y-4">
+      {weddingServices.slice(4, 7).map(service => (
+        <label 
+          key={service.name}
+          htmlFor={`service-${service.name}`}
+          className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:border-amber-400 hover:bg-amber-50 ${
+            formData.selectedServices.includes(service.name)
+              ? 'border-amber-500 bg-amber-50'
+              : 'border-gray-200 bg-white'
+          }`}
+        >
+          <div className="flex items-center h-5">
+            <input
+              type="checkbox"
+              id={`service-${service.name}`}
+              checked={formData.selectedServices.includes(service.name)}
+              onChange={() => handleServiceChange(service.name)}
+              className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
+            />
+          </div>
+          <div className="ml-3 w-full">
+            <div className="font-medium text-gray-900">{service.name}</div>
+            <div className="text-sm text-gray-500">{service.description}</div>
+          </div>
+        </label>
+      ))}
+    </div>
+    
+    {/* Third Column */}
+    <div className="space-y-4">
+      {weddingServices.slice(7, 10).map(service => (
+        <label 
+          key={service.name}
+          htmlFor={`service-${service.name}`}
+          className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:border-amber-400 hover:bg-amber-50 ${
+            formData.selectedServices.includes(service.name)
+              ? 'border-amber-500 bg-amber-50'
+              : 'border-gray-200 bg-white'
+          }`}
+        >
+          <div className="flex items-center h-5">
+            <input
+              type="checkbox"
+              id={`service-${service.name}`}
+              checked={formData.selectedServices.includes(service.name)}
+              onChange={() => handleServiceChange(service.name)}
+              className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
+            />
+          </div>
+          <div className="ml-3 w-full">
+            <div className="font-medium text-gray-900">{service.name}</div>
+            <div className="text-sm text-gray-500">{service.description}</div>
+          </div>
+        </label>
+      ))}
+    </div>
+  </div>
+  
+  <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+    <p className="text-sm text-amber-800 font-medium">
+      Selected Services: {formData.selectedServices.length > 0 
+        ? formData.selectedServices.join(', ') 
+        : 'No services selected'}
+    </p>
+  </div>
+</div>
             
             {/* Submit Button */}
             <div className="mt-10 pt-6 border-t border-amber-200">

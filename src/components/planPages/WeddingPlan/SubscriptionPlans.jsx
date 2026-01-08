@@ -452,8 +452,10 @@ const SubscriptionPlans = () => {
         state: {
           redirectTo: "/Wedding-Service-Form",
           selectedPlan: planForNavigation,
+          from: location.pathname,
         },
       });
+
       return;
     }
 
@@ -578,7 +580,7 @@ const SubscriptionPlans = () => {
       )}
 
       {/* Header with Back Button */}
-      
+
       <div className="w-full max-w-6xl mb-12 relative z-10">
         <div className="flex items-center justify-between mb-4">
           {/* Back Button - Always visible */}

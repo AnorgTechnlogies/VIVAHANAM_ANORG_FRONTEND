@@ -12,7 +12,7 @@ const Sidebar = ({ activeTab, setActiveTab, Balance, user, matches }) => {
     },
     {
       id: "matches",
-      label: "Browse Matches",
+      label: "Browse Profile",
       icon: "👥",
       description: "Find potential matches",
       count: matches?.length || 0

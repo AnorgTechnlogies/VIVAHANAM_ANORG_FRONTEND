@@ -5,7 +5,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { ChevronUp, Eye, EyeOff } from "lucide-react"; // Import the arrow icon and eye icons
 import Home2Img from "../assets/Home2Img.jpg";
 import Home3Img from "../assets/Home3Img.jpg";
-// import Home5RitualImg from "../assets/Home5RitualImg.jpg";
 import Home1 from "../assets/Homeimage.jpeg";
 import stepimage2 from "../assets/image2stepPage.jpeg";
 import stepimage3 from "../assets/step3image2.jpg";
@@ -85,6 +84,25 @@ const HomePage = () => {
     };
 
     checkUserLoggedIn();
+      const handleAuthStateChange = (event) => {
+    if (event.detail) {
+      const { isLoggedIn, user } = event.detail;
+      if (isLoggedIn) {
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+    } else {
+      // Fallback: recheck localStorage
+      checkUserLoggedIn();
+    }
+  };
+  
+  window.addEventListener('authStateChanged', handleAuthStateChange);
+  
+  return () => {
+    window.removeEventListener('authStateChanged', handleAuthStateChange);
+  };
   }, []);
 
   // Show scroll arrow when user scrolls down
@@ -569,13 +587,15 @@ const HomePage = () => {
         password: "",
         showPassword: false,
       });
-      navigate("/partners");
+      // remove the /partners navigate route auth by chaitanya 07/01/26
+      navigate("/");
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message || "Please signup first, then login.");
     } finally {
       setLoading(false);
     }
+    
   };
 
   // Handle partner search navigation
@@ -883,14 +903,14 @@ const HomePage = () => {
                 </h6>
 
                 {/* Sanskrit Line */}
-                <h2
+                {/* <h2
                   className={`text-center text-lg sm:text-xl md:text-xl lg:text-2xl xl:text-3xl font-bold text-red-700 leading-tight transition-all duration-700 delay-300 ${
                     isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   }`}
                   style={{ fontFamily: "serif" }}
                 >
                   !! वसुधैव कुटुंबकम् !!
-                </h2>
+                </h2> */}
 
                 {/* Description */}
                 <p
@@ -907,37 +927,37 @@ const HomePage = () => {
                 </p>
 
                 {/* Buttons - FIXED FOR 936×730 */}
-                <div className="flex flex-col md:flex-row gap-3 md:gap-5 pt-4 md:pt-6 justify-center lg:justify-start">
-                  {/* Dynamic Button - Changes based on login status */}
-                  {user ? (
-                    // Show "Go for Partner Search" when user is logged in
-                    <button
-                      className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
-                      onClick={handlePartnerSearch}
-                    >
-                      Our Partner Page
-                    </button>
-                  ) : (
-                    // Show "Login" button when user is not logged in
-                    <button
-                      className="px-4 py-3 md:px-6 md:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full md:w-auto min-w-[140px] md:min-w-[160px] text-sm md:text-base"
-                      onClick={() => {
-                        setShowAuthModal(true);
-                        setAuthMode("login");
-                      }}
-                      disabled={loading}
-                    >
-                      {loading ? "Loading..." : "Login"}
-                    </button>
-                  )}
+<div className="flex flex-col md:flex-row gap-3 md:gap-5 pt-4 md:pt-6 justify-center lg:justify-start">
+  {/* Button 1: Login - Always shows when user is NOT logged in */}
+  {!user && (
+    <button
+      className="px-4 py-3 md:px-6 md:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full md:w-auto min-w-[140px] md:min-w-[160px] text-sm md:text-base"
+      onClick={() => {
+        setShowAuthModal(true);
+        setAuthMode("login");
+      }}
+      disabled={loading}
+    >
+      {loading ? "Loading..." : "Login"}
+    </button>
+  )}
 
-                  <button
-                    className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
-                    onClick={handleFreeRegistration}
-                  >
-                    Register Now
-                  </button>
-                </div>
+  {/* Button 2: Register Now - Always shows */}
+  <button
+    className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
+    onClick={handleFreeRegistration}
+  >
+    Register Now
+  </button>
+
+  {/* Button 3: Our Partner Page - Always shows, no authentication required */}
+  <button
+    className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
+    onClick={handlePartnerSearch}
+  >
+    Search Profile
+  </button>
+</div>
               </div>
             </div>
           </div>
@@ -1140,7 +1160,7 @@ const HomePage = () => {
           <div className="flex flex-col items-center text-center space-y-4 flex-1">
             <h3 className="text-2xl font-bold text-red-600">STEP 2</h3>
             <h3 className="text-2xl font-semibold text-gray-800">
-              Search for Partner
+              Search for Profile
             </h3>
             <div className="relative w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden shadow-xl">
               <img

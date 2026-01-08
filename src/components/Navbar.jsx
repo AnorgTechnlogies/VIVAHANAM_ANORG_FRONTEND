@@ -498,13 +498,19 @@ const handleResetPassword = async (e) => {
         password: "",
         showPassword: false,
       });
-      navigate("/partners");
+      // remove the /partners navigate route auth by chaitanya 07/01/26
+      navigate("/");
+      window.dispatchEvent(new CustomEvent('authStateChanged', { 
+  detail: { isLoggedIn: true, user: data.user } 
+}));
+
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message || "Please signup first, then login.");
     } finally {
       setLoading(false);
     }
+    
   };
 
   const switchToLogin = () => {
@@ -722,6 +728,9 @@ const handleResetPassword = async (e) => {
 
     // Navigate to home first, then refresh
     navigate("/", { replace: true });
+      window.dispatchEvent(new CustomEvent('authStateChanged', { 
+    detail: { isLoggedIn: false, user: null } 
+  }));
 
     // Refresh the page after a short delay to ensure navigation happens
     setTimeout(() => {
