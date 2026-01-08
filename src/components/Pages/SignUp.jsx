@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react"; // Import eye icons
 
-const AuthPage = ({ onSuccess, onClose }) => {
+const AuthPage = ({ onSuccess, onClose, disableRegisterRedirect = false, context = "" }) => {
   const [showAuthModal, setShowAuthModal] = useState(true);
   const [authMode, setAuthMode] = useState("login"); // 'login', 'signup', 'forgot', 'verify', 'success'
   const [user, setUser] = useState(null);
@@ -413,7 +413,7 @@ const AuthPage = ({ onSuccess, onClose }) => {
     }
   };
 
-  // Login function - FIXED
+  // Login function - MODIFIED for SubscriptionPlans
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -497,16 +497,27 @@ const AuthPage = ({ onSuccess, onClose }) => {
         showPassword: false,
       });
 
-      // Check if we're coming from PayAsYouGoDashboard
-      const isFromPayAsYouGo = location.state?.fromPayAsYouGo || 
-                               location.pathname.includes("payas") ||
-                               window.location.pathname.includes("payas");
+      // Check if we're coming from SubscriptionPlans
+      const isFromSubscriptionPlans = disableRegisterRedirect || 
+                                      context === "subscriptionPlans" ||
+                                      window.location.pathname.includes("subscription");
 
-      // FIX: Don't navigate away, just call onSuccess
       // Call onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
       }
+
+      // Check if we should skip register redirect (for SubscriptionPlans)
+      if (isFromSubscriptionPlans) {
+        // For SubscriptionPlans: Don't navigate to /register
+        // Stay on current page and let SubscriptionPlans handle the flow
+        return;
+      }
+
+      // Original logic for other pages (like PayAsYouGoDashboard)
+      const isFromPayAsYouGo = location.state?.fromPayAsYouGo || 
+                               location.pathname.includes("payas") ||
+                               window.location.pathname.includes("payas");
 
       // If user profile is not completed, go to registration
       if (data.user && !data.user.profileCompleted) {
@@ -518,10 +529,8 @@ const AuthPage = ({ onSuccess, onClose }) => {
         });
       } else {
         // If profile is completed, stay in the current page (PayAsYouGoDashboard)
-        // No navigation needed, just close modal and refresh data
         if (isFromPayAsYouGo) {
           // We're already in PayAsYouGoDashboard, no need to navigate
-          // Just close modal and refresh
         } else {
           // If not from PayAsYouGoDashboard, go to home
           navigate("/");
