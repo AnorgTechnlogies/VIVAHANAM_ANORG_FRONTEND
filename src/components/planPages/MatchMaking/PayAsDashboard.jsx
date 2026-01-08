@@ -1,13 +1,14 @@
 //final implementation of Pay As You Go Matchmaking Dashboard with sidebar and multiple tabs
 
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Overview from "./Matchmaking pages/Overview";
 import BrowseMatches from "./Matchmaking pages/BrowseMatches";
 import CreditStore from "./Matchmaking pages/PurchaseStore";
 import PurchaseHistory from "./Matchmaking pages/PurchaseHistory";
 import UnlockedProfiles from "./Matchmaking pages/UnlockedProfiles";
+import AuthPage from "../../Pages/SignUp";
 
 const PayAsYouGoDashboard = () => {
   const [user, setUser] = useState(null);
@@ -17,21 +18,32 @@ const PayAsYouGoDashboard = () => {
   const [planSummary, setPlanSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    !!localStorage.getItem("vivahanamToken")
-  );
   const navigate = useNavigate();
+  const location = useLocation();
   const API_URL = import.meta.env.VITE_API_KEY;
+
+  useEffect(() => {
+    if (showAuthModal) {
+      // Modal open → scroll lock
+      document.body.style.overflow = "hidden";
+    } else {
+      // Modal close → scroll unlock
+      document.body.style.overflow = "auto";
+    }
+
+    // Cleanup on unmount (optional, safe)
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showAuthModal]);
 
   const fetchUserProfile = useCallback(async () => {
     const token = localStorage.getItem("vivahanamToken");
     if (!token) {
       setUser(null);
-      setIsAuthenticated(false);
       setLoading(false);
       return null;
     }
-    setIsAuthenticated(true);
     try {
       setLoading(true);
       setError(null);
@@ -50,7 +62,6 @@ const PayAsYouGoDashboard = () => {
     } catch (err) {
       console.error("Failed to load user profile:", err);
       setError(err.message);
-      setIsAuthenticated(false);
       return null;
     } finally {
       setLoading(false);
@@ -97,6 +108,7 @@ const PayAsYouGoDashboard = () => {
       const { redirectTo = "/payas", pendingPlan } = options;
       const token = localStorage.getItem("vivahanamToken");
 
+      // 🔴 USER NOT LOGGED IN → POPUP OPEN
       if (!token) {
         if (pendingPlan) {
           localStorage.setItem(
@@ -108,16 +120,15 @@ const PayAsYouGoDashboard = () => {
             })
           );
         }
+
+        // ✅ sirf modal show karo
         setShowAuthModal(true);
-        navigate("/signup", {
-          state: {
-            redirectTo,
-            from: location.pathname
-          },
-        });
+        return false; // stop here
       }
 
+      // 🟡 user logged in — check profile complete
       const ensuredUser = user || (await fetchUserProfile());
+
       if (ensuredUser && !ensuredUser.profileCompleted) {
         if (pendingPlan) {
           localStorage.setItem(
@@ -129,7 +140,13 @@ const PayAsYouGoDashboard = () => {
             })
           );
         }
-        navigate("/register", { state: { redirectTo } });
+
+        navigate("/register", { 
+          state: { 
+            redirectTo,
+            fromPayAsYouGo: true 
+          } 
+        });
         return false;
       }
 
@@ -139,9 +156,12 @@ const PayAsYouGoDashboard = () => {
   );
 
   const handleAuthSuccess = () => {
-    setShowAuthModal(false);
+    setShowAuthModal(false); // remove modal
     fetchUserProfile();
     fetchPlanSummary();
+    setTimeout(() => {
+      window.scrollTo(0, 0); // reset scroll
+    }, 100);
   };
 
   const closeAuthModal = () => {
@@ -213,13 +233,12 @@ const PayAsYouGoDashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-amber-100 flex items-center  justify-center px-4">
+      <div className="min-h-screen bg-amber-100 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-lg w-full text-center">
           <h2 className="text-2xl font-bold text-red-700 mb-3">
             Dashboard is unavailable right now. Please try again.
           </h2>
           <br />
-          {/* <p className="text-gray-600 mb-6">{error}</p> */}
           <button
             onClick={() => {
               fetchUserProfile();
@@ -260,45 +279,14 @@ const PayAsYouGoDashboard = () => {
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 transform animate-popup-lift max-h-[90vh] overflow-y-auto">
-            <AuthPagePopup
-              onSuccess={handleAuthSuccess}
-              onClose={closeAuthModal}
-            />
-          </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          {/* signup component */}
+          <AuthPage
+            onSuccess={handleAuthSuccess}
+            onClose={closeAuthModal}
+          />
         </div>
       )}
-
-      <style>{`
-        @keyframes popup-lift {
-          from {
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        .animate-popup-lift {
-          animation: popup-lift 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        
-        /* Custom wider breakpoint */
-        @media (min-width: 1280px) {
-          .max-w-8xl {
-            max-width: 96rem; /* 1536px */
-          }
-        }
-        
-        @media (min-width: 1536px) {
-          .max-w-8xl {
-            max-width: 108rem; /* 1728px */
-          }
-        }
-      `}</style>
     </div>
   );
 };

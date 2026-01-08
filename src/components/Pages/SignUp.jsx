@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react"; // Import eye icons
 
-
-const AuthPage = () => {
+const AuthPage = ({ onSuccess, onClose }) => {
   const [showAuthModal, setShowAuthModal] = useState(true);
   const [authMode, setAuthMode] = useState("login"); // 'login', 'signup', 'forgot', 'verify', 'success'
   const [user, setUser] = useState(null);
@@ -22,7 +21,6 @@ const AuthPage = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
-  
 
   // Login state
   const [loginData, setLoginData] = useState({
@@ -47,10 +45,6 @@ const AuthPage = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || "/";
-
-
-  
 
   const API_URL = import.meta.env.VITE_API_KEY;
 
@@ -69,6 +63,7 @@ const AuthPage = () => {
           const redirectTo = location.state?.redirectTo || "/register";
           const selectedPlan = location.state?.selectedPlan;
 
+          if (onSuccess) onSuccess();
           navigate(redirectTo, {
             state: selectedPlan ? { selectedPlan } : undefined,
           });
@@ -82,7 +77,7 @@ const AuthPage = () => {
     };
 
     checkUserLoggedIn();
-  }, [navigate, location.state]);
+  }, [navigate, location.state, onSuccess]);
 
   // Validation rules for signup
   const validationRules = {
@@ -418,7 +413,7 @@ const AuthPage = () => {
     }
   };
 
-  // Login function
+  // Login function - FIXED
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -501,19 +496,36 @@ const AuthPage = () => {
         password: "",
         showPassword: false,
       });
-      
-      const redirectTo = location.state?.redirectTo || "/";
-      const selectedPlan = location.state?.selectedPlan;
 
-      // If a redirect target is provided (wedding flow), always go there
-      if (location.state?.redirectTo) {
-        navigate(redirectTo, {
-          state: selectedPlan ? { selectedPlan } : undefined,
+      // Check if we're coming from PayAsYouGoDashboard
+      const isFromPayAsYouGo = location.state?.fromPayAsYouGo || 
+                               location.pathname.includes("payas") ||
+                               window.location.pathname.includes("payas");
+
+      // FIX: Don't navigate away, just call onSuccess
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      // If user profile is not completed, go to registration
+      if (data.user && !data.user.profileCompleted) {
+        navigate("/register", { 
+          state: { 
+            redirectTo: isFromPayAsYouGo ? "/payas" : "/",
+            fromPayAsYouGo: isFromPayAsYouGo
+          } 
         });
-      } else if (data.user?.profileCompleted) {
-        navigate(redirectTo);
       } else {
-        navigate("/register", { state: { redirectTo } });
+        // If profile is completed, stay in the current page (PayAsYouGoDashboard)
+        // No navigation needed, just close modal and refresh data
+        if (isFromPayAsYouGo) {
+          // We're already in PayAsYouGoDashboard, no need to navigate
+          // Just close modal and refresh
+        } else {
+          // If not from PayAsYouGoDashboard, go to home
+          navigate("/");
+        }
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -582,40 +594,41 @@ const AuthPage = () => {
     setOtp("");
   };
 
- const closeAuthModal = () => {
-  setShowAuthModal(false);
-  setError("");
-  setSuccess("");
+  const closeAuthModal = () => {
+    setShowAuthModal(false);
+    setError("");
+    setSuccess("");
 
-  setLoginData({
-    email: "",
-    password: "",
-    showPassword: false,
-  });
+    setLoginData({
+      email: "",
+      password: "",
+      showPassword: false,
+    });
 
-  setFormData({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    showPassword: false,
-    showConfirmPassword: false,
-  });
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      showPassword: false,
+      showConfirmPassword: false,
+    });
 
-  setFieldErrors({});
-  setTouchedFields({});
-  setForgotEmail("");
-  setNewPassword("");
-  setConfirmNewPassword("");
-  setOtp("");
-  setShowNewPassword(false);
-  setShowConfirmNewPassword(false);
+    setFieldErrors({});
+    setTouchedFields({});
+    setForgotEmail("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setOtp("");
+    setShowNewPassword(false);
+    setShowConfirmNewPassword(false);
 
-  // ⬇️ THIS IS THE ONLY IMPORTANT CHANGE
-  const from = location.state?.from || "/";
-  navigate(from);
-};
+    // Call onClose callback if provided
+    if (onClose) {
+      onClose();
+    }
+  };
 
   const closeOtpModal = () => {
     setShowOtpModal(false);
@@ -712,20 +725,37 @@ const AuthPage = () => {
   };
 
   // If user is logged in, show a loading state or redirect message
-  
+  if (!showAuthModal && !user) {
+    return null;
+  }
+
   if (user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl text-center">
           <div className="flex justify-center mb-6">
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-3 rounded-xl">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
               </svg>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Already Logged In</h2>
-          <p className="text-gray-600 mb-6">You are already logged in. Redirecting to registration page...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Already Logged In
+          </h2>
+          <p className="text-gray-600 mb-6">
+            You are already logged in. Redirecting to registration page...
+          </p>
           <div className="flex justify-center space-x-4">
             <button
               onClick={() => navigate("/register")}
@@ -751,11 +781,11 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center">
       {/* Auth Modal - Only show if user is not logged in */}
       {!user && showAuthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center space-x-2">
                 <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-2 rounded-xl">
@@ -767,7 +797,6 @@ const AuthPage = () => {
               </div>
               <button
                 onClick={closeAuthModal}
-                
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
                 disabled={loading}
               >
@@ -966,7 +995,9 @@ const AuthPage = () => {
                       required
                       value={otp}
                       onChange={(e) =>
-                        setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                        setOtp(
+                          e.target.value.replace(/\D/g, "").slice(0, 6)
+                        )
                       }
                       className="relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:z-10 transition-colors text-center text-lg font-mono tracking-widest"
                       placeholder="000000"
@@ -1033,7 +1064,9 @@ const AuthPage = () => {
                       <button
                         type="button"
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                        onClick={() =>
+                          setShowConfirmNewPassword(!showConfirmNewPassword)
+                        }
                       >
                         {showConfirmNewPassword ? (
                           <EyeOff className="h-5 w-5 text-gray-400" />
@@ -1071,9 +1104,19 @@ const AuthPage = () => {
                     <input
                       id="password"
                       name="password"
-                      type={authMode === "login" ? (loginData.showPassword ? "text" : "password") : (formData.showPassword ? "text" : "password")}
+                      type={
+                        authMode === "login"
+                          ? loginData.showPassword
+                            ? "text"
+                            : "password"
+                          : formData.showPassword
+                          ? "text"
+                          : "password"
+                      }
                       autoComplete={
-                        authMode === "login" ? "current-password" : "new-password"
+                        authMode === "login"
+                          ? "current-password"
+                          : "new-password"
                       }
                       required
                       value={
@@ -1116,30 +1159,25 @@ const AuthPage = () => {
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => {
                         if (authMode === "login") {
-                          setLoginData(prev => ({
+                          setLoginData((prev) => ({
                             ...prev,
-                            showPassword: !prev.showPassword
+                            showPassword: !prev.showPassword,
                           }));
                         } else {
-                          setFormData(prev => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            showPassword: !prev.showPassword
+                            showPassword: !prev.showPassword,
                           }));
                         }
                       }}
                     >
-                      {authMode === "login" 
-                        ? (loginData.showPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-400" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-gray-400" />
-                          ))
-                        : (formData.showPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-400" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-gray-400" />
-                          ))
-                      }
+                      {authMode === "login"
+                        ? loginData.showPassword
+                          ? <EyeOff className="h-5 w-5 text-gray-400" />
+                          : <Eye className="h-5 w-5 text-gray-400" />
+                        : formData.showPassword
+                        ? <EyeOff className="h-5 w-5 text-gray-400" />
+                        : <Eye className="h-5 w-5 text-gray-400" />}
                     </button>
                   </div>
                   {authMode === "signup" && renderFieldError("password")}
@@ -1159,13 +1197,17 @@ const AuthPage = () => {
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
-                      type={formData.showConfirmPassword ? "text" : "password"}
+                      type={
+                        formData.showConfirmPassword ? "text" : "password"
+                      }
                       autoComplete="new-password"
                       required
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       onBlur={() => handleFieldBlur("confirmPassword")}
-                      className={getInputClassName("confirmPassword") + " pr-10"}
+                      className={
+                        getInputClassName("confirmPassword") + " pr-10"
+                      }
                       placeholder="Confirm your password"
                       disabled={loading}
                     />
@@ -1173,9 +1215,9 @@ const AuthPage = () => {
                       type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => {
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
-                          showConfirmPassword: !prev.showConfirmPassword
+                          showConfirmPassword: !prev.showConfirmPassword,
                         }));
                       }}
                     >
@@ -1320,11 +1362,17 @@ const AuthPage = () => {
             <div className="text-center mt-6 pt-6 border-t border-gray-200">
               <p className="text-xs text-gray-500">
                 By continuing, you agree to our{" "}
-                <Link to="/terms" className="text-orange-600 hover:text-orange-500">
+                <Link
+                  to="/terms"
+                  className="text-orange-600 hover:text-orange-500"
+                >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link to="/privacy" className="text-orange-600 hover:text-orange-500">
+                <Link
+                  to="/privacy"
+                  className="text-orange-600 hover:text-orange-500"
+                >
                   Privacy Policy
                 </Link>
               </p>

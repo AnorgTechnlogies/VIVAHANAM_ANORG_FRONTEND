@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // component folder
 import Navbar from "./components/Navbar";
-import SignUp from "./components/Pages/SignUp"
+// import SignUp from "./components/Pages/SignUp"
 import HomePage from "./components/Home";
 import Footer from "./components/Footer";
 
@@ -53,7 +53,7 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/blogs" element={<BlogsPage />} />
-        <Route path="/signup" element={<SignUp />} />
+        {/* <Route path="/signup" element={<SignUp />} /> */}
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/blog/:id/" element={<BlogDetails />} />
         <Route path="/testimonials" element={<TestimonialPage />} />

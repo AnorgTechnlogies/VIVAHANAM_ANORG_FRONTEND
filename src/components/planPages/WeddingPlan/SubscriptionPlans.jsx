@@ -22,6 +22,7 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
+import AuthPage from "../../Pages/SignUp"; // Import AuthPage
 
 const SubscriptionPlans = () => {
   const [user, setUser] = useState(null);
@@ -30,8 +31,23 @@ const SubscriptionPlans = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isWeddingFormComplete, setIsWeddingFormComplete] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false); // New state for auth modal
   const navigate = useNavigate();
   const location = useLocation();
+  const API_URL = import.meta.env.VITE_API_KEY;
+
+  // Scroll lock for auth modal
+  useEffect(() => {
+    if (showAuthModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showAuthModal]);
 
   // Helpers to store form completion per user (avoids mixing across accounts)
   const getUserKey = (userInfo) => {
@@ -375,7 +391,7 @@ const SubscriptionPlans = () => {
         throw new Error("No authentication token found. Please log in.");
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_KEY}/user/me`, {
+      const response = await fetch(`${API_URL}/user/me`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -413,7 +429,7 @@ const SubscriptionPlans = () => {
       if (!token) return;
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_KEY}/user/wedding-form/status`,
+        `${API_URL}/user/wedding-form/status`,
         {
           method: "GET",
           headers: {
@@ -436,30 +452,68 @@ const SubscriptionPlans = () => {
     }
   };
 
+  // Auth success handler - SIMPLIFIED (no /register condition)
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    fetchUserData();
+    
+    // After successful login, check if we have a pending plan selection
+    const pendingPlan = localStorage.getItem("vivahanamPendingPlan");
+    if (pendingPlan) {
+      try {
+        const planData = JSON.parse(pendingPlan);
+        const plan = planDataForNavigation.find(p => p.id === planData.plan.id);
+        if (plan) {
+          // Check if wedding form is complete
+          if (!isWeddingFormComplete) {
+            // Wedding form not complete, go to wedding form
+            navigate("/Wedding-Service-Form", {
+              state: { selectedPlan: plan },
+            });
+          } else {
+            // Wedding form complete, show contact popup
+            const planWithIcon = {
+              ...plan,
+              icon: getPlanIcon(plan.name),
+            };
+            setSelectedPlan(planWithIcon);
+            setShowContactPopup(true);
+          }
+          localStorage.removeItem("vivahanamPendingPlan");
+        }
+      } catch (err) {
+        console.error("Error processing pending plan:", err);
+      }
+    }
+  };
+
+  const closeAuthModal = () => {
+    setShowAuthModal(false);
+  };
+
   const handleGoForSubscription = (plan) => {
     // Create a plain object for navigation (without React elements)
     const planForNavigation = planDataForNavigation.find(
       (p) => p.id === plan.id
     );
-    const planWithIcon = {
-      ...planForNavigation,
-      icon: getPlanIcon(plan.name),
-    };
 
-    // Not authenticated -> send to auth page, then to wedding form with selected plan
+    // Not authenticated -> show auth modal and save plan for later
     if (!isAuthenticated) {
-      navigate("/signup", {
-        state: {
-          redirectTo: "/Wedding-Service-Form",
-          selectedPlan: planForNavigation,
-          from: location.pathname,
-        },
-      });
+      // Save selected plan to localStorage for after login
+      localStorage.setItem(
+        "vivahanamPendingPlan",
+        JSON.stringify({
+          plan: planForNavigation,
+          savedAt: Date.now(),
+        })
+      );
 
+      // Show auth modal instead of navigating
+      setShowAuthModal(true);
       return;
     }
 
-    // Authenticated but form not complete -> send to form
+    // Authenticated but wedding form not complete -> send to wedding form
     if (!isWeddingFormComplete) {
       navigate("/Wedding-Service-Form", {
         state: {
@@ -469,7 +523,11 @@ const SubscriptionPlans = () => {
       return;
     }
 
-    // Auth + form done -> show consultant contact popup
+    // Auth + wedding form done -> show consultant contact popup
+    const planWithIcon = {
+      ...planForNavigation,
+      icon: getPlanIcon(plan.name),
+    };
     setSelectedPlan(planWithIcon);
     setShowContactPopup(true);
   };
@@ -478,8 +536,6 @@ const SubscriptionPlans = () => {
     setShowContactPopup(false);
     setSelectedPlan(null);
   };
-
-  // Auth flow is handled by navigating to /signup; no inline popup required
 
   const handleBackClick = () => {
     navigate("/PlanHomePage");
@@ -579,8 +635,17 @@ const SubscriptionPlans = () => {
         </div>
       )}
 
-      {/* Header with Back Button */}
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <AuthPage
+            onSuccess={handleAuthSuccess}
+            onClose={closeAuthModal}
+          />
+        </div>
+      )}
 
+      {/* Header with Back Button */}
       <div className="w-full max-w-6xl mb-12 relative z-10">
         <div className="flex items-center justify-between mb-4">
           {/* Back Button - Always visible */}
