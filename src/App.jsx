@@ -11,7 +11,6 @@ import Footer from "./components/Footer";
 import AboutPage from "./components/Pages/AboutPage"; 
 import ContactPage from "./components/Pages/ContactPage"; 
 import BlogsPage from "./components/Pages/BlogsPage"; 
-import BlogDetails from "./components/OtherPages/BlogDetails";
 import FaqPage from "./components/Pages/FaqPage"; 
 import TestimonialPage from './components/Pages/TestimonialPage';
 import RegistrationPage from './components/Pages/RegistrationPage';
@@ -55,7 +54,6 @@ function App() {
         <Route path="/blogs" element={<BlogsPage />} />
         {/* <Route path="/signup" element={<SignUp />} /> */}
         <Route path="/faq" element={<FaqPage />} />
-        <Route path="/blog/:id/" element={<BlogDetails />} />
         <Route path="/testimonials" element={<TestimonialPage />} />
         <Route path="/profile" element={<ProfileViewPage />} />
         <Route path="/update-profile" element={<UpdateProfilePage />} />

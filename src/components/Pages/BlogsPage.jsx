@@ -2,15 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Heart, Search, Calendar, User, ArrowLeft, Loader } from "lucide-react";
 
-const categories = [
-  "All Categories",
-  "Relationship Tips",
-  "Dating & Communication",
-  "Wedding Planning",
-  "Family & Culture",
-  "Success Stories",
-  "Safety & Platform Tips"
-];
+
 
 export default function BlogList() {
   const [blogs, setBlogs] = useState([]);
@@ -133,7 +125,7 @@ export default function BlogList() {
   if (selectedBlog) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white px-4 sm:px-6 lg:px-8 mt-20 py-10 transition-all duration-500">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <button
             onClick={handleBackToList}
             className="mb-8 text-amber-700 hover:text-amber-900 font-semibold flex items-center gap-2 transition-all duration-300 hover:gap-3 group"
@@ -154,7 +146,7 @@ export default function BlogList() {
                   <img
                     src={selectedBlog.image}
                     alt={selectedBlog.title}
-                    className="w-full h-64 sm:h-80 md:h-96 object-cover transition-transform duration-700 hover:scale-105"
+                    className="w-full h-64 sm:h-70 md:h-80 object-cover transition-transform duration-700 hover:scale-105"
                   />
                 </div>
               )}
@@ -164,7 +156,7 @@ export default function BlogList() {
                     {selectedBlog.category}
                   </span>
                 )}
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mt-2 mb-6 text-gray-900 leading-tight">
+                <h1 className="text-3xl sm:text-3xl md:text-3xl font-bold mt-2 mb-6 text-gray-900 leading-tight">
                   {selectedBlog.title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-8 text-sm sm:text-base">
@@ -254,34 +246,12 @@ export default function BlogList() {
           
         
           
-          {/* Search & Filter */}
-          <div className="max-w-3xl mx-auto">
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-             
-              
-              {/* All Categories with Animation */}
-              <div className={`transition-all duration-1000 delay-600 ${
-                isVisible
-                  ? "opacity-100 translate-y-0 scale-100"
-                  : "opacity-0 translate-y-10 scale-95"
-              }`}>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="border-2 border-amber-200 px-6 py-3 rounded-xl w-full sm:w-auto focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 bg-white/80 backdrop-blur-sm text-gray-700 transition-all duration-300 appearance-none cursor-pointer"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+        
         </div>
       </section>
 
       {/* Blog Grid */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-1 mb-5 flex-1">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-1 mb-5 flex-1">
         {/* All Articles with Animation */}
         <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4 transition-all duration-1000 delay-800 ${
           isVisible
