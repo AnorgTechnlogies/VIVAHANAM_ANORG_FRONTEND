@@ -200,7 +200,7 @@ const About = () => {
                   <img
                     src={MAGURUJI}
                     alt="Guruji and Mataji"
-                    className="w-100 h-90 md:w-70 md:h-60 lg:w-80 lg:h-92 p-1 object-cover border-4 border-amber-400 shadow-lg"
+                    className="w-100 h-100 md:w-70 md:h-55 lg:w-80 lg:h-95 p-1 object-cover border-4 border-amber-400 shadow-lg"
                   />
                 </div>
               </div>

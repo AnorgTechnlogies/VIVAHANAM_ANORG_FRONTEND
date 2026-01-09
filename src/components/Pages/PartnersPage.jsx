@@ -714,7 +714,7 @@ const PartnersPage = () => {
                     </span>
                   </button>
 
-                  <button
+                  {/* <button
                     className="group px-8 py-4 bg-white border-2 border-rose-600 text-rose-700 hover:bg-rose-50 font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto min-w-[160px]"
                     onClick={handleSearchPartners}
                   >
@@ -722,7 +722,7 @@ const PartnersPage = () => {
                       <Search className="w-5 h-5" />
                       Search Profile
                     </span>
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
