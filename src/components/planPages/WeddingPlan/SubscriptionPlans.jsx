@@ -452,10 +452,43 @@ const SubscriptionPlans = () => {
     }
   };
 
-  // Auth success handler - SIMPLIFIED (no /register condition)
-  const handleAuthSuccess = () => {
+  // Helper function to check wedding form status directly from backend
+  const checkWeddingFormStatusDirect = async () => {
+    try {
+      const token = localStorage.getItem("vivahanamToken");
+      if (!token) return false;
+
+      const response = await fetch(
+        `${API_URL}/user/wedding-form/status`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        const isComplete = !!data.completed;
+        setIsWeddingFormComplete(isComplete);
+        if (isComplete && data.data) {
+          setFormCompleteForUser(data.data);
+        }
+        return isComplete;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking wedding form status:", error);
+      return false;
+    }
+  };
+
+  // Auth success handler - Check form status from backend before making decisions
+  const handleAuthSuccess = async () => {
     setShowAuthModal(false);
-    fetchUserData();
+    await fetchUserData();
     
     // After successful login, check if we have a pending plan selection
     const pendingPlan = localStorage.getItem("vivahanamPendingPlan");
@@ -464,8 +497,10 @@ const SubscriptionPlans = () => {
         const planData = JSON.parse(pendingPlan);
         const plan = planDataForNavigation.find(p => p.id === planData.plan.id);
         if (plan) {
-          // Check if wedding form is complete
-          if (!isWeddingFormComplete) {
+          // Check wedding form status directly from backend
+          const formStatus = await checkWeddingFormStatusDirect();
+          
+          if (!formStatus) {
             // Wedding form not complete, go to wedding form
             navigate("/Wedding-Service-Form", {
               state: { selectedPlan: plan },
@@ -491,7 +526,7 @@ const SubscriptionPlans = () => {
     setShowAuthModal(false);
   };
 
-  const handleGoForSubscription = (plan) => {
+  const handleGoForSubscription = async (plan) => {
     // Create a plain object for navigation (without React elements)
     const planForNavigation = planDataForNavigation.find(
       (p) => p.id === plan.id
@@ -513,8 +548,11 @@ const SubscriptionPlans = () => {
       return;
     }
 
-    // Authenticated but wedding form not complete -> send to wedding form
-    if (!isWeddingFormComplete) {
+    // For authenticated users, check backend API directly to get latest form status
+    const formStatus = await checkWeddingFormStatusDirect();
+
+    if (!formStatus) {
+      // Wedding form not complete -> send to wedding form
       navigate("/Wedding-Service-Form", {
         state: {
           selectedPlan: planForNavigation,

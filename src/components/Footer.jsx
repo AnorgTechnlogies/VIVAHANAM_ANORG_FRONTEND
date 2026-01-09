@@ -23,12 +23,15 @@ const Footer = () => {
     { name: "About Us", href: "/about" },
     { name: "Contact Us", href: "/contact" },
     { name: "Testimonials", href: "/testimonials" },
+
   ];
 
   const services = [
-    { name: "Matchmaking", href: "payas" },
-    { name: "Wedding Planning", href: "/subscription-plans" },
+    { name: "Matchmaking Service", href: "payas" },
+    { name: "Wedding Service", href: "/subscription-plans" },
     { name: "Traditional Rituals", href: "/" },
+    { name: "Wedding Shop", href: "/shops" },
+
   ];
 
   // Dynamic Social Media Links based on contactInfo
@@ -87,7 +90,7 @@ const Footer = () => {
             <div className="flex items-center gap-3">
               <div className="w-22 h-22  rounded flex items-center justify-center flex-shrink-0 rounded-full ">
                 <div className="" />
-                <img src={logo} alt="logo" srcset="" />
+                <img src={logo} alt="logo" srcSet="" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-white">Vivahanam</h3>
@@ -95,8 +98,7 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-amber-100 leading-relaxed text-sm">
-              Preserving Vedic marriage traditions, uniting couples through
-              sacred rituals and family values across North America.
+             वैदिक भारतीय विवाह एवं प्रामाणिक पवित्र संबंध :<br /> Marriage is a spiritual journey of trust and faith, strengthened by family blessings.
             </p>
             
             {/* Dynamic Social Media */}
@@ -216,7 +218,7 @@ const Footer = () => {
                 Privacy Policy
               </a>
               <span>|</span>
-              <a href="#terms" className="hover:text-white transition-colors">
+              <a href="#" className="hover:text-white transition-colors">
                 Terms of Service
               </a>
             </div>

@@ -200,7 +200,7 @@ const UserForm = () => {
     }
   }, [errors, hasValidationError]);
 
-  // Fetch user data on component mount
+  // Fetch user data on component mount and check if form already submitted
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("vivahanamToken");
@@ -211,6 +211,35 @@ const UserForm = () => {
 
       try {
         setIsLoadingUserData(true);
+        
+        // First check if wedding form is already submitted
+        try {
+          const formStatusResponse = await axios.get(`${API_URL}/user/wedding-form/status`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (formStatusResponse.data.success && formStatusResponse.data.completed) {
+            // Form already submitted, redirect to subscription plans with consultant popup
+            const selectedPlan = location.state?.selectedPlan;
+            setFormCompleteForCurrentUser();
+            
+            navigate("/subscription-plans", {
+              state: {
+                formSubmitted: true,
+                selectedPlan: selectedPlan
+              },
+              replace: true
+            });
+            return;
+          }
+        } catch (formStatusError) {
+          console.error('Error checking wedding form status:', formStatusError);
+          // Continue to load form if check fails
+        }
+
+        // Fetch user data to pre-fill form
         const response = await axios.get(`${API_URL}/user/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
