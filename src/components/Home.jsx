@@ -12,6 +12,8 @@ import EventManagement from "../assets/EventManagement.jpg";
 import Decoration from "../assets/Decoration.jpg";
 import PriestSupport from "../assets/PriestSupport .jpg";
 import Auspicious from "../assets/Auspicious.jpg";
+import Matchmaking from "../assets/Matchmaking.jpeg"
+import Consultations from "../assets/Consultations-image.png"
 import { generateDeviceId, getDeviceInfo } from "../utils/deviceFingerprint.js";
 
 const HomePage = () => {
@@ -820,16 +822,14 @@ const HomePage = () => {
       title: "Matchmaking",
       description:
         "Our matchmaking services focus on understanding individual preferences and values, enabling us to connect compatible matches. We delve into cultural nuances to create meaningful connections that resonate with your heritage.",
-      image:
-        "https://images.unsplash.com/photo-1529636798458-92182e662485?q=80&w=2069",
+      image:Matchmaking,
     },
     {
       id: 2,
       title: "Consultations/Marriage Registration",
       description:
         "Our consultations and marriage registration services are designed to understand your personal values and preferences, ensuring meaningful and culturally aligned connections.",
-      image:
-        "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069",
+      image:Consultations ,
     },
     {
       id: 3,
@@ -1106,15 +1106,14 @@ const HomePage = () => {
                   blessings of their families{" "}
                 </span>
               </p>
-
-              <div className="flex justify-center pt-6  ">
-                <button
-                  className="w-64 px-8 py-4 bg-red-700 hover:bg-amber-800 text-white font-semibold text-lg rounded-full shadow-lg transition transform hover:scale-105"
-                  onClick={handlewhyabout}
-                >
-                  Why Vivahanam ?
-                </button>
-              </div>
+                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center ">
+                  <button
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
+                   onClick={handlewhyabout}
+                  >
+                      Why Vivahanam ?
+                  </button>
+                </div>
             </div>
           </div>
         </div>
