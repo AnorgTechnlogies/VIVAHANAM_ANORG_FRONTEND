@@ -248,10 +248,6 @@ const PlanSummaryModal = ({ plan, onClose }) => {
                       {plan.validity} {plan.validityUnit}
                     </span>
                   </div>
-                  {/* <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Users</span>
-                    <span className="text-lg font-semibold text-gray-700">1</span>
-                  </div> */}
                   {plan.creditRate && (
                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
                       <span className="text-gray-600">Cost per Profile</span>
@@ -341,7 +337,7 @@ const PlanSummaryModal = ({ plan, onClose }) => {
   );
 };
 
-// Payment Page Component
+// Payment Page Component - Enhanced UI (Single Card Design)
 const PaymentPage = ({ selectedPackage, onBack, onPaymentComplete }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -435,158 +431,191 @@ const PaymentPage = ({ selectedPackage, onBack, onPaymentComplete }) => {
     }
   };
 
-  // Handle icon - it might be a component, string, or undefined
-  // If it's from PLAN_THEMES, it's a component. If from API/localStorage, it might be lost
+  // Handle icon
   let Icon = Sparkles;
   if (selectedPackage?.icon) {
-    // Check if it's a valid React component (function)
     if (typeof selectedPackage.icon === "function") {
       Icon = selectedPackage.icon;
     } else {
-      // Try to get icon from PLAN_THEMES based on plan id
       const planTheme = PLAN_THEMES[selectedPackage.id] || PLAN_THEMES.default;
       Icon = planTheme.icon;
     }
   } else {
-    // Try to get icon from PLAN_THEMES based on plan id
     const planTheme = PLAN_THEMES[selectedPackage?.id] || PLAN_THEMES.default;
     Icon = planTheme.icon;
   }
 
   return (
-    <div className="min-h-screen bg-amber-100 py-8 px-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-amber-600 hover:text-amber-700 mb-6"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white py-6 sm:py-8 px-4">
+      <div className="max-w-lg mx-auto">
+        {/* Single Card Design */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Header with Back Button */}
+          <div className="px-6 pt-6">
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-800 mb-4 hover:bg-amber-50 px-3 py-1.5 rounded-lg transition-all duration-200"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Back to Plans
-          </button>
-
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Complete Payment
-          </h1>
-          <p className="text-gray-600">Secure payment for your selected plan</p>
-        </div>
-
-        {/* Plan Summary Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border border-amber-200">
-          <div className="flex items-center gap-4 mb-4">
-            <div
-              className={`p-3 rounded-xl bg-gradient-to-r ${
-                selectedPackage?.gradient || "from-amber-500 to-amber-600"
-              }`}
-            >
-              <Icon className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">
-                {selectedPackage?.name}
-              </h2>
-              <p className="text-gray-600 text-sm">
-                {selectedPackage?.tagline}
-              </p>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="font-medium">Back to Plans</span>
+            </button>
+            
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Complete Payment</h1>
+              <p className="text-gray-600 text-sm">Secure payment for your selected plan</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="text-center p-3 bg-amber-50 rounded-lg">
-              <div className="text-2xl font-bold text-amber-600">
-                {selectedPackage?.profiles}
-              </div>
-              <div className="text-sm text-gray-600">Profiles</div>
-            </div>
-            <div className="text-center p-3 bg-amber-50 rounded-lg">
-              <div className="text-2xl font-bold text-amber-600">
-                {selectedPackage?.validity}
-              </div>
-              <div className="text-sm text-gray-600">Days</div>
-            </div>
-          </div>
-
-          <div className="text-center p-4 bg-amber-50 rounded-xl">
-            <div className="text-3xl font-bold text-gray-800">
-              ${selectedPackage?.price}
-            </div>
-            <div className="text-sm text-gray-600">Total Amount</div>
-          </div>
-        </div>
-
-        {/* Payment Method */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Payment Method
-          </h3>
-
-          <div className="border-2 border-amber-500 bg-amber-50 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-8 bg-amber-900 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-sm">PayPal</span>
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-gray-800">Pay with PayPal</p>
-                <p className="text-xs text-gray-600">
-                  Secure payment processed through PayPal
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-              <div className="flex items-center gap-2">
-                <X className="w-4 h-4 text-red-600 flex-shrink-0" />
-                <p className="text-sm text-red-700">{errorMessage}</p>
-              </div>
-            </div>
-          )}
-
-          {/* PayPal Button */}
-          <button
-            onClick={handlePayPalPayment}
-            disabled={loading}
-            className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-3"
-          >
-            {loading ? (
-              <>
-                <Loader className="w-5 h-5 animate-spin" />
-                <span>Processing Payment...</span>
-              </>
-            ) : (
-              <>
-                <div className="w-6 h-6 bg-white rounded flex items-center justify-center">
-                  <span className="text-amber-600 font-bold text-xs">P</span>
+          <div className="px-6 pb-6">
+            {/* Plan Summary Section */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 border border-green-100 mb-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg bg-gradient-to-r ${selectedPackage?.gradient || 'from-green-500 to-emerald-600'}`}>
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-lg">{selectedPackage?.name}</h3>
+                    <p className="text-sm text-gray-600">{selectedPackage?.tagline}</p>
+                  </div>
                 </div>
-                <span>Pay ${selectedPackage?.price} with PayPal</span>
-              </>
-            )}
-          </button>
-        </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500">Total Amount</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    ${selectedPackage?.price}
+                  </div>
+                </div>
+              </div>
 
-        {/* Security Notice */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Secure SSL encrypted payment</span>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-3 bg-white rounded-lg border border-green-100">
+                  <div className="text-xl font-bold text-emerald-600">
+                    {selectedPackage?.profiles}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">Profiles</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg border border-green-100">
+                  <div className="text-xl font-bold text-emerald-600">
+                    {selectedPackage?.validity}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">Days</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg border border-green-100">
+                  <div className="text-xs text-gray-500">Cost per profile</div>
+                  <div className="text-sm font-bold text-emerald-600">
+                    ${((selectedPackage?.price / selectedPackage?.profiles) || 0).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-amber-600" />
+                Payment Method
+              </h3>
+              
+              <div className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 hover:border-blue-400 transition-all duration-200 cursor-pointer mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-9 bg-gradient-to-br from-blue-900 to-blue-700 rounded-md flex items-center justify-center shadow-sm">
+                    <span className="text-white font-bold text-sm tracking-wide">
+                      PayPal
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900">Pay with PayPal</p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Secure payment processed through PayPal
+                        </p>
+                      </div>
+                      <div className="w-5 h-5 rounded-full border-2 border-blue-500 flex items-center justify-center">
+                        <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {errorMessage && (
+              <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 animate-fadeIn">
+                <div className="flex items-start gap-3">
+                  <X className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">
+                      Payment Error
+                    </p>
+                    <p className="text-xs text-red-700 mt-1">{errorMessage}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PayPal Button */}
+            <button
+              onClick={handlePayPalPayment}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:shadow-none disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] mb-6"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-3">
+                  <Loader className="w-5 h-5 animate-spin" />
+                  <span>Processing Payment...</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                    <span className="text-blue-600 font-bold text-lg">P</span>
+                  </div>
+                  <span>Pay ${selectedPackage?.price} with PayPal</span>
+                </div>
+              )}
+            </button>
+
+            {/* Security Badge */}
+            <div className="pt-6 border-t border-gray-100">
+              <div className="flex flex-col items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">Secure SSL encrypted payment</span>
+                </div>
+                
+                <div className="flex items-center gap-4 text-xs">
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    256-bit Encryption
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    PCI DSS Compliant
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Add custom animations */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
