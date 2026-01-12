@@ -807,78 +807,100 @@ const handleResetPassword = async (e) => {
                   </Link>
                 ))}
               </div>
-              <div className="relative">
-                <button
-                  onClick={toggleProfileDropdown}
-                  className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-black-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-full flex items-center justify-center border-2 border-amber-200 flex-shrink-0">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                  </div>
-                  {isLoggedIn && userData?.name && (
-                    <span className="hidden sm:inline text-xs sm:text-sm font-medium text-white truncate max-w-24">
-                      {userData.name}
-                    </span>
-                  )}
-                </button>
-                {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
-                    {isLoggedIn ? (
-                      <>
-                        <div className="px-4 py-3 border-b border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                              <User className="h-5 w-5 text-amber-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {userData.name || "User"}
-                              </p>
-                              <p className="text-xs text-amber-600 font-medium truncate">
-                                {userData.vivId || "VIV ID"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={handleViewProfile}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
-                        >
-                          <User className="h-4 w-4 text-amber-600" />
-                          View Profile
-                        </button>
-                        <button
-                          onClick={handleUpdateProfile}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
-                        >
-                          <Edit className="h-4 w-4 text-amber-600" />
-                          Update Profile
-                        </button>
-                        <div className="border-t border-gray-100 my-1"></div>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Logout
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setShowAuthModal(true);
-                          setAuthMode("login");
-                          setIsProfileDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
-                      >
-                        <LogIn className="h-4 w-4 text-amber-600" />
-                        Login
-                      </button>
-                    )}
-                  </div>
+             <div className="relative">
+  <button
+    onClick={toggleProfileDropdown}
+    className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-black-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+  >
+    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-full flex items-center justify-center border-2 border-amber-200 flex-shrink-0">
+      {isLoggedIn && userData?.name ? (
+        <span className="text-sm sm:text-base font-semibold text-amber-600">
+          {userData.name
+            .split('')
+            .map(word => word.charAt(0))
+            .join('')
+            .toUpperCase()
+            .substring(0, 2)}
+        </span>
+      ) : (
+        <User className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+      )}
+    </div>
+    {isLoggedIn && userData?.name && (
+      <span className="hidden sm:inline text-xs sm:text-sm font-medium text-white truncate max-w-24">
+        {userData.name}
+      </span>
+    )}
+  </button>
+  {isProfileDropdownOpen && (
+    <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+      {isLoggedIn ? (
+        <>
+          <div className="px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                {userData.name ? (
+                  <span className="text-lg font-semibold text-amber-600">
+                    {userData.name
+                      .split(' ')
+                      .map(word => word.charAt(0))
+                      .join('')
+                      .toUpperCase()
+                      .substring(0, 2)}
+                  </span>
+                ) : (
+                  <User className="h-5 w-5 text-amber-600" />
                 )}
               </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {userData.name || "User"}
+                </p>
+                <p className="text-xs text-amber-600 font-medium truncate">
+                  {userData.vivId || "VIV ID"}
+                </p>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleViewProfile}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
+          >
+            <User className="h-4 w-4 text-amber-600" />
+            View Profile
+          </button>
+          <button
+            onClick={handleUpdateProfile}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
+          >
+            <Edit className="h-4 w-4 text-amber-600" />
+            Update Profile
+          </button>
+          <div className="border-t border-gray-100 my-1"></div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => {
+            setShowAuthModal(true);
+            setAuthMode("login");
+            setIsProfileDropdownOpen(false);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-amber-50 transition-colors duration-200"
+        >
+          <LogIn className="h-4 w-4 text-amber-600" />
+          Login
+        </button>
+      )}
+    </div>
+  )}
+</div>
               <button
                 onClick={toggleMenu}
                 className="lg:hidden text-gray-700 hover:text-amber-700 transition-colors duration-200 p-1.5"
