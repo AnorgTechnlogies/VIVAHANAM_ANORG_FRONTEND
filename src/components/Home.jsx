@@ -466,7 +466,7 @@ const HomePage = () => {
 
       setShowOtpModal(true);
       setSuccess(
-        "Registration successful! Please check your email for verification code."
+        "Please check your email for verification code."
       );
     } catch (err) {
       setError(err.message || "Signup failed. Please try again.");

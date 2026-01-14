@@ -330,79 +330,102 @@ const ProfileView = () => {
       </div>
     );
   };
-
-  // Delete Account Modal Component
-  const DeleteAccountModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div 
-        className="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Header */}
-        <div className="p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">Delete Account</h3>
-              <p className="text-sm text-gray-500 mt-1">This action cannot be undone</p>
-            </div>
+// Delete Account Modal Component
+const DeleteAccountModal = () => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center">
+    {/* Light overlay instead of full black */}
+    <div 
+      className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+      onClick={() => {
+        if (!isDeleting) {
+          setShowDeleteModal(false);
+          setDeleteError(null);
+        }
+      }}
+    ></div>
+    
+    {/* Modal Content */}
+    <div 
+      className="relative z-50 bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 animate-[fadeIn_0.3s_ease-out]"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Modal Header */}
+      <div className="p-6 border-b">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-red-100 rounded-lg">
+            <AlertTriangle className="w-6 h-6 text-red-600" />
           </div>
-        </div>
-
-        {/* Modal Body */}
-        <div className="p-6">
-          <p className="text-gray-700 mb-2">
-            Are you sure you want to permanently delete your account?
-          </p>
-          <p className="text-sm text-gray-600 mb-4">
-            All your profile data, matches, and preferences will be removed permanently. 
-            This action cannot be reversed.
-          </p>
-
-          {/* Error Message */}
-          {deleteError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{deleteError}</p>
-            </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-gray-900">Delete Account</h3>
+            <p className="text-sm text-gray-500 mt-1">This action cannot be undone</p>
+          </div>
+          {!isDeleting && (
+            <button
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteError(null);
+              }}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           )}
         </div>
+      </div>
 
-        {/* Modal Footer */}
-        <div className="p-6 border-t flex justify-end gap-3">
-          <button
-            onClick={() => {
-              setShowDeleteModal(false);
-              setDeleteError(null);
-            }}
-            disabled={isDeleting}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleDeleteAccount}
-            disabled={isDeleting}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isDeleting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Deleting...
-              </>
-            ) : (
-              <>
-                <Trash2 className="w-4 h-4" />
-                Yes, Delete My Account Permanently
-              </>
-            )}
-          </button>
-        </div>
+      {/* Modal Body */}
+      <div className="p-6">
+        <p className="text-gray-700 mb-2">
+          Are you sure you want to permanently delete your account?
+        </p>
+        <p className="text-sm text-gray-600 mb-4">
+          All your profile data, matches, and preferences will be removed permanently. 
+          This action cannot be reversed.
+        </p>
+
+        {/* Error Message */}
+        {deleteError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{deleteError}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Footer */}
+      <div className="p-6 border-t flex justify-end gap-3">
+        <button
+          onClick={() => {
+            setShowDeleteModal(false);
+            setDeleteError(null);
+          }}
+          disabled={isDeleting}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleDeleteAccount}
+          disabled={isDeleting}
+          className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isDeleting ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Deleting...
+            </>
+          ) : (
+            <>
+              <Trash2 className="w-4 h-4" />
+              Yes, Delete My Account
+            </>
+          )}
+        </button>
       </div>
     </div>
-  );
-
+  </div>
+);
   if (loading) {
     return (
       <div className="min-h-screen bg-amber-50 pt-20">
