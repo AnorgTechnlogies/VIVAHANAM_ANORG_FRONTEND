@@ -12,8 +12,8 @@ import EventManagement from "../assets/EventManagement.jpg";
 import Decoration from "../assets/Decoration.jpg";
 import PriestSupport from "../assets/PriestSupport .jpg";
 import Auspicious from "../assets/Auspicious.jpg";
-import Matchmaking from "../assets/Matchmaking.jpeg"
-import Consultations from "../assets/Consultations-image.png"
+import Matchmaking from "../assets/Matchmaking.jpeg";
+import Consultations from "../assets/Consultations-image.png";
 import { generateDeviceId, getDeviceInfo } from "../utils/deviceFingerprint.js";
 
 const HomePage = () => {
@@ -86,25 +86,25 @@ const HomePage = () => {
     };
 
     checkUserLoggedIn();
-      const handleAuthStateChange = (event) => {
-    if (event.detail) {
-      const { isLoggedIn, user } = event.detail;
-      if (isLoggedIn) {
-        setUser(user);
+    const handleAuthStateChange = (event) => {
+      if (event.detail) {
+        const { isLoggedIn, user } = event.detail;
+        if (isLoggedIn) {
+          setUser(user);
+        } else {
+          setUser(null);
+        }
       } else {
-        setUser(null);
+        // Fallback: recheck localStorage
+        checkUserLoggedIn();
       }
-    } else {
-      // Fallback: recheck localStorage
-      checkUserLoggedIn();
-    }
-  };
-  
-  window.addEventListener('authStateChanged', handleAuthStateChange);
-  
-  return () => {
-    window.removeEventListener('authStateChanged', handleAuthStateChange);
-  };
+    };
+
+    window.addEventListener("authStateChanged", handleAuthStateChange);
+
+    return () => {
+      window.removeEventListener("authStateChanged", handleAuthStateChange);
+    };
   }, []);
 
   // Show scroll arrow when user scrolls down
@@ -465,9 +465,7 @@ const HomePage = () => {
       }
 
       setShowOtpModal(true);
-      setSuccess(
-        "Please check your email for verification code."
-      );
+      setSuccess("Please check your email for verification code.");
     } catch (err) {
       setError(err.message || "Signup failed. Please try again.");
     } finally {
@@ -597,7 +595,6 @@ const HomePage = () => {
     } finally {
       setLoading(false);
     }
-    
   };
 
   // Handle partner search navigation
@@ -822,14 +819,14 @@ const HomePage = () => {
       title: "Matchmaking",
       description:
         "Our matchmaking services focus on understanding individual preferences and values, enabling us to connect compatible matches. We delve into cultural nuances to create meaningful connections that resonate with your heritage.",
-      image:Matchmaking,
+      image: Matchmaking,
     },
     {
       id: 2,
       title: "Consultations/Marriage Registration",
       description:
         "Our consultations and marriage registration services are designed to understand your personal values and preferences, ensuring meaningful and culturally aligned connections.",
-      image:Consultations ,
+      image: Consultations,
     },
     {
       id: 3,
@@ -919,45 +916,50 @@ const HomePage = () => {
                   }`}
                 >
                   <span className="block">
-                    <span className="font-black">Vivahanam</span> embodies the sacred Vedic vision of marriage as a divine
-                     union of two souls. It views marriage as a spiritual journey of trust and faith, strengthened by family 
-                     blessings. Vedic rituals sanctify this bond, uniting individuals and families. Vivahanam bridges ancient traditions and modern matrimony, helping families, especially in North America,
-                     form alliances rooted in culture, spirituality, and enduring values.{" "}
+                    <span className="font-black">Vivahanam</span> embodies the
+                    sacred Vedic vision of marriage as a divine union of two
+                    souls. It views marriage as a spiritual journey of trust and
+                    faith, strengthened by family blessings. Vedic rituals
+                    sanctify this bond, uniting individuals and families.
+                    Vivahanam bridges ancient traditions and modern matrimony,
+                    helping families, especially in North America, form
+                    alliances rooted in culture, spirituality, and enduring
+                    values.{" "}
                   </span>
                 </p>
 
                 {/* Buttons - FIXED FOR 936×730 */}
-<div className="flex flex-col md:flex-row gap-3 md:gap-5 pt-4 md:pt-6 justify-center lg:justify-start">
-  {/* Button 1: Login - Always shows when user is NOT logged in */}
-  {!user && (
-    <button
-      className="px-4 py-3 md:px-6 md:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full md:w-auto min-w-[140px] md:min-w-[160px] text-sm md:text-base"
-      onClick={() => {
-        setShowAuthModal(true);
-        setAuthMode("login");
-      }}
-      disabled={loading}
-    >
-      {loading ? "Loading..." : "Login"}
-    </button>
-  )}
+                <div className="flex flex-col md:flex-row gap-3 md:gap-5 pt-4 md:pt-5 justify-center lg:justify-start">
+                  {/* Button 1: Login - Always shows when user is NOT logged in */}
+                  {!user && (
+                    <button
+                      className="px-4 py-3 md:px-6 md:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full md:w-auto min-w-[140px] md:min-w-[160px] text-sm md:text-base"
+                      onClick={() => {
+                        setShowAuthModal(true);
+                        setAuthMode("login");
+                      }}
+                      disabled={loading}
+                    >
+                      {loading ? "Loading..." : "Login"}
+                    </button>
+                  )}
 
-  {/* Button 2: Register Now - Always shows */}
-  <button
-    className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
-    onClick={handleFreeRegistration}
-  >
-    Register Now
-  </button>
+                  {/* Button 2: Register Now - Always shows */}
+                  <button
+                    className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
+                    onClick={handleFreeRegistration}
+                  >
+                    Register Now
+                  </button>
 
-  {/* Button 3: Our Partner Page - Always shows, no authentication required */}
-  <button
-    className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
-    onClick={handlePartnerSearch}
-  >
-    Search Profile
-  </button>
-</div>
+                  {/* Button 3: Our Partner Page - Always shows, no authentication required */}
+                  <button
+                    className="px-4 py-3 md:px-6 md:py-4 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors text-sm md:text-base w-full md:w-auto"
+                    onClick={handlePartnerSearch}
+                  >
+                    Search Profile
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1069,58 +1071,58 @@ const HomePage = () => {
       </div>
 
       {/* Newsletter Section */}
-     <div className="relative w-full min-h-screen bg-amber-100 bg-gradient-to-bt from-amber-100 via-orange-100 to-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
-  <div className="container mx-auto max-w-7xl">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-      {/* Image Section - Mobile: First, Desktop: Left */}
-      <div className="flex justify-center lg:justify-start order-1 lg:order-1">
-        <div className="relative w-full max-w-md lg:max-w-lg">
-          <img
-            src={Home3Img}
-            alt="Wedding Couple"
-            className="w-full h-auto rounded-2xl shadow-2xl object-cover"
-          />
-          <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full opacity-20 blur-3xl -z-10"></div>
-          <div className="absolute -top-6 -right-6 w-40 h-40 bg-gradient-to-br from-stone-400 to-amber-300 rounded-full opacity-20 blur-3xl -z-10"></div>
+      <div className="relative w-full min-h-screen bg-amber-100 bg-gradient-to-bt from-amber-100 via-orange-100 to-amber-100 py-12 md:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            {/* Image Section - Mobile: First, Desktop: Left */}
+            <div className="flex justify-center lg:justify-start order-1 lg:order-1">
+              <div className="relative w-full max-w-md lg:max-w-lg">
+                <img
+                  src={Home3Img}
+                  alt="Wedding Couple"
+                  className="w-full h-auto rounded-2xl shadow-2xl object-cover"
+                />
+                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full opacity-20 blur-3xl -z-10"></div>
+                <div className="absolute -top-6 -right-6 w-40 h-40 bg-gradient-to-br from-stone-400 to-amber-300 rounded-full opacity-20 blur-3xl -z-10"></div>
+              </div>
+            </div>
+
+            {/* Content Section - Mobile: Second, Desktop: Right */}
+            <div className="flex flex-col justify-center space-y-7 lg:space-y-10 order-2 lg:order-2 max-w-2xl">
+              <h2 className="text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-red-700 leading-tight text-center lg:text-left">
+                Welcome to Vivahanam
+              </h2>
+              <p
+                className={`text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed font-medium text-justify hyphens-auto tracking-wide max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl mx-auto lg:mx-0 transition-all duration-700 delay-700 ${
+                  isVisible ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <span className="block">
+                  Marriage is the legal and lifelong state or relationship of
+                  being wed, a commitment with rights and duties, while the
+                  wedding is the one-time ceremony or party celebrating and
+                  formalizing that union, often with vows and guests. <br />
+                  <br />
+                  Vivahanam embodies the sacred essence of Vivah the Vedic
+                  concept of marriage as a divine union of two souls. Rooted in
+                  timeless Vedic wisdom, Vivahanam reflects that marriage is not
+                  merely a social arrangement, but a spiritual journey built on
+                  trust and faith between partners, and strengthened by the
+                  blessings of their families{" "}
+                </span>
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center lg:justify-start">
+                <button
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
+                  onClick={handlewhyabout}
+                >
+                  Why Vivahanam ?
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      
-      {/* Content Section - Mobile: Second, Desktop: Right */}
-      <div className="flex flex-col justify-center space-y-7 lg:space-y-10 order-2 lg:order-2 max-w-2xl">
-        <h2 className="text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-red-700 leading-tight text-center lg:text-left">
-          Welcome to Vivahanam
-        </h2>
-        <p
-          className={`text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed font-medium text-justify hyphens-auto tracking-wide max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl mx-auto lg:mx-0 transition-all duration-700 delay-700 ${
-            isVisible ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <span className="block">
-            Marriage is the legal and lifelong state or relationship of
-            being wed, a commitment with rights and duties, while the
-            wedding is the one-time ceremony or party celebrating and
-            formalizing that union, often with vows and guests. <br />
-            <br />
-            Vivahanam embodies the sacred essence of Vivah the Vedic
-            concept of marriage as a divine union of two souls. Rooted in
-            timeless Vedic wisdom, Vivahanam reflects that marriage is not
-            merely a social arrangement, but a spiritual journey built on
-            trust and faith between partners, and strengthened by the
-            blessings of their families{" "}
-          </span>
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 justify-center lg:justify-start">
-          <button
-            className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto min-w-[160px] sm:min-w-[180px]"
-            onClick={handlewhyabout}
-          >
-            Why Vivahanam ?
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
       {/* Vision Section */}
 
       {/* 3 Steps Section */}

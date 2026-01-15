@@ -65,17 +65,18 @@ const BrowseMatches = ({
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [filtersLoaded, setFiltersLoaded] = useState(false);
   
-  // Use localStorage to persist unlocked profiles show the unlocked image UTH BY CHaitanya 
+  // Get user-specific localStorage key to prevent cross-account unlock sharing
+  const getUserSpecificStorageKey = useCallback(() => {
+    const userId = user?._id || user?.id || user?.email || 'anonymous';
+    return `vivahanamUnlockedProfiles_${userId}`;
+  }, [user]);
+
+  // Track current user ID to detect user changes
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Use localStorage to persist unlocked profiles - USER-SPECIFIC KEY to prevent cross-account sharing
   const [unlockedProfileIds, setUnlockedProfileIds] = useState(() => {
-    try {
-      const saved = localStorage.getItem('vivahanamUnlockedProfiles');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return new Set(parsed);
-      }
-    } catch (err) {
-      console.error('Error loading unlocked profiles:', err);
-    }
+    // Initialize empty - will be populated from backend
     return new Set();
   });
   
@@ -86,19 +87,57 @@ const BrowseMatches = ({
   const [showConfirm, setShowConfirm] = useState(false);
   const [profileToUnlock, setProfileToUnlock] = useState(null);
 
-  // Persist unlocked profile IDs to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem('vivahanamUnlockedProfiles', JSON.stringify(Array.from(unlockedProfileIds)));
-    } catch (err) {
-      console.error('Error saving unlocked profiles:', err);
-    }
-  }, [unlockedProfileIds]);
-
   // Check if user is authenticated and fully registered
   const isUserAuthenticatedAndRegistered = useMemo(() => {
     return user && user.profileCompleted;
   }, [user]);
+
+  // Clear localStorage and reset state when user changes (prevents cross-account unlock sharing)
+  useEffect(() => {
+    const userId = user?._id || user?.id || user?.email;
+    if (userId && userId !== currentUserId) {
+      // User has changed - clear old localStorage data
+      if (currentUserId) {
+        try {
+          const oldKey = `vivahanamUnlockedProfiles_${currentUserId}`;
+          localStorage.removeItem(oldKey);
+          // Also remove old non-user-specific key for backward compatibility cleanup
+          localStorage.removeItem('vivahanamUnlockedProfiles');
+        } catch (err) {
+          console.error('Error clearing old user localStorage:', err);
+        }
+      }
+      // Reset state for new user (will be populated from backend via fetchUnlockHistory)
+      setUnlockedProfileIds(new Set());
+      setUnlockHistory([]);
+      setHistoryStats(null);
+      setCurrentUserId(userId);
+      
+      // Optionally load cached data for current user (will be replaced by backend data anyway)
+      try {
+        const storageKey = `vivahanamUnlockedProfiles_${userId}`;
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Only use as temporary cache - backend fetch will replace this
+          setUnlockedProfileIds(new Set(parsed));
+        }
+      } catch (err) {
+        console.error('Error loading user-specific localStorage:', err);
+      }
+    }
+  }, [user, currentUserId]);
+
+  // Persist unlocked profile IDs to user-specific localStorage whenever they change
+  useEffect(() => {
+    if (!currentUserId) return; // Don't save if user not identified
+    try {
+      const storageKey = getUserSpecificStorageKey();
+      localStorage.setItem(storageKey, JSON.stringify(Array.from(unlockedProfileIds)));
+    } catch (err) {
+      console.error('Error saving unlocked profiles:', err);
+    }
+  }, [unlockedProfileIds, currentUserId, getUserSpecificStorageKey]);
 
   // Function to redirect to Credit Store
   const handlePurchaseMore = useCallback(() => {
@@ -204,7 +243,7 @@ const BrowseMatches = ({
         throw new Error(data.message || "Unable to load unlock history");
       }
 
-      // Extract all unlocked profile IDs from history
+      // Extract all unlocked profile IDs from history - ONLY from backend (user-specific)
       const ids = new Set();
       const history = data.data?.history || [];
       
@@ -214,11 +253,8 @@ const BrowseMatches = ({
         if (entry.targetUserId) ids.add(entry.targetUserId);
       });
 
-      // Merge with existing unlocked profiles
-      setUnlockedProfileIds(prev => {
-        const merged = new Set([...prev, ...ids]);
-        return merged;
-      });
+      // Replace with backend data ONLY (don't merge with localStorage to prevent cross-account sharing)
+      setUnlockedProfileIds(ids);
       
       setUnlockHistory(history);
       setHistoryStats(data.data?.stats || null);
@@ -494,6 +530,8 @@ const BrowseMatches = ({
   const handleViewUnlockedProfile = async (partner) => {
     const partnerId = partner?._id || partner?.id;
     if (!partnerId) return;
+    
+    // Always verify with backend API - don't trust localStorage alone
     try {
       const token = localStorage.getItem("vivahanamToken");
       const response = await fetch(`${API_URL}/userplan/unlocked/${partnerId}`, {
@@ -504,13 +542,33 @@ const BrowseMatches = ({
       });
       const data = await response.json();
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Unable to load unlocked profile");
+        // Show the error message to user
+        const errorMessage = data.message || "Unable to load unlocked profile";
+        setUnlockError(errorMessage);
+        // Don't set selectedProfile if unlock failed - user needs to unlock first
+        setSelectedProfile(null);
+        
+        // If user hasn't unlocked, show unlock prompt
+        if (errorMessage.includes("not unlocked") || errorMessage.includes("You have not unlocked")) {
+          setProfileToUnlock(partner);
+          setShowConfirm(true);
+        }
+        return;
       }
+      // Profile is unlocked - clear any previous errors and show profile
+      setUnlockError("");
       setSelectedProfile(data.data || partner);
     } catch (err) {
       console.error("View unlocked profile error:", err);
-      setUnlockError(err.message);
-      setSelectedProfile(partner);
+      const errorMessage = err.message || "Unable to load unlocked profile";
+      setUnlockError(errorMessage);
+      setSelectedProfile(null);
+      
+      // If user hasn't unlocked, show unlock prompt
+      if (errorMessage.includes("not unlocked") || errorMessage.includes("You have not unlocked")) {
+        setProfileToUnlock(partner);
+        setShowConfirm(true);
+      }
     }
   };
 
@@ -770,9 +828,22 @@ const BrowseMatches = ({
         </div>
 
         {unlockError && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
-            {unlockError}
-          </p>
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2 flex-1">
+              <Lock className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-red-800 mb-1">Profile Access Required</p>
+                <p className="text-sm text-red-600">{unlockError}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setUnlockError("")}
+              className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
+              aria-label="Dismiss error"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         )}
 
         {loading && matches.length === 0 ? (
