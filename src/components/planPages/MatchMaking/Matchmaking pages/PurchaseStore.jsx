@@ -343,8 +343,71 @@ const PaymentPage = ({ selectedPackage, onBack, onPaymentComplete }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const API_URL = import.meta.env.VITE_API_KEY;
 
+  const isFreePlan = selectedPackage && (selectedPackage.price ?? 0) <= 0;
+
+  // Handle ZERO-amount (free) plans: bypass PayPal and activate plan directly
+  const handleFreePlanActivation = async () => {
+    if (!selectedPackage) return;
+
+    try {
+      setLoading(true);
+      setErrorMessage("");
+
+      const token = localStorage.getItem("vivahanamToken");
+      if (!token) {
+        throw new Error("Authentication required. Please log in again.");
+      }
+
+      const response = await enhancedFetch(
+        `${API_URL}/userplan/create`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            // Use planKey / plan_name expected by backend
+            planKey: selectedPackage.planCode || selectedPackage.id,
+            plan_name: selectedPackage.planCode || selectedPackage.id,
+            // Intentionally DO NOT send payment_mode so backend uses default enum
+            payment_reference: "FREE_PLAN_ACTIVATION",
+          }),
+        },
+        15000
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Unable to activate free plan");
+      }
+
+      // Notify parent so it can refresh balances / UI
+      onPaymentComplete?.(data);
+    } catch (error) {
+      console.error("❌ Free plan activation failed:", error);
+      let msg = "Unable to activate free plan. Please try again.";
+      if (error.name === "AbortError") {
+        msg = "Request timeout. Please check your connection and try again.";
+      } else if (error.message?.includes("Authentication")) {
+        msg = "Session expired. Please log in again.";
+      } else if (error.message) {
+        msg = error.message;
+      }
+      setErrorMessage(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePayPalPayment = async () => {
     if (!selectedPackage) return;
+
+    // For free plans, completely bypass PayPal
+    if (isFreePlan) {
+      return handleFreePlanActivation();
+    }
 
     // Safety check: Prevent payment for static plans
     if (selectedPackage.isStatic) {
@@ -498,48 +561,68 @@ const PaymentPage = ({ selectedPackage, onBack, onPaymentComplete }) => {
                 </div>
                 <div className="text-center p-3 bg-white rounded-lg border border-green-100">
                   <div className="text-xl font-bold text-emerald-600">
-                    {selectedPackage?.validity}
+                    {selectedPackage?.validity ?? 0}
                   </div>
                   <div className="text-xs text-gray-600 mt-1">Days</div>
                 </div>
                 <div className="text-center p-3 bg-white rounded-lg border border-green-100">
                   <div className="text-xs text-gray-500">Cost per profile</div>
                   <div className="text-sm font-bold text-emerald-600">
-                    ${((selectedPackage?.price / selectedPackage?.profiles) || 0).toFixed(2)}
+                    {selectedPackage?.price > 0 && selectedPackage?.profiles > 0
+                      ? `$${(selectedPackage.price / selectedPackage.profiles).toFixed(2)}`
+                      : "0 per profile"}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Payment Method Section */}
+            {/* Payment / Activation Section */}
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-amber-600" />
-                Payment Method
+                {isFreePlan ? "Plan Activation" : "Payment Method"}
               </h3>
               
-              <div className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 hover:border-blue-400 transition-all duration-200 cursor-pointer mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-9 bg-gradient-to-br from-blue-900 to-blue-700 rounded-md flex items-center justify-center shadow-sm">
-                    <span className="text-white font-bold text-sm tracking-wide">
-                      PayPal
-                    </span>
+              {isFreePlan ? (
+                <div className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-9 bg-gradient-to-br from-emerald-600 to-green-600 rounded-md flex items-center justify-center shadow-sm">
+                      <span className="text-white font-bold text-sm tracking-wide">
+                        FREE
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">Free Plan Activation</p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        This plan is free. No payment or card details are required. Click "Activate Free Plan" to start using it instantly.
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900">Pay with PayPal</p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          Secure payment processed through PayPal
-                        </p>
-                      </div>
-                      <div className="w-5 h-5 rounded-full border-2 border-blue-500 flex items-center justify-center">
-                        <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>
+                </div>
+              ) : (
+                <div className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 hover:border-blue-400 transition-all duration-200 cursor-pointer mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-9 bg-gradient-to-br from-blue-900 to-blue-700 rounded-md flex items-center justify-center shadow-sm">
+                      <span className="text-white font-bold text-sm tracking-wide">
+                        PayPal
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-gray-900">Pay with PayPal</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Secure payment processed through PayPal
+                          </p>
+                        </div>
+                        <div className="w-5 h-5 rounded-full border-2 border-blue-500 flex items-center justify-center">
+                          <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Error Message */}
@@ -557,23 +640,33 @@ const PaymentPage = ({ selectedPackage, onBack, onPaymentComplete }) => {
               </div>
             )}
 
-            {/* PayPal Button */}
+            {/* Primary Action Button */}
             <button
-              onClick={handlePayPalPayment}
+              onClick={isFreePlan ? handleFreePlanActivation : handlePayPalPayment}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:shadow-none disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] mb-6"
+              className={`w-full ${
+                isFreePlan
+                  ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              } disabled:from-gray-400 disabled:to-gray-500 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:shadow-none disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] mb-6`}
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-3">
                   <Loader className="w-5 h-5 animate-spin" />
-                  <span>Processing Payment...</span>
+                  <span>{isFreePlan ? "Activating plan..." : "Processing Payment..."}</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-3">
                   <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
-                    <span className="text-blue-600 font-bold text-lg">P</span>
+                    <span className={isFreePlan ? "text-emerald-600 font-bold text-lg" : "text-blue-600 font-bold text-lg"}>
+                      {isFreePlan ? "✓" : "P"}
+                    </span>
                   </div>
-                  <span>Pay ${selectedPackage?.price} with PayPal</span>
+                  <span>
+                    {isFreePlan
+                      ? "Activate Free Plan"
+                      : `Pay $${selectedPackage?.price} with PayPal`}
+                  </span>
                 </div>
               )}
             </button>
@@ -625,7 +718,7 @@ const CreditStore = ({
   Balance,
   setBalance,
   checkAuthAndRedirect,
-  navigate,
+  // navigate,
   planSummary,
   refreshPlanSummary,
 }) => {
@@ -711,8 +804,9 @@ const CreditStore = ({
         const normalized = (data.data?.plans || []).map((plan) => {
           const key = (plan.planCode || plan.id || "").toLowerCase();
           const theme = PLAN_THEMES[key] || PLAN_THEMES.default;
-          const profiles = plan.profiles || plan.profilesAllocated;
-          const price = plan.price || plan.planPrice;
+          const profiles = plan.profiles || plan.profilesAllocated || 0;
+          const rawPrice = plan.price ?? plan.planPrice;
+          const price = typeof rawPrice === "number" && !Number.isNaN(rawPrice) ? rawPrice : 0;
 
           return {
             id: key,
@@ -725,11 +819,11 @@ const CreditStore = ({
               plan.tagline ||
               plan.description ||
               "Access premium matchmaking tools",
-            price: price,
+            price,
             credits: profiles,
             profiles: profiles,
             users: plan.users || 1,
-            validity: plan.validityDays || plan.validForDays || 30,
+            validity: plan.validityDays || plan.validForDays || 0,
             validityUnit: "days",
             popular: key === "standard",
             bestValue: key === "family",
@@ -740,7 +834,10 @@ const CreditStore = ({
             iconColor: theme.iconColor,
             planCode: plan.planCode,
             currency: plan.currency || plan.planCurrency || "USD",
-            creditRate: `$${(price / profiles).toFixed(2)} per profile`,
+            creditRate:
+              price > 0 && profiles > 0
+                ? `$${(price / profiles).toFixed(2)} per profile`
+                : "0 per profile",
             summary: plan.summary || [
               `${profiles} credits valid for ${plan.validityDays || 30} days`,
               "Access all premium features during validity period",
@@ -872,16 +969,72 @@ const CreditStore = ({
     setSelectedPackage(null);
   };
 
+  // Handle payment completion (for both free and paid plans)
+  const handlePaymentComplete = async (paymentData) => {
+    try {
+      // Extract balance from response if available
+      if (paymentData?.data?.plan?.profilesRemaining !== undefined) {
+        setBalance(paymentData.data.plan.profilesRemaining);
+      }
+
+      // Refresh plan summary to get latest balance and plan details
+      if (refreshPlanSummary) {
+        await refreshPlanSummary();
+      } else {
+        // Fallback: manually fetch plan summary if refreshPlanSummary not available
+        const token = localStorage.getItem("vivahanamToken");
+        if (token) {
+          try {
+            const response = await enhancedFetch(
+              `${API_URL}/userplan/summary`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              },
+              10000
+            );
+            if (response.ok) {
+              const summaryData = await response.json();
+              if (summaryData?.success && summaryData?.data?.plan?.profilesRemaining !== undefined) {
+                setBalance(summaryData.data.plan.profilesRemaining);
+              }
+            }
+          } catch (err) {
+            console.warn("Failed to fetch updated plan summary:", err);
+          }
+        }
+      }
+
+      // Show success message
+      const planName = selectedPackage?.name || selectedPackage?.planDisplayName || "Plan";
+      setPurchaseSuccess(`${planName} activated successfully! Your balance has been updated.`);
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setPurchaseSuccess("");
+      }, 5000);
+
+      // Close payment page and reset
+      setShowPaymentPage(false);
+      setSelectedPackage(null);
+    } catch (error) {
+      console.error("Error handling payment completion:", error);
+      // Still close the payment page even if refresh fails
+      setShowPaymentPage(false);
+      setSelectedPackage(null);
+      setPurchaseSuccess("Plan activated successfully!");
+    }
+  };
+
   // If we're on the payment page, render the PaymentPage component
   if (showPaymentPage && selectedPackage) {
     return (
       <PaymentPage
         selectedPackage={selectedPackage}
         onBack={handleBackFromPayment}
-        onPaymentComplete={() => {
-          setShowPaymentPage(false);
-          setSelectedPackage(null);
-        }}
+        onPaymentComplete={handlePaymentComplete}
       />
     );
   }
@@ -958,8 +1111,9 @@ const CreditStore = ({
           )}
 
           {purchaseSuccess && (
-            <div className="mt-3 sm:mt-4 bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm">
-              {purchaseSuccess}
+            <div className="mt-3 sm:mt-4 bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+              <span>{purchaseSuccess}</span>
             </div>
           )}
 
@@ -1006,7 +1160,7 @@ return (
     {/* POPULAR badge - For Starter plan */}
     {isStarterPlan && (
       <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-gray-500 via-emerald-500 to-red-600 text-white text-center py-1.5 text-xs font-bold z-10 shadow-md transition-all duration-300">
-        ⭐ POPULAR CHOICE
+        ⭐ FREE
       </div>
     )}
     
@@ -1050,7 +1204,7 @@ return (
         </div>
     
         <div className="text-xs text-gray-500 mt-1">
-          {plan.validity} days validity
+          {(plan.validity ?? 0)} days validity
         </div>
         {plan.creditRate && (
           <div className={`text-xs font-medium mt-1 transition-colors duration-300

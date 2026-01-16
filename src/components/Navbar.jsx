@@ -482,7 +482,7 @@ const handleResetPassword = async (e) => {
       if (data.deviceLimit && data.activeDevices) {
         if (data.deviceLimit === 1) {
           setSuccess(
-            `Logged in successfully. Only 1 device can be active at a time.`
+            // `Logged in successfully. Only 1 device can be active at a time.`
           );
         } else {
           setSuccess(

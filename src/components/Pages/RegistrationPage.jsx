@@ -717,86 +717,98 @@ const DynamicRegistrationForm = () => {
   };
 
   // ==================== SUBMIT HANDLER ====================
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // ==================== SUBMIT HANDLER ====================
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Mark all fields as touched
-    const touched = {};
-    formFields.forEach((field) => {
-      touched[field.name] = true;
+  // Mark all fields as touched
+  const touched = {};
+  formFields.forEach((field) => {
+    touched[field.name] = true;
+  });
+  touched.documents = true;
+  touched.profilePhotos = true;
+  setTouchedFields(touched);
+
+  if (!validateAllFields()) {
+    setError("Please fix all validation errors before submitting.");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  setError("");
+  setIsSubmitting(true);
+  setLoading(true);
+
+  try {
+    const token = localStorage.getItem("vivahanamToken");
+    if (!token) {
+      throw new Error("Authentication token not found. Please log in again.");
+    }
+
+    // Convert ALL profile photos to base64
+    const profileImagesBase64 = [];
+    for (const photo of profilePhotos) {
+      const base64Photo = await fileToBase64(photo);
+      profileImagesBase64.push(base64Photo);
+    }
+
+    const documentsBase64 = [];
+    for (const doc of documents) {
+      const base64Doc = await fileToBase64(doc);
+      documentsBase64.push(base64Doc);
+    }
+
+    // Clean form data
+    const cleanedFormData = Object.fromEntries(
+      Object.entries(formData).filter(
+        ([_, value]) => value !== undefined && value !== null && value !== ""
+      )
+    );
+
+    // IMPORTANT: Changed from profileImage to profileImages
+    const submitData = {
+      formData: cleanedFormData,
+      profileImages: profileImagesBase64, // Changed from profileImage
+      documents: documentsBase64,
+    };
+
+    console.log("📤 Sending registration data:", {
+      formDataFields: Object.keys(cleanedFormData).length,
+      profileImagesCount: profileImagesBase64.length,
+      documentsCount: documentsBase64.length
     });
-    touched.documents = true;
-    touched.profilePhotos = true;
-    setTouchedFields(touched);
 
-    if (!validateAllFields()) {
-      setError("Please fix all validation errors before submitting.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
+    const response = await fetch(`${API_URL}/user/complete-registration`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(submitData),
+    });
 
-    setError("");
-    setIsSubmitting(true);
-    setLoading(true);
+    const data = await response.json();
 
-    try {
-      const token = localStorage.getItem("vivahanamToken");
-      if (!token) {
-        throw new Error("Authentication token not found. Please log in again.");
-      }
-
-      // Convert files to base64
-      const profileImageBase64 =
-        profilePhotos.length > 0 ? await fileToBase64(profilePhotos[0]) : null;
-
-      const documentsBase64 = [];
-      for (const doc of documents) {
-        const base64Doc = await fileToBase64(doc);
-        documentsBase64.push(base64Doc);
-      }
-
-      // Clean form data - remove empty values
-      const cleanedFormData = Object.fromEntries(
-        Object.entries(formData).filter(
-          ([_, value]) => value !== undefined && value !== null && value !== ""
-        )
+    if (!response.ok) {
+      throw new Error(
+        data.message || `Registration failed: ${response.statusText}`
       );
-
-      const submitData = {
-        formData: cleanedFormData,
-        profileImage: profileImageBase64,
-        documents: documentsBase64,
-      };
-
-      const response = await fetch(`${API_URL}/user/complete-registration`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(submitData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || `Registration failed: ${response.statusText}`
-        );
-      }
-
-      setShowSuccessModal(true);
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 3000);
-    } catch (err) {
-      console.error("Registration error:", err);
-      setError(err.message || "Registration failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-      setLoading(false);
     }
-  };
+
+    console.log("✅ Registration successful:", data.message);
+    setShowSuccessModal(true);
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 3000);
+  } catch (err) {
+    console.error("Registration error:", err);
+    setError(err.message || "Registration failed. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+    setLoading(false);
+  }
+};
 
   // ==================== RENDER FUNCTIONS ====================
   const renderFieldError = (fieldName) => {

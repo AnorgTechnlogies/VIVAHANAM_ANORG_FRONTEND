@@ -13,7 +13,7 @@ import {
 
 const UnlockedProfiles = ({ 
   user, 
-  checkAuthAndRedirect, 
+  // checkAuthAndRedirect, 
   navigate, 
   setActiveTab 
 }) => {

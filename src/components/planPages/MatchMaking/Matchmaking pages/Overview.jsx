@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const Overview = ({ user, Balance, checkAuthAndRedirect, navigate, setActiveTab }) => {
+const Overview = ({ user, Balance, checkAuthAndRedirect, setActiveTab }) => {
   const [featuredMatches, setFeaturedMatches] = useState([]);
   const [recentUnlocks, setRecentUnlocks] = useState([]);
   const [loading, setLoading] = useState(false);
