@@ -6,27 +6,40 @@ const About = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeCard, setActiveCard] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-
   const topRef = useRef(null);
+
+  // Particle positions ko useRef me store karo
+  const particles = useRef(
+    [...Array(6)].map(() => ({
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 2}s`,
+      duration: `${5 + Math.random() * 3}s`
+    }))
+  );
 
   useEffect(() => {
     setIsVisible(true);
 
+    // Scroll to top on component mount
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
 
+    // Universal scroll handler for scroll to top button
     const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
+      const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+      setShowScrollTop(scrollPosition > 300);
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    // Use passive scroll listener for better performance
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    // Cleanup with same parameters
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const scrollToTop = () => {
@@ -88,22 +101,66 @@ const About = () => {
   ];
 
   return (
-    <div className="w-full bg-gradient-to-b from-amber-50 via-orange-50 to-amber-50">
+    <div className="w-full bg-gradient-to from-amber-50 via-orange-50 to-amber-50 min-h-screen">
+      {/* Global styles as inline style tag */}
+      <style>
+        {`
+          @keyframes float {
+            0%, 100% {
+              transform: translateY(0px) translateX(0px);
+              opacity: 0.3;
+            }
+            50% {
+              transform: translateY(-30px) translateX(20px);
+              opacity: 0.6;
+            }
+          }
+          .animate-float {
+            animation: float linear infinite;
+          }
+          
+          /* Universal scrollbar styling */
+          ::-webkit-scrollbar {
+            width: 10px;
+          }
+          
+          ::-webkit-scrollbar-track {
+            background: #fed7aa;
+          }
+          
+          ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f59e0b, #ea580c);
+            border-radius: 5px;
+          }
+          
+          ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #d97706, #c2410c);
+          }
+          
+          /* For Firefox */
+          * {
+            scrollbar-width: thin;
+            scrollbar-color: #f59e0b #fed7aa;
+          }
+        `}
+      </style>
+
       <div className="py-8 md:py-12 lg:py-16 xl:py-20">
         <div
           ref={topRef}
           className="relative min-h-[70vh] md:min-h-[80vh] flex items-center justify-center overflow-hidden"
         >
+          {/* Animated particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(6)].map((_, i) => (
+            {particles.current.map((pos, i) => (
               <div
                 key={i}
                 className="absolute w-2 h-2 bg-amber-300/30 rounded-full animate-float"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${i * 0.7}s`,
-                  animationDuration: `${5 + Math.random() * 3}s`,
+                  left: pos.left,
+                  top: pos.top,
+                  animationDelay: pos.delay,
+                  animationDuration: pos.duration,
                 }}
               />
             ))}
@@ -116,52 +173,55 @@ const About = () => {
               ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}
             `}
           >
+            {/* Header */}
             <div className="text-center mb-8 md:mb-12">
-              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-red-700 leading-tight">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-red-800 leading-tight">
                 About Vivahanam
               </h1>
-              <p className="text-red-700 text-lg sm:text-xl md:text-2xl lg:text-3xl py-3 font-bold font-serif">
+              <p className="text-red-800 text-lg sm:text-xl md:text-2xl lg:text-3xl py-3 font-bold font-serif">
                 ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं भर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्
               </p>
-              <p className="text-black font-bold text-xl md:text-2xl mt-2">
+              <p className="text-gray-800 font-bold text-xl md:text-2xl mt-2">
                 May the Almighty God illuminate our intellect and lead us on the righteous path
               </p>
             </div>
 
+            {/* Images with centered alignment and better layout */}
             <div className="flex flex-col lg:flex-row items-stretch justify-center gap-6 lg:gap-8 max-w-7xl mx-auto">
-
+              
               {/* Left Content Box - Divine Guidance */}
-              <div className="bg-red-700 backdrop-blur-sm rounded-xl p-3 md:p-6 lg:p-8 flex-1">
-                <p className="text-lg sm:text-xl md:text-2xl text-amber-100 font-serif italic mb-3 text-center">
+              <div className="bg-red-800 backdrop-blur-sm rounded-xl p-3 md:p-6 lg:p-8 flex-1">
+                <p className="text-lg sm:text-xl md:text-2xl text-amber-50 font-serif italic mb-3 text-center">
                   "Divine Guidance"
                 </p>
-                <p className="text-base sm:text-lg md:text-lg text-amber-200 font-semibold text-center">
+                <p className="text-base sm:text-lg md:text-lg text-amber-100 font-semibold text-center">
                   Extravagant weddings make us poor and dishonest <br />Pt. Shriram Sharma Acharya
                 </p>
                 <div className="h-px w-20 md:w-24 bg-amber-400/50 mx-auto my-2 md:my-2"></div>
 
-                <div className="flex flex-col md:flex-row items-center md:items-start justify-center gap-6 md:gap-10 px-4 sm:px-6 md:px-8 lg:px-10 mb-8 md:mb-10 max-w-6xl mx-auto">
-                  <div className="w-full md:w-5/12 lg:w-1/2 flex justify-center md:justify-end shrink-0 ">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 px-4 sm:px-6 md:px-8 lg:px-10 max-w-6xl mx-auto">
+                  <div className="w-full md:w-5/12 flex justify-center">
                     <img
                       src={MAGURUJI}
                       alt="Guruji and Mataji"
-                      className="w-full max-w-[380px] md:max-w-[420px] lg:max-w-[480px] h-auto object-cover rounded-lg border-4 border-amber-400 shadow-xl"
+                      width={320}
+                      height={400}
+                      className="w-full max-w-[280px] md:max-w-[320px] h-auto object-cover rounded-lg border-4 border-amber-400 shadow-xl"
                     />
                   </div>
 
-                  <div className="w-full md:w-7/12 lg:w-1/2 text-amber-100">
+                  <div className="w-full md:w-7/12 text-amber-50 flex flex-col justify-center">
                     <p className="
-                        text-xs md:text-base lg:text-lg               {/* sm → base → lg */}
+                      text-sm md:text-base lg:text-lg
                       font-medium 
-                      leading-6 md:leading-7 lg:leading-8
+                      leading-relaxed md:leading-relaxed
                       tracking-wide 
-                      text-center md:text-justify
-                      max-w-2xl mx-auto md:mx-0
+                      text-center md:text-left
                       ">
-                      Blessed by the divine grace of Aadishakti Veda Mata Gayatri,<br />
-                      and inspired by the sacred teachings of<br />
-                      Gurudev Pt. Shriram Sharma Acharya<br />
-                      and Vandaniya Mata Bhagwati Devi Sharma,<br />
+                      Blessed by the divine grace of Aadishakti Veda Mata Gayatri,
+                      and inspired by the sacred teachings of
+                      Gurudev Pt. Shriram Sharma Acharya
+                      and Vandaniya Mata Bhagwati Devi Sharma,
                       we dedicate ourselves to
                       self-transformation, service,
                       and the upliftment of society.
@@ -170,109 +230,124 @@ const About = () => {
                 </div>
               </div>
 
-              {/* Right Content Box – Chinmay's message + image */}
-
-               <div className="bg-red-700 backdrop-blur-sm rounded-xl p-3 md:p-6 lg:p-8 flex-1">
-                <p className="text-xl sm:text-xl md:text-2xl text-amber-100 font-serif italic mb-3 text-center">
+              {/* Right Content Box - Chinmay's Message */}
+              <div className="bg-red-800 backdrop-blur-sm rounded-xl p-3 md:p-6 lg:p-8 flex-1">
+                <p className="text-lg sm:text-xl md:text-2xl text-amber-50 font-serif italic mb-3 text-center">
                   "वसुधैव कुटुम्बकम्"
                 </p>
-                <p className="text-base sm:text-lg md:text-lg text-amber-200 font-semibold text-center">
+                <p className="text-base sm:text-lg md:text-lg text-amber-100 font-semibold text-center">
                   The World is One Family
                 </p>
                 <div className="h-px w-20 md:w-24 bg-amber-400/50 mx-auto my-2 md:my-2"></div>
 
-              <div className="bg-red-700 backdrop-blur-sm rounded-xl p-5 md:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 lg:gap-10 flex-1">
-                <div className="relative w-full lg:w-2/5 min-h-[500px] md:min-h-[600px] flex justify-center lg:justify-end items-start shrink-0 min-h-[auto] md:min-h-[500px]">
-                  <img
-                    src={Chinmay_Gurugi}
-                    alt="Chinmay Guruji"
-                    className="w-full max-w-[280px] md:max-w-[340px] lg:max-w-[380px] h-auto object-contain rounded-xl border-4 border-amber-400 shadow-xl "
-                  />
-                </div>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 px-4 sm:px-6 md:px-8 lg:px-10 max-w-6xl mx-auto">
+                  <div className="w-full md:w-5/12 flex flex-col items-center justify-center order-2 md:order-1">
+                    <img
+                      src={Chinmay_Gurugi}
+                      alt="Dr. Chinmay Pandya - Pro-Chancellor, Dev Sanskriti Vishwavidyalaya"
+                      width={320}
+                      height={400}
+                      className="w-full max-w-[280px] md:max-w-[320px] h-auto object-cover rounded-lg border-4 border-amber-400 shadow-xl"
+                    />
+                    <div className="mt-4 text-center">
+                      <p className="text-xl md:text-2xl font-bold text-amber-50">
+                        Dr. Chinmay Pandya
+                      </p>
+                      <p className="text-amber-100 text-sm md:text-base mt-1">
+                        Pro-Chancellor, Dev Sanskriti Vishwavidyalaya
+                      </p>
+                    </div>
+                  </div>
 
-                  <p className="text-sm sm:text-base md:text-lg text-amber-100 leading-relaxed tracking-wide text-justify max-w-2xl">
-                    With Maa Gayatri and Pujya Gurudev's blessings, I am pleased to know that you and your
-                    family are doing well. Your thoughtful concern for today's younger generation and the
-                    values surrounding marriage is truly appreciable.The vision behind Vivahanam—to create
-                    a value-based, culturally and spiritually aligned platform—reflects a sincere effort
-                    rooted in dharmic principles. Such initiatives that harmonize tradition with modern
-                    life deserve encouragement.
-                  </p>
+                  <div className="w-full md:w-7/12 text-amber-50 flex flex-col justify-center order-1 md:order-2">
+                    <p className="
+                      text-sm md:text-base lg:text-lg
+                      font-medium 
+                      leading-relaxed md:leading-relaxed
+                      tracking-wide 
+                      text-center md:text-left
+                      ">
+                      With Maa Gayatri and Pujya Gurudev's blessings, I am pleased to know that you and your
+                      family are doing well. Your thoughtful concern for today's younger generation and the
+                      values surrounding marriage is truly appreciable. The vision behind Vivahanam—to create
+                      a value-based, culturally and spiritually aligned platform—reflects a sincere effort
+                      rooted in dharmic principles. Such initiatives that harmonize tradition with modern
+                      life deserve encouragement.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Mission & Vision Cards */}
+            {/* Mission & Vision Cards with equal height */}
             <div className="max-w-7xl mx-auto mt-10 md:mt-16 px-4">
-              <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-stretch">
+                {/* Mission Card */}
                 <div
                   className={`
-                    bg-gradient-to-br from-amber-100 to-white 
+                    bg-gradient-to- from-amber-100 to-white 
                     rounded-3xl shadow-2xl overflow-hidden 
                     border border-amber-100 
-                    p-6 md:p-8 flex-1 min-h-[420px]
+                    p-6 md:p-8 flex-1 flex flex-col justify-between
                   `}
                 >
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-700 text-center mb-6">
-                    Our Mission
-                  </h2>
-                  <div className="flex items-start gap-6">
-                    <div>
-                      <p className="text-lg text-gray-700 leading-relaxed mb-3">
-                        Vivahanam's mission is to uphold and promote the sacred
-                        Vedic understanding of marriage as a divine union of two
-                        souls. We strive to create meaningful matrimonial alliances
-                        rooted in trust, faith, spirituality, and family values,
-                        while honoring time-tested Vedic rituals and principles.
-                        Through thoughtful guidance and cultural integrity, we aim
-                        to support Vedic Indian–rooted families—especially across
-                        North America—in forming marriages that are spiritually
-                        fulfilling and socially harmonious.
-                      </p>
-                    </div>
+                  <div>
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-800 text-center mb-6">
+                      Our Mission
+                    </h2>
+                    <p className="text-base md:text-lg text-gray-800 leading-relaxed text-justify">
+                      Vivahanam's mission is to uphold and promote the sacred
+                      Vedic understanding of marriage as a divine union of two
+                      souls. We strive to create meaningful matrimonial alliances
+                      rooted in trust, faith, spirituality, and family values,
+                      while honoring time-tested Vedic rituals and principles.
+                      Through thoughtful guidance and cultural integrity, we aim
+                      to support Vedic Indian–rooted families—especially across
+                      North America—in forming marriages that are spiritually
+                      fulfilling and socially harmonious.
+                    </p>
                   </div>
                 </div>
 
+                {/* Vision Card */}
                 <div
                   className={`
-                    bg-gradient-to-br from-orange-100 to-white 
+                    bg-gradient-to- from-orange-100 to-white 
                     rounded-3xl shadow-2xl overflow-hidden 
                     border border-orange-100 
-                    p-6 md:p-8 flex-1
+                    p-6 md:p-8 flex-1 flex flex-col justify-between
                   `}
                 >
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-700 text-center mb-6">
-                    Our Vision
-                  </h2>
-                  <div className="flex items-start gap-6">
-                    <div>
-                      <p className="text-lg text-gray-700 leading-relaxed mb-3">
-                        Vivahanam's vision is to serve as a trusted bridge between
-                        ancient Vedic wisdom and modern matrimony, where marriage is
-                        honored not merely as a social contract, but as a lifelong
-                        spiritual journey. Vivahanam envisions a world where
-                        marriages strengthen families, preserve cultural heritage,
-                        and nurture love, responsibility, and unity — creating
-                        generations rooted in values, faith, and mutual respect. We
-                        aspire to be a one-stop platform for marriages, supporting
-                        families from matchmaking to the wedding ceremony and
-                        beyond, while making sacred marriages more affordable,
-                        accessible, and widely accepted for all.
-                      </p>
-                    </div>
+                  <div>
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-800 text-center mb-6">
+                      Our Vision
+                    </h2>
+                    <p className="text-base md:text-lg text-gray-800 leading-relaxed text-justify">
+                      Vivahanam's vision is to serve as a trusted bridge between
+                      ancient Vedic wisdom and modern matrimony, where marriage is
+                      honored not merely as a social contract, but as a lifelong
+                      spiritual journey. Vivahanam envisions a world where
+                      marriages strengthen families, preserve cultural heritage,
+                      and nurture love, responsibility, and unity — creating
+                      generations rooted in values, faith, and mutual respect. We
+                      aspire to be a one-stop platform for marriages, supporting
+                      families from matchmaking to the wedding ceremony and
+                      beyond, while making sacred marriages more affordable,
+                      accessible, and widely accepted for all.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Why Choose Us Section */}
-            <div className="bg-gradient-to-b from-amber-50 to-orange-50 py-16">
+            <div className="bg-gradient-to from-amber-50 to-orange-50 py-16">
               <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-700 mb-6">
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-800 mb-6">
                     Vivahanam: Blessed Benefits for a Joyful Life
                   </h2>
-                  <div className="h-1 w-24 bg-gradient-to-r from-amber-500 to-red-500 mx-auto"></div>
+                  <div className="h-1 w-24 bg-gradient-to from-amber-500 to-red-500 mx-auto"></div>
                 </div>
 
                 <div className="max-w-6xl mx-auto">
@@ -308,7 +383,7 @@ const About = () => {
                           key={index}
                           className="flex items-start gap-4 p-6 rounded-xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 group"
                         >
-                          <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <div className=" w-12 h-12 bg-gradient-to- from-amber-100 to-orange-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                             <div className="text-xl text-amber-700">
                               {feature.icon}
                             </div>
@@ -317,7 +392,7 @@ const About = () => {
                             <h3 className="text-xl font-bold text-amber-900 mb-2">
                               {feature.title}
                             </h3>
-                            <p className="text-gray-600">{feature.description}</p>
+                            <p className="text-gray-700">{feature.description}</p>
                           </div>
                         </div>
                       ))}
@@ -354,7 +429,7 @@ const About = () => {
                           key={index}
                           className="flex items-start gap-4 p-6 rounded-xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 group"
                         >
-                          <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <div className=" w-12 h-12 bg-gradient-to- from-amber-100 to-orange-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                             <div className="text-xl text-amber-700">
                               {feature.icon}
                             </div>
@@ -363,7 +438,7 @@ const About = () => {
                             <h3 className="text-xl font-bold text-amber-900 mb-2">
                               {feature.title}
                             </h3>
-                            <p className="text-gray-600">{feature.description}</p>
+                            <p className="text-gray-700">{feature.description}</p>
                           </div>
                         </div>
                       ))}
@@ -374,14 +449,14 @@ const About = () => {
             </div>
 
             {/* Core Values Section */}
-            <div className="bg-gradient-to-b from-amber-50 to-orange-50 py-16">
+            <div className="bg-gradient-to from-amber-500 to-orange-50 py-16">
               <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-700 mb-6">
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-800 mb-6">
                     Our Core Values
                   </h2>
-                  <div className="h-1 w-24 bg-gradient-to-r from-amber-500 to-orange-500 mx-auto mb-8"></div>
-                  <p className="text-lg text-3xl text-red-700 font-bold max-w-3xl mx-auto">
+                  <div className="h-1 w-24 bg-gradient-to from-amber-500 to-orange-500 mx-auto mb-8"></div>
+                  <p className="text-3xl text-red-800 font-bold max-w-3xl mx-auto">
                     ॐ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः । सर्वे भद्राणि पश्यन्तु मा कश्चित् दुःख भाग्भवेत्: ।
                   </p>
                 </div>
@@ -416,14 +491,14 @@ const About = () => {
                       <h3 className="text-2xl font-bold text-amber-900 mb-4">
                         {value.title}
                       </h3>
-                      <p className="text-gray-600 leading-relaxed flex-grow">
+                      <p className="text-gray-700 leading-relaxed ">
                         {value.description}
                       </p>
 
                       <div className="mt-6 pt-6 border-t border-amber-100">
                         <div
                           className={`
-                            h-1 bg-gradient-to-r ${value.color}
+                            h-1 bg-gradient-to ${value.color}
                             transition-all duration-500
                             ${activeCard === value.id ? "w-full" : "w-0"}
                           `}
@@ -434,7 +509,7 @@ const About = () => {
                 </div>
 
                 <div className="mt-16 text-center">
-                  <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-8 max-w-4xl mx-auto">
+                  <div className="bg-gradient-to from-amber-100 to-orange-100 rounded-xl p-8 max-w-4xl mx-auto">
                     <p className="text-xl text-amber-900 font-semibold italic">
                       "At Vivahanam, we believe that true marriage is a sacred
                       journey that begins with the union of two souls and extends to
@@ -445,54 +520,37 @@ const About = () => {
               </div>
             </div>
 
-            {/* Scroll to Top Button */}
-            <button
-              onClick={scrollToTop}
-              className={`
-                fixed bottom-8 right-8 z-50 p-3 rounded-full shadow-lg 
-                transition-all duration-300 transform
-                ${showScrollTop
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10 pointer-events-none"
-                }
-                bg-gradient-to-r from-amber-500 to-orange-500 
-                hover:from-amber-600 hover:to-orange-600 text-white
-              `}
-              aria-label="Scroll to top"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 10l7-7m0 0l7 7m-7-7v18"
-                ></path>
-              </svg>
-            </button>
+            {/* Universal Scroll to Top Button */}
+          <button
+  onClick={scrollToTop}
+  className={`
+    fixed bottom-8 right-8 z-50 p-3 rounded-full shadow-lg 
+    transition-all duration-300 transform hover:scale-110
+    ${showScrollTop
+      ? "opacity-100 translate-y-0"
+      : "opacity-0 translate-y-10 pointer-events-none"
+    }
+    bg-yellow-500 hover:bg-yellow-600 text-white
+  `}
+  aria-label="Scroll to top"
+>
+  <svg
+    className="w-6 h-6"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M5 10l7-7m0 0l7 7m-7-7v18"
+    ></path>
+  </svg>
+</button>
           </div>
         </div>
-
-        <style jsx>{`
-          @keyframes float {
-            0%, 100% {
-              transform: translateY(0px) translateX(0px);
-              opacity: 0.3;
-            }
-            50% {
-              transform: translateY(-30px) translateX(20px);
-              opacity: 0.6;
-            }
-          }
-          .animate-float {
-            animation: float linear infinite;
-          }
-        `}</style>
       </div>
     </div>
   );
