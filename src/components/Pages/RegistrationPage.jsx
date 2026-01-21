@@ -20,6 +20,7 @@ const DynamicRegistrationForm = () => {
   const [sections, setSections] = useState([]);
   const [formData, setFormData] = useState({});
   const [zipLoading, setZipLoading] = useState(false);
+  const [selectedCheckboxCount, setSelectedCheckboxCount] = useState({});
 
   const API_URL = import.meta.env.VITE_API_KEY;
 
@@ -119,14 +120,8 @@ const DynamicRegistrationForm = () => {
 
   // ==================== AUTO SCROLL TO TOP ON PAGE LOAD ====================
   useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth",
-    });
-
-    // Also scroll to top if user navigates via browser back/forward buttons
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    
     window.addEventListener("popstate", () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -142,10 +137,25 @@ const DynamicRegistrationForm = () => {
   useEffect(() => {
     const fetchFormConfig = async () => {
       try {
-        const response = await fetch(`${API_URL}/admin/form-fields/active`);
+        const response = await fetch(`${API_URL}/admin/form-fields/active?_=${Date.now()}`, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
 
         if (response.ok) {
           const data = await response.json();
+          
+          // Initialize selected checkbox counts
+          const counts = {};
+          data.fields?.forEach(field => {
+            if (field.type === 'checkbox' && field.isMultiple) {
+              counts[field.name] = 0;
+            }
+          });
+          setSelectedCheckboxCount(counts);
 
           setFormFields(data.fields || []);
 
@@ -197,6 +207,10 @@ const DynamicRegistrationForm = () => {
     };
 
     fetchFormConfig();
+    
+    const intervalId = setInterval(fetchFormConfig, 5 * 60 * 1000);
+    
+    return () => clearInterval(intervalId);
   }, [API_URL]);
 
   // ==================== GET USER DATA ====================
@@ -225,6 +239,21 @@ const DynamicRegistrationForm = () => {
           // Prefill form with existing user data
           if (user.formData && typeof user.formData === "object") {
             setFormData((prev) => ({ ...prev, ...user.formData }));
+            
+            // Calculate initial checkbox counts
+            const counts = {};
+            formFields.forEach(field => {
+              if (field.type === 'checkbox' && field.isMultiple && user.formData[field.name]) {
+                const values = user.formData[field.name];
+                const valueArray = Array.isArray(values) 
+                  ? values 
+                  : (typeof values === 'string' && values.includes(',')) 
+                    ? values.split(',').map(v => v.trim()).filter(v => v !== '')
+                    : values ? [values.toString()] : [];
+                counts[field.name] = valueArray.length;
+              }
+            });
+            setSelectedCheckboxCount(prev => ({...prev, ...counts}));
           }
         }
       } catch (error) {
@@ -234,25 +263,20 @@ const DynamicRegistrationForm = () => {
 
     const token = localStorage.getItem("vivahanamToken");
     if (token) fetchUserData();
-  }, [API_URL]);
+  }, [API_URL, formFields]);
 
   // ==================== DYNAMIC OPTIONS FROM API ====================
   const getDynamicOptions = (field) => {
-    // Use options from API response
-    if (
-      field.options &&
-      Array.isArray(field.options) &&
-      field.options.length > 0
-    ) {
+    if (field.options && Array.isArray(field.options) && field.options.length > 0) {
       const activeOptions = field.options.filter(
         (opt) => opt && opt.isActive !== false && opt.label && opt.value
       );
+      
       if (activeOptions.length > 0) {
         return activeOptions;
       }
     }
-
-    // Return empty array if no options from API
+    
     return [];
   };
 
@@ -262,12 +286,20 @@ const DynamicRegistrationForm = () => {
 
     // Required validation
     if (isRequired || validation?.required) {
-      if (
-        !value ||
-        (Array.isArray(value) && value.length === 0) ||
-        value.toString().trim() === ""
-      ) {
-        return validation?.message || `${label} is required`;
+      if (field.type === 'checkbox' && field.isMultiple) {
+        // For checkbox groups, check if at least one is selected
+        if (!value || (Array.isArray(value) && value.length === 0) || 
+            (typeof value === 'string' && value.trim() === '')) {
+          return validation?.message || `${label} is required`;
+        }
+      } else {
+        if (
+          !value ||
+          (Array.isArray(value) && value.length === 0) ||
+          value.toString().trim() === ""
+        ) {
+          return validation?.message || `${label} is required`;
+        }
       }
     }
 
@@ -422,7 +454,7 @@ const DynamicRegistrationForm = () => {
   // ==================== FORM HANDLERS ====================
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const fieldValue = type === "checkbox" ? checked : value;
+    let fieldValue = type === 'checkbox' ? checked : value;
 
     setFormData((prev) => ({
       ...prev,
@@ -454,6 +486,46 @@ const DynamicRegistrationForm = () => {
           [name]: error,
         }));
       }
+    }
+  };
+
+  const handleCheckboxGroupChange = (fieldName, optionValue, checked) => {
+    const field = formFields.find(f => f.name === fieldName);
+    if (!field) return;
+
+    const currentValue = formData[fieldName] || "";
+    const currentValues = Array.isArray(currentValue) 
+      ? currentValue 
+      : (typeof currentValue === 'string' && currentValue.includes(',')) 
+        ? currentValue.split(',').map(v => v.trim()).filter(v => v !== '')
+        : currentValue ? [currentValue.toString()] : [];
+
+    let newValues;
+    if (checked) {
+      newValues = [...currentValues, optionValue];
+    } else {
+      newValues = currentValues.filter(v => v !== optionValue);
+    }
+
+    // Update selected count
+    setSelectedCheckboxCount(prev => ({
+      ...prev,
+      [fieldName]: newValues.length
+    }));
+
+    // Update form data
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: newValues.join(',')
+    }));
+
+    // Trigger validation
+    if (touchedFields[fieldName]) {
+      const error = validateField(field, newValues.join(','), formData);
+      setFieldErrors(prev => ({
+        ...prev,
+        [fieldName]: error
+      }));
     }
   };
 
@@ -542,13 +614,12 @@ const DynamicRegistrationForm = () => {
 
   // ==================== RENDER FIELD COMPONENTS ====================
   const renderField = (field) => {
-    const { name, label, type, placeholder, helpText, isRequired, validation } =
-      field;
+    const { name, label, type, placeholder, helpText, isRequired, validation, isMultiple } = field;
     const value = formData[name] || "";
     const error = fieldErrors[name];
     const touched = touchedFields[name];
 
-    const inputClassName = `mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+    const inputClassName = `mt-1 block w-full px-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 ${
       touched && error
         ? "border-red-300 focus:border-red-500"
         : "border-gray-300 focus:border-orange-500"
@@ -614,6 +685,7 @@ const DynamicRegistrationForm = () => {
               zipcode: "",
             }));
           }}
+          className={`${inputClassName} appearance-none bg-white`}
         >
           <option value="">Select Country</option>
           {dynamicOptions.map((option, index) => (
@@ -633,11 +705,11 @@ const DynamicRegistrationForm = () => {
         return <input type={type} {...baseProps} />;
 
       case "textarea":
-        return <textarea rows={3} {...baseProps} />;
+        return <textarea rows={3} {...baseProps} className={`${inputClassName} resize-none`} />;
 
       case "select":
         return (
-          <select {...baseProps}>
+          <select {...baseProps} className={`${inputClassName} appearance-none bg-white`}>
             <option value="">Select {label}</option>
             {dynamicOptions.map((option, index) => (
               <option key={option.value || index} value={option.value}>
@@ -670,18 +742,162 @@ const DynamicRegistrationForm = () => {
         );
 
       case "checkbox":
-        return (
-          <input
-            type="checkbox"
-            checked={!!value}
-            onChange={handleInputChange}
-            onBlur={() => handleFieldBlur(name)}
-            className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-          />
-        );
+        // Check if it's a single checkbox or checkbox group
+        const hasOptions = dynamicOptions && dynamicOptions.length > 0;
+        const selectedCount = selectedCheckboxCount[name] || 0;
+        
+        if (hasOptions || isMultiple) {
+          // Checkbox GROUP (multiple options) - NOW IN GRID LAYOUT
+          const currentValues = Array.isArray(value) 
+            ? value 
+            : (typeof value === 'string' && value.includes(',')) 
+              ? value.split(',').map(v => v.trim()).filter(v => v !== '')
+              : value ? [value.toString()] : [];
+          
+          // Determine grid columns based on number of options
+          const gridCols = dynamicOptions.length <= 4 ? "grid-cols-2" : 
+                         dynamicOptions.length <= 8 ? "grid-cols-2 sm:grid-cols-3" : 
+                         "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
+          
+          return (
+            <div className="space-y-4">
+              {/* Selected Count Badge */}
+              {selectedCount > 0 && (
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                    {selectedCount} selected
+                  </span>
+                  {validation?.minLength && (
+                    <span className="text-sm text-gray-500">
+                      (Minimum {validation.minLength} required)
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {/* Options Grid */}
+              <div className={`grid ${gridCols} gap-3`}>
+                {dynamicOptions.map((option, index) => {
+                  const isChecked = currentValues.includes(option.value.toString());
+                  
+                  return (
+                    <div 
+                      key={option.value || index} 
+                      className={`
+                        relative flex items-start p-3 rounded-lg border transition-all duration-150 cursor-pointer
+                        ${isChecked 
+                          ? 'bg-orange-50 border-orange-300' 
+                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                        }
+                      `}
+                      onClick={() => handleCheckboxGroupChange(name, option.value, !isChecked)}
+                    >
+                      <div className="flex items-center h-5 flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          id={`${name}-${option.value}`}
+                          name={name}
+                          value={option.value}
+                          checked={isChecked}
+                          onChange={(e) => handleCheckboxGroupChange(name, option.value, e.target.checked)}
+                          onBlur={() => handleFieldBlur(name)}
+                          className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
+                        />
+                      </div>
+                      <div className="ml-2 flex-1">
+                        <label 
+                          htmlFor={`${name}-${option.value}`}
+                          className="block text-sm font-medium text-gray-900 cursor-pointer select-none"
+                        >
+                          {option.label}
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Instructions */}
+              <div className="flex items-center text-xs text-gray-500 pt-2">
+                <svg className="w-4 h-4 mr-1 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span>Click on options to select/deselect. {validation?.minLength && `Select at least ${validation.minLength}.`}</span>
+              </div>
+            </div>
+          );
+        } else {
+          // SINGLE checkbox (true/false)
+          const isChecked = value === true || 
+                           value === 'true' || 
+                           value === 1 || 
+                           value === '1' || 
+                           value === 'yes' ||
+                           value === 'on';
+          
+          return (
+            <div className="flex items-center">
+              <div className="relative flex items-center">
+                <input
+                  type="checkbox"
+                  id={name}
+                  checked={isChecked}
+                  onChange={(e) => {
+                    handleInputChange({
+                      target: { 
+                        name, 
+                        type: 'checkbox', 
+                        checked: e.target.checked 
+                      }
+                    });
+                  }}
+                  onBlur={() => handleFieldBlur(name)}
+                  className="sr-only"
+                />
+                <div 
+                  className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                    isChecked ? 'bg-orange-500' : 'bg-gray-300'
+                  }`}
+                  onClick={() => {
+                    handleInputChange({
+                      target: { 
+                        name, 
+                        type: 'checkbox', 
+                        checked: !isChecked 
+                      }
+                    });
+                  }}
+                >
+                  <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                    isChecked ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </div>
+                <label 
+                  htmlFor={name}
+                  className="ml-3 block text-sm font-medium text-gray-900 cursor-pointer select-none"
+                >
+                  {label} {isRequired && <span className="text-red-600">*</span>}
+                </label>
+              </div>
+            </div>
+          );
+        }
 
       case "date":
-        return <input type="date" {...baseProps} />;
+        return (
+          <div className="relative">
+            <input
+              type="date"
+              {...baseProps}
+              className={`${inputClassName} appearance-none`}
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+        );
 
       case "datalist":
         return (
@@ -717,104 +933,113 @@ const DynamicRegistrationForm = () => {
   };
 
   // ==================== SUBMIT HANDLER ====================
-  // ==================== SUBMIT HANDLER ====================
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  // Mark all fields as touched
-  const touched = {};
-  formFields.forEach((field) => {
-    touched[field.name] = true;
-  });
-  touched.documents = true;
-  touched.profilePhotos = true;
-  setTouchedFields(touched);
-
-  if (!validateAllFields()) {
-    setError("Please fix all validation errors before submitting.");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    return;
-  }
-
-  setError("");
-  setIsSubmitting(true);
-  setLoading(true);
-
-  try {
-    const token = localStorage.getItem("vivahanamToken");
-    if (!token) {
-      throw new Error("Authentication token not found. Please log in again.");
-    }
-
-    // Convert ALL profile photos to base64
-    const profileImagesBase64 = [];
-    for (const photo of profilePhotos) {
-      const base64Photo = await fileToBase64(photo);
-      profileImagesBase64.push(base64Photo);
-    }
-
-    const documentsBase64 = [];
-    for (const doc of documents) {
-      const base64Doc = await fileToBase64(doc);
-      documentsBase64.push(base64Doc);
-    }
-
-    // Clean form data
-    const cleanedFormData = Object.fromEntries(
-      Object.entries(formData).filter(
-        ([_, value]) => value !== undefined && value !== null && value !== ""
-      )
-    );
-
-    // IMPORTANT: Changed from profileImage to profileImages
-    const submitData = {
-      formData: cleanedFormData,
-      profileImages: profileImagesBase64, // Changed from profileImage
-      documents: documentsBase64,
-    };
-
-    console.log("📤 Sending registration data:", {
-      formDataFields: Object.keys(cleanedFormData).length,
-      profileImagesCount: profileImagesBase64.length,
-      documentsCount: documentsBase64.length
+    // Mark all fields as touched
+    const touched = {};
+    formFields.forEach((field) => {
+      touched[field.name] = true;
     });
+    touched.documents = true;
+    touched.profilePhotos = true;
+    setTouchedFields(touched);
 
-    const response = await fetch(`${API_URL}/user/complete-registration`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(submitData),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.message || `Registration failed: ${response.statusText}`
-      );
+    if (!validateAllFields()) {
+      setError("Please fix all validation errors before submitting.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
     }
 
-    console.log("✅ Registration successful:", data.message);
-    setShowSuccessModal(true);
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 3000);
-  } catch (err) {
-    console.error("Registration error:", err);
-    setError(err.message || "Registration failed. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-    setLoading(false);
-  }
-};
+    setError("");
+    setIsSubmitting(true);
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem("vivahanamToken");
+      if (!token) {
+        throw new Error("Authentication token not found. Please log in again.");
+      }
+
+      // Convert ALL profile photos to base64
+      const profileImagesBase64 = [];
+      for (const photo of profilePhotos) {
+        const base64Photo = await fileToBase64(photo);
+        profileImagesBase64.push(base64Photo);
+      }
+
+      const documentsBase64 = [];
+      for (const doc of documents) {
+        const base64Doc = await fileToBase64(doc);
+        documentsBase64.push(base64Doc);
+      }
+
+      // Clean form data - handle checkbox groups
+      const cleanedFormData = {};
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          // Check if this field is a checkbox group
+          const field = formFields.find(f => f.name === key);
+          if (field && field.type === 'checkbox' && field.isMultiple) {
+            // Ensure checkbox groups are stored as comma-separated strings
+            if (Array.isArray(value)) {
+              cleanedFormData[key] = value.join(',');
+            } else {
+              cleanedFormData[key] = value;
+            }
+          } else {
+            cleanedFormData[key] = value;
+          }
+        }
+      });
+
+      // IMPORTANT: Changed from profileImage to profileImages
+      const submitData = {
+        formData: cleanedFormData,
+        profileImages: profileImagesBase64, // Changed from profileImage
+        documents: documentsBase64,
+      };
+
+      const response = await fetch(`${API_URL}/user/complete-registration`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || `Registration failed: ${response.statusText}`
+        );
+      }
+
+      setShowSuccessModal(true);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 3000);
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError(err.message || "Registration failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+      setLoading(false);
+    }
+  };
 
   // ==================== RENDER FUNCTIONS ====================
   const renderFieldError = (fieldName) => {
     if (touchedFields[fieldName] && fieldErrors[fieldName]) {
       return (
-        <p className="mt-1 text-sm text-red-600">{fieldErrors[fieldName]}</p>
+        <div className="mt-2 flex items-center text-sm text-red-600">
+          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <span>{fieldErrors[fieldName]}</span>
+        </div>
       );
     }
     return null;
@@ -837,113 +1062,202 @@ const handleSubmit = async (e) => {
   // ==================== COMPONENT RENDER ====================
   if (formFields.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading form configuration...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-orange-500 mx-auto mb-4"></div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Form Configuration</h3>
+          <p className="text-gray-600">Please wait while we load the registration form...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden px-4 pt-30 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 bg-amber-100 opacity-90"></div>
-      <div className="relative z-10 flex items-center justify-center py-8">
-        <div className="max-w-4xl w-full space-y-8">
-          {/* Header */}
-          <div className="text-center bg-red-200 rounded-xl p-6 shadow-sm">
-            <h2 className="text-3xl font-bold text-red-700">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 pt-16 md:pt-20">
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccessModal(false)}></div>
+          <div className="relative z-10 bg-white rounded-xl shadow-2xl max-w-md w-full p-8 text-center animate-fade-in">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+              <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Registration Successful!</h3>
+            <p className="text-gray-600 mb-6">
+              Your profile has been created successfully.
+              {userVivId && (
+                <span className="block mt-2 font-medium text-orange-600">Your VIV ID: {userVivId}</span>
+              )}
+            </p>
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+              <div className="bg-green-500 h-2 rounded-full animate-progress" style={{ animationDuration: "3s" }}></div>
+            </div>
+            <p className="text-sm text-gray-500">Redirecting to dashboard...</p>
+          </div>
+        </div>
+      )}
+
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-8 relative z-10">
+          {/* Top Spacer for Navigation */}
+          <div className="h-4"></div>
+          
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-6 mb-6 border-2 border-orange-200 shadow-lg relative overflow-hidden">
+            {/* Decorative Elements */}
+            <div className="absolute -top-10 -left-10 w-20 h-20 bg-red-100 rounded-full opacity-20"></div>
+            <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-amber-100 rounded-full opacity-20"></div>
+            
+            <h1 className="text-3xl md:text-4xl font-bold text-red-700 mb-2 relative z-10">
               !! वसुधैव कुटुम्बकम् !!
-            </h2>
-            <h2 className="mt-2 text-3xl font-bold text-gray-900">
+            </h1>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 relative z-10">
               Join Vivahanam - Find Your Life Partner
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Create your profile to start your Vivahanam journey
+            <p className="text-gray-600 max-w-2xl mx-auto relative z-10">
+              Create your complete profile to start your journey towards finding your perfect life partner
             </p>
-            {userVivId && (
-              <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 inline-block">
-                <p className="text-sm text-red-700">
-                  <strong>VIV ID:</strong> {userVivId}
-                </p>
+          </div>
+          
+          {userVivId && (
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 px-5 py-3 rounded-xl border border-green-200 shadow-sm mb-6 relative z-10">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
               </div>
-            )}
+              <div>
+                <p className="text-sm font-medium text-gray-700">Your VIV ID</p>
+                <p className="text-lg font-bold text-red-700">{userVivId}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-8 bg-red-50 border-l-4 border-red-500 rounded-r-lg p-6 shadow-lg">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-red-800">Registration Error</h3>
+                <p className="mt-1 text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Form */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-orange-100 mt-8">
+          {/* Form Header */}
+          <div className="bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-5 sticky top-0 z-20">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Registration Form</h2>
+                <p className="text-orange-100 text-sm mt-1">Complete all sections to proceed</p>
+              </div>
+              <div className="text-right">
+                <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full">
+                  <span className="text-white text-sm font-medium">
+                    {formFields.filter(f => f.isRequired).length} Required Fields
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Form */}
-          <div className="bg-white/95 backdrop-blur-sm shadow-2xl rounded-2xl p-8 space-y-6 border border-orange-100">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-8"
-              autoComplete="off"
-            >
-              {/* Required Field Note */}
-              <div className="flex justify-end">
-                <p className="text-xs sm:text-sm text-gray-600 text-right max-w-xs sm:max-w-none ml-auto">
-                  <span>Note: </span>
-                  <span className="font-semibold text-red-600">*</span>{" "}
-                  <strong className="text-red-600">
-                    indicates a required field
-                  </strong>
-                </p>
-              </div>
-
-              {/* Dynamic Sections */}
-              {sections.map((section) => (
-                <div key={section.section}>
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {section.sectionTitle}
-                  </h3>
-                  <div className="mt-4 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {section.fields.map((field) => (
-                        <div
-                          key={field.name}
-                          className={
-                            field.type === "textarea" ? "col-span-1" : ""
-                          }
-                        >
-                          <label className="block text-sm font-medium text-gray-700">
-                            {field.label}
-                            {(field.isRequired ||
-                              field.validation?.required) && (
-                              <span className="text-red-600 ml-1">*</span>
-                            )}
-                          </label>
-                          {renderField(field)}
-                          {field.helpText && (
-                            <p className="mt-1 text-xs text-gray-500">
-                              {field.helpText}
-                            </p>
-                          )}
-                          {renderFieldError(field.name)}
-                        </div>
-                      ))}
-                    </div>
+          <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8">
+            {/* Dynamic Sections */}
+            {sections.map((section) => (
+              <div key={section.section} className="scroll-mt-24" id={`section-${section.section}`}>
+                <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-200">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-100 to-amber-100 rounded-lg flex items-center justify-center shadow-sm">
+                    <span className="text-lg font-bold text-orange-600">
+                      {sections.indexOf(section) + 1}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">{section.sectionTitle}</h3>
+                    <p className="text-gray-600 text-sm mt-1">
+                      {section.fields.length} field{section.fields.length !== 1 ? 's' : ''} in this section
+                    </p>
                   </div>
                 </div>
-              ))}
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {section.fields.map((field) => (
+                    <div
+                      key={field.name}
+                      className={`${
+                        field.type === "textarea" || 
+                        (field.type === "checkbox" && field.isMultiple)
+                          ? "lg:col-span-2"
+                          : ""
+                      }`}
+                    >
+                      <div className={`p-5 rounded-lg border transition-all duration-200 ${
+                        touchedFields[field.name] && fieldErrors[field.name]
+                          ? 'border-red-200 bg-red-50/50'
+                          : 'border-gray-100 bg-white hover:border-orange-200'
+                      }`}>
+                        <label className="block text-sm font-semibold text-gray-900 mb-3 flex items-center justify-between">
+                          <span className="flex items-center">
+                            {field.label}
+                            {(field.isRequired || field.validation?.required) && (
+                              <span className="ml-1.5 text-red-600">*</span>
+                            )}
+                          </span>
+                          {field.type === 'checkbox' && field.isMultiple && (
+                            <span className="text-xs font-normal px-2 py-1 rounded-full bg-orange-100 text-orange-800">
+                              Multiple select
+                            </span>
+                          )}
+                        </label>
+                        
+                        {renderField(field)}
+                        
+                        {field.helpText && (
+                          <div className="mt-3 flex items-start text-sm text-gray-500">
+                            <svg className="w-4 h-4 mr-1.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                            <span>{field.helpText}</span>
+                          </div>
+                        )}
+                        
+                        {renderFieldError(field.name)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
 
+            {/* Upload Sections */}
+            <div className="space-y-8">
               {/* Profile Photos Section */}
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  Profile Photos
-                </h3>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-900 mb-3">
-                    Profile Photos <span className="text-red-600">*</span>
-                    <span className="ml-2 text-xs font-normal text-gray-500">
-                      (Up to 3 photos, 100KB each, JPG/PNG only)
-                    </span>
-                  </label>
+              <div className="p-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-200">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="flex-shrink-0 w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-orange-300">
+                    <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Profile Photos</h3>
+                    <p className="text-gray-600 mt-1">
+                      Upload clear photos to increase your profile visibility
+                    </p>
+                  </div>
+                </div>
 
+                <div className="space-y-6">
                   <div className="relative">
                     <input
                       ref={profilePhotosInputRef}
@@ -958,33 +1272,22 @@ const handleSubmit = async (e) => {
                     {profilePhotos.length < 3 && (
                       <label
                         htmlFor="profile-photos-input"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer bg-gradient-to-br from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 transition-all duration-300"
+                        className="block w-full border-2 border-dashed border-orange-300 rounded-xl p-8 text-center cursor-pointer bg-white/50 hover:bg-white transition-colors"
                       >
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <svg
-                            className="w-10 h-10 mb-3 text-orange-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                            />
-                          </svg>
-                          <p className="mb-1 text-sm text-gray-700 font-medium">
-                            <span className="text-orange-600">
-                              Click to upload
-                            </span>{" "}
-                            or drag and drop
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {3 - profilePhotos.length}{" "}
-                            {profilePhotos.length === 2 ? "slot" : "slots"}{" "}
-                            remaining • Max 100KB per photo
-                          </p>
+                        <div className="max-w-xs mx-auto">
+                          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-orange-100 to-amber-100 flex items-center justify-center">
+                            <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                          </div>
+                          <h4 className="text-lg font-medium text-gray-900 mb-2">Upload Profile Photos</h4>
+                          <p className="text-gray-600 mb-3">Click to browse</p>
+                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full">
+                            <span className="text-sm font-medium text-orange-800">
+                              {3 - profilePhotos.length} slot{3 - profilePhotos.length !== 1 ? 's' : ''} remaining
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-4">JPG, PNG only • Max 100KB per photo</p>
                         </div>
                       </label>
                     )}
@@ -992,51 +1295,39 @@ const handleSubmit = async (e) => {
 
                   {/* Photo Preview */}
                   {profilePhotos.length > 0 && (
-                    <div className="mt-4">
-                      <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-medium text-gray-900">Uploaded Photos ({profilePhotos.length}/3)</h4>
+                        <span className="text-sm text-gray-500">Click on photo to view larger</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {profilePhotos.map((photo, index) => (
                           <div
                             key={index}
-                            className="relative group bg-white rounded-lg border-2 border-orange-200 overflow-hidden shadow-sm"
+                            className="relative group bg-white rounded-lg border border-orange-200 overflow-hidden shadow-md"
                           >
                             <div className="absolute top-2 left-2 z-10">
-                              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-500 text-white shadow-sm">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white">
                                 Photo {index + 1}
                               </span>
                             </div>
-                            <div className="aspect-square relative">
+                            <div className="aspect-square relative overflow-hidden">
                               <img
                                 src={photoUrls[index]}
                                 alt={`Profile photo ${index + 1}`}
-                                className="w-full h-full object-cover rounded"
-                                onError={() => {
-                                  setHasError((prev) => {
-                                    const newErrors = [...prev];
-                                    newErrors[index] = true;
-                                    return newErrors;
-                                  });
-                                }}
+                                className="w-full h-full object-cover"
                               />
                             </div>
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
+                            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all">
                               <button
                                 type="button"
                                 onClick={() => removeProfilePhoto(index)}
-                                className="opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 shadow-lg"
+                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-colors"
                               >
-                                <svg
-                                  className="h-5 w-5"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                  />
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
+                                Remove
                               </button>
                             </div>
                           </div>
@@ -1049,144 +1340,129 @@ const handleSubmit = async (e) => {
               </div>
 
               {/* Documents Section */}
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">Documents</h3>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Upload Documents <span className="text-red-600">*</span>
-                    <span className="ml-2 text-xs font-normal text-gray-500">
-                      (Max 100KB each, PDF/DOC/DOCX only)
-                    </span>
-                  </label>
+              <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="flex-shrink-0 w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-blue-300">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Supporting Documents</h3>
+                    <p className="text-gray-600 mt-1">
+                      Upload required documents for verification
+                    </p>
+                  </div>
+                </div>
 
+                <div className="space-y-6">
                   <input
                     ref={documentsInputRef}
                     type="file"
                     multiple
                     onChange={handleDocumentChange}
                     accept=".pdf,.doc,.docx"
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-500 file:to-indigo-500 file:text-white hover:file:from-blue-600 hover:file:to-indigo-600 transition-colors"
                   />
 
                   {documents.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      {documents.map((doc, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {doc.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {(doc.size / 1024).toFixed(2)} KB •{" "}
-                                {getFileType(doc.name)}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeDocument(index)}
-                            className="text-red-600 hover:text-red-800 font-medium p-1"
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-4">Uploaded Documents ({documents.length})</h4>
+                      <div className="space-y-3">
+                        {documents.map((doc, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-4 bg-white rounded-lg border border-blue-100 hover:border-blue-200 transition-colors"
                           >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
+                            <div className="flex items-center gap-4">
+                              <div className={`p-2 rounded ${
+                                getFileType(doc.name) === 'PDF' ? 'bg-red-100' :
+                                getFileType(doc.name) === 'DOC' ? 'bg-blue-100' :
+                                'bg-indigo-100'
+                              }`}>
+                                <span className={`text-xs font-medium ${
+                                  getFileType(doc.name) === 'PDF' ? 'text-red-800' :
+                                  getFileType(doc.name) === 'DOC' ? 'text-blue-800' :
+                                  'text-indigo-800'
+                                }`}>
+                                  {getFileType(doc.name)}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {doc.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {(doc.size / 1024).toFixed(2)} KB
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeDocument(index)}
+                              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {renderFieldError("documents")}
                 </div>
               </div>
+            </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-end pt-6">
+            {/* Form Footer */}
+            <div className="pt-8 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="text-sm text-gray-600">
+                  <p className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <span>All fields marked with <span className="text-red-600 font-bold">*</span> are required</span>
+                  </p>
+                </div>
+                
                 <button
                   type="submit"
                   disabled={isSubmitting || loading}
-                  className="px-6 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center px-8 py-3 text-base sm:text-lg font-bold text-white bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px] disabled:hover:scale-100 disabled:hover:shadow-lg"
                 >
-                  {loading
-                    ? "Submitting..."
-                    : isSubmitting
-                    ? "Processing..."
-                    : "Register Now"}
+                  {isSubmitting || loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Complete Registration
+                    </>
+                  )}
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+          </form>
+        </div>
+
+        {/* Footer Note */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>By submitting this form, you agree to our Terms of Service and Privacy Policy</p>
+          <p className="mt-1">Need help? Contact support@vivahanam.com</p>
         </div>
       </div>
-
-      {/* Success Modal */}
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          {/* Semi-transparent overlay - but NOT full black */}
-          <div
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-            onClick={() => setShowSuccessModal(false)}
-          ></div>
-
-          {/* Modal Content - positioned in the center */}
-          <div className="relative z-50 bg-white p-8 rounded-lg max-w-md w-full mx-4 text-center shadow-2xl animate-fade-in">
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                ></path>
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Registration Successful!
-            </h3>
-            <p className="text-sm text-green-600 mb-4">
-              Your profile has been created successfully.
-              {userVivId && ` Your VIV ID: ${userVivId}`}
-            </p>
-
-            <div className="flex justify-center mt-4">
-              <div className="w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-green-500 animate-progress"
-                  style={{ animationDuration: "3s" }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
+
 export default DynamicRegistrationForm;
