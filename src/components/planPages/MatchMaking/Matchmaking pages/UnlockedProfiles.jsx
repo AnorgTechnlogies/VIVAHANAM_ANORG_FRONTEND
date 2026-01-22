@@ -11,15 +11,19 @@ import {
   Lock,
 } from "lucide-react";
 
-const UnlockedProfiles = ({ 
-  user, 
-  // checkAuthAndRedirect, 
-  navigate, 
-  setActiveTab 
+const UnlockedProfiles = ({
+  user,
+  // checkAuthAndRedirect,
+  navigate,
+  setActiveTab,
 }) => {
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState(null);
-  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 1,
+    total: 0,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedProfile, setSelectedProfile] = useState(null);
@@ -43,26 +47,37 @@ const UnlockedProfiles = ({
   const fetchHistory = useCallback(
     async (page = 1, reset = false) => {
       if (!isUserAuthenticatedAndRegistered) return;
-      
+
       setLoading(true);
       setError("");
       try {
         const token = localStorage.getItem("vivahanamToken");
-        const response = await fetch(`${API_URL}/userplan/unlocks/history?page=${page}&limit=20`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `${API_URL}/userplan/unlocks/history?page=${page}&limit=20`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
         const data = await response.json();
         if (!response.ok || !data.success) {
           throw new Error(data.message || "Unable to load unlock history");
         }
 
         const nextHistory = data.data?.history || [];
-        setHistory((prev) => (reset || page === 1 ? nextHistory : [...prev, ...nextHistory]));
+        setHistory((prev) =>
+          reset || page === 1 ? nextHistory : [...prev, ...nextHistory],
+        );
         setStats(data.data?.stats || null);
-        setPagination(data.data?.pagination || { page: 1, totalPages: 1, total: nextHistory.length });
+        setPagination(
+          data.data?.pagination || {
+            page: 1,
+            totalPages: 1,
+            total: nextHistory.length,
+          },
+        );
       } catch (err) {
         console.error("Unlock page error:", err);
         setError(err.message);
@@ -70,7 +85,7 @@ const UnlockedProfiles = ({
         setLoading(false);
       }
     },
-    [API_URL, isUserAuthenticatedAndRegistered]
+    [API_URL, isUserAuthenticatedAndRegistered],
   );
 
   useEffect(() => {
@@ -84,17 +99,20 @@ const UnlockedProfiles = ({
       handlePurchaseMore();
       return;
     }
-    
+
     const partnerId = profile?._id || profile?.id;
     if (!partnerId) return;
     try {
       const token = localStorage.getItem("vivahanamToken");
-      const response = await fetch(`${API_URL}/userplan/unlocked/${partnerId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_URL}/userplan/unlocked/${partnerId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
         throw new Error(data.message || "Unable to load profile");
@@ -113,11 +131,14 @@ const UnlockedProfiles = ({
         <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-full bg-amber-50 border border-amber-100">
           <Lock className="w-10 h-10 text-amber-600" />
         </div>
-        <h3 className="text-xl font-bold text-amber-700 mb-2">Get Started with Balance</h3>
+        <h3 className="text-xl font-bold text-amber-700 mb-2">
+          Get Started with Balance
+        </h3>
         <p className="text-amber-600 mb-6">
-          Purchase Balance to unlock profile viewing, send messages, and start connecting with potential matches.
+          Purchase Balance to unlock profile viewing, send messages, and start
+          connecting with potential matches.
         </p>
-        <button 
+        <button
           onClick={handlePurchaseMore}
           className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
         >
@@ -131,9 +152,12 @@ const UnlockedProfiles = ({
     <div className="space-y-6">
       <header className="bg-white rounded-2xl shadow-sm border border-blue-100 p-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Unlocked profiles</p>
-          <h2 className="text-2xl font-semibold text-gray-900">Profiles you've already Unlocked</h2>
-     
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+            Unlocked profiles
+          </p>
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Profiles you've already Unlocked
+          </h2>
         </div>
         <button
           onClick={() => fetchHistory(1, true)}
@@ -146,32 +170,49 @@ const UnlockedProfiles = ({
       </header>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </div>
       )}
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Profiles unlocked" value={stats?.totalUnlocked || 0} helper="Lifetime unlocks" />
+        <StatCard
+          label="Profiles unlocked"
+          value={stats?.totalUnlocked || 0}
+          helper="Lifetime unlocks"
+        />
         {/* <StatCard label="Profile used" value={stats?.totalCreditsUsed || 0} helper="Spent on unlocks" /> */}
         <StatCard
           label="Last unlocked"
-          value={stats?.lastUnlockedAt ? new Date(stats.lastUnlockedAt).toLocaleString() : "Not yet"}
+          value={
+            stats?.lastUnlockedAt
+              ? new Date(stats.lastUnlockedAt).toLocaleString()
+              : "Not yet"
+          }
           helper="Timestamp"
         />
       </section>
 
       <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Unlocked profiles ({pagination.total || history.length})</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Unlocked profiles ({pagination.total || history.length})
+          </h3>
         </div>
 
         {history.length === 0 ? (
           <div className="p-8 text-center text-sm text-gray-500">
-            {loading ? "Loading unlocked profiles..." : "You haven't unlocked any profiles yet."}
+            {loading
+              ? "Loading unlocked profiles..."
+              : "You haven't unlocked any profiles yet."}
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
             {history.map((entry) => (
-              <article key={entry.id} className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+              <article
+                key={entry.id}
+                className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between"
+              >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <img
                     src={entry.profile?.profileImage || "/placeholder.jpg"}
@@ -179,15 +220,21 @@ const UnlockedProfiles = ({
                     className="h-14 w-14 rounded-2xl object-cover border border-gray-100"
                   />
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-900">{entry.profile?.name || "Profile"}</p>
+                    <p className="font-semibold text-gray-900">
+                      {entry.profile?.name || "Profile"}
+                    </p>
                     <div className="flex flex-wrap gap-3 text-xs text-gray-500">
                       <span className="inline-flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5" />
-                        {entry.profile?.formData?.city || entry.profile?.city || "Location hidden"}
+                        {entry.profile?.formData?.city ||
+                          entry.profile?.city ||
+                          "Location hidden"}
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
-                        {entry.unlockedAt ? new Date(entry.unlockedAt).toLocaleString() : "Just now"}
+                        {entry.unlockedAt
+                          ? new Date(entry.unlockedAt).toLocaleString()
+                          : "Just now"}
                       </span>
                     </div>
                   </div>
@@ -195,10 +242,16 @@ const UnlockedProfiles = ({
                 <div className="flex items-center gap-4">
                   <div className="text-right text-sm text-gray-600">
                     <p>
-                      Cost: <span className="font-semibold text-gray-900">{entry.cost}</span> Profile
+                      Cost:{" "}
+                      <span className="font-semibold text-gray-900">
+                        {entry.cost}
+                      </span>{" "}
+                      Profile
                       {entry.cost === 1 ? "" : "s"}
                     </p>
-                    {entry.plan?.name && <p className="text-xs text-gray-500">{entry.plan.name}</p>}
+                    {entry.plan?.name && (
+                      <p className="text-xs text-gray-500">{entry.plan.name}</p>
+                    )}
                   </div>
                   <button
                     onClick={() => handleViewProfile(entry.profile)}
@@ -227,7 +280,10 @@ const UnlockedProfiles = ({
       </section>
 
       {selectedProfile && (
-        <UnlockedProfileDetails profile={selectedProfile} onClose={() => setSelectedProfile(null)} />
+        <UnlockedProfileDetails
+          profile={selectedProfile}
+          onClose={() => setSelectedProfile(null)}
+        />
       )}
     </div>
   );
@@ -255,7 +311,9 @@ const UnlockedProfileDetails = ({ profile, onClose }) => {
       <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
         <div className="flex items-start justify-between border-b border-gray-100 p-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-green-700">Unlocked profile</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-green-700">
+              Unlocked profile
+            </p>
             <h3 className="text-2xl font-bold text-gray-900">{profile.name}</h3>
             <p className="text-sm text-gray-500">VIV ID: {profile.vivId}</p>
           </div>
@@ -275,28 +333,66 @@ const UnlockedProfileDetails = ({ profile, onClose }) => {
               className="mx-auto h-28 w-28 rounded-2xl object-cover border border-white shadow"
             />
             <div className="mt-4 space-y-2 text-sm text-gray-600">
-              <InfoChip icon={<User className="w-4 h-4" />} label={formData.gender || profile.gender || "Not shared"} />
-              <InfoChip icon={<MapPin className="w-4 h-4" />} label={formData.city || profile.city || "Location hidden"} />
-              <InfoChip icon={<Mail className="w-4 h-4" />} label={profile.email || "Hidden"} />
-              <InfoChip icon={<Phone className="w-4 h-4" />} label={formData.mobileNo || "Hidden"} />
+              <InfoChip
+                icon={<User className="w-4 h-4" />}
+                label={formData.gender || profile.gender || "Not shared"}
+              />
+              <InfoChip
+                icon={<MapPin className="w-4 h-4" />}
+                label={formData.city || profile.city || "Location hidden"}
+              />
+              <InfoChip
+                icon={<Mail className="w-4 h-4" />}
+                label={profile.email || "Hidden"}
+              />
+              <InfoChip
+                icon={<Phone className="w-4 h-4" />}
+                label={formData.mobileNo || "Hidden"}
+              />
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Religion" value={formData.religion || profile.religion} />
-              <Field label="Marital status" value={formData.maritalStatus || profile.maritalStatus} />
-              <Field label="Occupation" value={formData.occupation || profile.occupation} />
+              <Field
+                label="Religion"
+                value={formData.religion || profile.religion}
+              />
+              <Field
+                label="Marital status"
+                value={formData.maritalStatus || profile.maritalStatus}
+              />
+              <Field
+                label="Occupation"
+                value={formData.occupation || profile.occupation}
+              />
               <Field label="Education" value={formData.educationLevel} />
             </div>
             <div className="rounded-2xl border border-gray-100 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Full biodata</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                Full biodata
+              </p>
               <div className="grid gap-3 sm:grid-cols-2">
-                {Object.entries(formData).map(([key, value]) => (
-                  <Field key={key} label={prettifyLabel(key)} value={formatValue(value)} />
-                ))}
-                {Object.keys(formData).length === 0 && (
-                  <p className="text-sm text-gray-500">No extra biodata available for this user.</p>
+                {Object.entries(formData)
+                  .filter(
+                    ([key]) =>
+                      key !== "additionalImages" &&
+                      key !== "additionalImageUrls",
+                  ) // दोनों variations को filter करें
+                  .map(([key, value]) => (
+                    <Field
+                      key={key}
+                      label={prettifyLabel(key)}
+                      value={formatValue(value)}
+                    />
+                  ))}
+                {Object.keys(formData).filter(
+                  (key) =>
+                    key !== "additionalImages" && key !== "additionalImageUrls",
+                ).length === 0 && (
+                  <p className="text-sm text-gray-500">
+                    No extra biodata available for this user.
+                  </p>
                 )}
               </div>
             </div>
@@ -310,7 +406,9 @@ const UnlockedProfileDetails = ({ profile, onClose }) => {
 const Field = ({ label, value }) => (
   <div>
     <p className="text-xs uppercase tracking-wide text-gray-500">{label}</p>
-    <p className="text-sm font-semibold text-gray-900">{value || "Not shared"}</p>
+    <p className="text-sm font-semibold text-gray-900">
+      {value || "Not shared"}
+    </p>
   </div>
 );
 
